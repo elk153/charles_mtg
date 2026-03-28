@@ -1,0 +1,21 @@
+body {
+    font-family: 'Palatino Linotype', Palatino, 'Book Antiqua', Serif;
+    text-align: Center;
+    margin-top: 50px;
+}
+
+input {
+    padding: 10px;
+    font-size: 16px;
+}
+
+button {
+    padding: 10px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+img {
+  margin-top: 20px;
+  width: 200px;
+}
