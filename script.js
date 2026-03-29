@@ -14,6 +14,9 @@ function buildURL(cardName) {
     return `${urlAPI}${urlEndPoint}${urlQuery}`; 
 }
 
+function buildQueryUrl(api, type, method, query) {
+    return `${api}/${type}/${method}?${query}`;
+}
 // Logic (core functionality of the app) //
 
 // Function to search for a card using the Scryfall API //
@@ -34,18 +37,52 @@ async function searchCard() {
     }
 }
 
+async function searchCards(CardName) {
+
+    const cardName = document.getElementById("request").value;
+
+    const url = buildQueryUrl("https://api.scryfall.com", "cards", "search", `q=${cardName}&order=rarity`);
+    console.log(url);
+
+    try{
+        const response = await fetch(url);
+        const cards = await response.json();
+
+        displayCards(cards.data);
+        
+    } catch(error) {
+        document.getElementById("result").innerHTML = "Card not found 😢";
+    }
+}
 
 //UI rendering //
 
 // Function to display the card information on the page //
+
+function displayCards(cards) {
+    
+    const resultDiv = document.getElementById("result");
+
+    resultDiv.innerHTML = ""; // Clear previous results
+
+    cards.forEach(displayCard);
+}
+
 function displayCard(card) {
 
     const resultDiv = document.getElementById("result");
 
-    resultDiv.innerHTML = `
-        <h2>${card.name}</h2>
-        <img src="${card.image_uris.png}" />
-        <p>Price (Foil): ${card.prices.eur || "N/A"}€ (${card.prices.eur_foil || "N/A"}€)</p>
+    resultDiv.innerHTML += `
+      <div class="card">
+        <div class="card-image">
+          <img src="${card.image_uris?.png || ''}" alt="${card.name}" />
+        </div>
+        <div class="card-details">
+          <h2>${card.name}</h2>
+          <h3>${card.rarity}</h3>
+          <p>Price (Foil): ${card.prices.eur || "N/A"}€ (${card.prices.eur_foil || "N/A"}€)</p>
+        </div>
+      </div>
     `;
 }
 
@@ -58,14 +95,14 @@ document.title = document.getElementById("pageTitle").textContent;
 // Event listener to trigger search when the Enter key is pressed in the input field //
 document.getElementById("request")
     .addEventListener("keypress", function(e) {
-        if (e.key === "Enter") searchCard();
+        if (e.key === "Enter") searchCards();
     }
 )
 
 // Event listener to trigger search when the Search button is clicked //
 document.getElementById("searchButton")
-    .addEventListener("click", searchCard);
+    .addEventListener("click", searchCards);
 
 
 // Log to the console for debugging purposes //
-console.log(document.getElementById("pageTitle").textContent);
+// console.log(document.getElementById("pageTitle").textContent);
