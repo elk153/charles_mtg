@@ -2,6 +2,9 @@
     To avoid order issue, use ES  modules
 */
 
+// Global variables (if needed) //
+
+const resultDiv = document.getElementById("result"); // Container to display the search results
 
 // Utils (small helpers that can be used in different places) //
 
@@ -17,6 +20,7 @@ function buildURL(cardName) {
 function buildQueryUrl(api, type, method, query) {
     return `${api}/${type}/${method}?${query}`;
 }
+
 // Logic (core functionality of the app) //
 
 // Functions to search for a card using the Scryfall API //
@@ -58,20 +62,6 @@ async function searchCards() {
 //UI rendering //
 
 // Functions to display the card(s) information on the page //
-
-const resultDiv = document.getElementById("result");
-
-resultDiv.addEventListener("mouseover", (event) => {
-  if (event.target.matches(".card-image img")) {
-    event.target.classList.add("zoom");
-  }
-});
-
-resultDiv.addEventListener("mouseout", (event) => {
-  if (event.target.matches(".card-image img")) {
-    event.target.classList.remove("zoom");
-  }
-});
 
 function displayCards(cards) {
     
@@ -120,6 +110,18 @@ document.getElementById("request")
 document.getElementById("searchButton")
     .addEventListener("click", searchCards);
 
+// Event listeners to add a zoom effect on the card image when hovered //
+resultDiv.addEventListener("mouseover", (event) => {
+  if (event.target.matches(".card-image img")) {
+    event.target.classList.add("zoom");
+  }
+});
+
+resultDiv.addEventListener("mouseout", (event) => {
+  if (event.target.matches(".card-image img")) {
+    event.target.classList.remove("zoom");
+  }
+});
 
 // Log to the console for debugging purposes //
 // console.log(document.getElementById("pageTitle").textContent);
