@@ -5,7 +5,7 @@
 
 // Utils (small helpers that can be used in different places) //
 
-// Function to build the URL for the API request //
+// Functions to build the URL for the API request //
 
 function buildURL(cardName) {
     const urlAPI = "https://api.scryfall.com";
@@ -19,7 +19,7 @@ function buildQueryUrl(api, type, method, query) {
 }
 // Logic (core functionality of the app) //
 
-// Function to search for a card using the Scryfall API //
+// Functions to search for a card using the Scryfall API //
 async function searchCard() {
 
     const cardName = document.getElementById("request").value;
@@ -37,7 +37,7 @@ async function searchCard() {
     }
 }
 
-async function searchCards(CardName) {
+async function searchCards() {
 
     const cardName = document.getElementById("request").value;
 
@@ -57,7 +57,7 @@ async function searchCards(CardName) {
 
 //UI rendering //
 
-// Function to display the card information on the page //
+// Functions to display the card(s) information on the page //
 
 function displayCards(cards) {
     
