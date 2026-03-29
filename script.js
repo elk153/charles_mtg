@@ -44,8 +44,8 @@ function displayCard(card) {
 
     resultDiv.innerHTML = `
         <h2>${card.name}</h2>
-        <img src="${card.image_uris.normal}" />
-        <p>Price (EUR): ${card.prices.eur || "N/A"}</p>
+        <img src="${card.image_uris.png}" />
+        <p>Price (Foil): ${card.prices.eur || "N/A"}€ (${card.prices.eur_foil || "N/A"}€)</p>
     `;
 }
 

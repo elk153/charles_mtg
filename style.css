@@ -2,6 +2,7 @@ body {
     font-family: 'Palatino Linotype', Palatino, 'Book Antiqua', Serif; /* A nice serif font for a card-related app */
     text-align: center; /* Center the content */
     margin-top: 50px; /* Add some space at the top */
+    background-color: aquamarine;
 }
 
 input {
