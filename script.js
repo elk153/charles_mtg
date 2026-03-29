@@ -59,10 +59,22 @@ async function searchCards() {
 
 // Functions to display the card(s) information on the page //
 
+const resultDiv = document.getElementById("result");
+
+resultDiv.addEventListener("mouseover", (event) => {
+  if (event.target.matches(".card-image img")) {
+    event.target.classList.add("zoom");
+  }
+});
+
+resultDiv.addEventListener("mouseout", (event) => {
+  if (event.target.matches(".card-image img")) {
+    event.target.classList.remove("zoom");
+  }
+});
+
 function displayCards(cards) {
     
-    const resultDiv = document.getElementById("result");
-
     resultDiv.innerHTML = ""; // Clear previous results
 
     cards.forEach(displayCard);
