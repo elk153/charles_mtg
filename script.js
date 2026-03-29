@@ -79,8 +79,13 @@ function displayCard(card) {
         </div>
         <div class="card-details">
           <h2>${card.name}</h2>
-          <h3>${card.rarity}</h3>
-          <p>Price (Foil): ${card.prices.eur || "N/A"}€ (${card.prices.eur_foil || "N/A"}€)</p>
+          <h3>${card.rarity}</h3>      
+          <p>
+            Price (Foil):
+            ${card.prices.eur ? card.prices.eur + " €" : "N/A"}
+            (${card.prices.eur_foil ? card.prices.eur_foil + " €" : "N/A"})
+          </p>
+
         </div>
       </div>
     `;
