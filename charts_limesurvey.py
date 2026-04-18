@@ -8,6 +8,7 @@ import math
 import textwrap
 from functools import lru_cache
 
+
 #############
 # Constants #
 #############
@@ -57,6 +58,7 @@ NO_DATA_SENTINEL = "__NO_DATA__"
 #Cell content
 CELL = "None"
 
+
 ########
 # Data #
 ########
@@ -105,6 +107,7 @@ def columns_config():
 # Materialize for Excel dependency graph
 df_all = main_df()
 df_columns = columns_config()
+
 
 #########
 # Logic #
@@ -208,6 +211,7 @@ def value_counts_full(df, column, visible_df):
         scale,
     )
 
+
 ##########
 # Charts #
 ##########
@@ -258,6 +262,80 @@ def plot_questions(
     plt.subplots_adjust(wspace=0.3, hspace=0.5)
     plt.show()
 
+def plot_rps_100_stacked(role: str, fig_width=10):
+    """
+    Build a 100% stacked column chart for ERGO or CHEF.
+    Columns are priority questions.
+    Stacks represent SCALE_RPS distribution.
+    """
+
+    # ---- 1. Select population ----
+    df = filter_population(df_all, role)
+
+    # ---- 2. Select priority columns ----
+    columns = selected_columns("priorité")
+
+    if not columns:
+        raise ValueError("No columns marked as 'priorité'")
+
+    # ---- 3. Count RPS occurrences per column ----
+    counts_per_column = []
+
+    for col in columns:
+        if col not in df.columns:
+            # Column missing → all zeros
+            counts = pd.Series(0, index=SCALE_RPS)
+        else:
+            values = normalize_series(df[col])
+            counts = (
+                values
+                .value_counts()
+                .reindex(SCALE_RPS, fill_value=0)
+            )
+
+        counts_per_column.append(counts)
+
+    # DataFrame: rows = SCALE_RPS, columns = questions
+    counts_df = pd.DataFrame(counts_per_column, index=columns).T
+
+    # ---- 4. Convert to percentages (100%) ----
+    percentages = counts_df.div(counts_df.sum(axis=0), axis=1) * 100
+    percentages = percentages.fillna(0)
+
+    # ---- 5. Plot ----
+    fig_height = max(4, len(columns) * 0.6)
+    fig, ax = plt.subplots(figsize=(fig_width, fig_height))
+
+    bottom = pd.Series([0] * len(columns), index=columns)
+
+    for rps in SCALE_RPS:
+        values = percentages.loc[rps]
+        ax.bar(
+            columns,
+            values,
+            bottom=bottom,
+            label=rps,
+            color=RPS_COLORS.get(rps, "#999999")
+        )
+        bottom += values
+
+    # ---- 6. Formatting ----
+    ax.set_ylabel("Pourcentage (%)")
+    ax.set_ylim(0, 100)
+    ax.set_xticks(range(len(columns)))
+    ax.set_xticklabels(SCALE_LABELS[:len(columns)])
+    ax.set_title(f"Répartition RPS – 100% empilé ({role.upper()})")
+
+    ax.legend(
+        title="Facteurs RPS",
+        bbox_to_anchor=(1.02, 1),
+        loc="upper left"
+    )
+
+    plt.tight_layout()
+    plt.show()
+
+
 #############
 # App Ouput #
 #############
@@ -283,3 +361,7 @@ plot_questions(
     columns=cols,
     role_color="#216477",
 )
+
+# RPS 100% empilé
+plot_rps_100_stacked("ergo")
+plot_rps_100_stacked("chef")
