@@ -113,7 +113,7 @@ df_columns = columns_config()
 # Logic #
 #########
 
-def selected_columns(tag: str):
+def selected_columns_old(tag: str):
     df = columns_config().copy()
 
     df.iloc[:, 0] = (
@@ -125,6 +125,29 @@ def selected_columns(tag: str):
 
     return (
         df[df.iloc[:, 0]]
+        .iloc[:, 1]
+        .dropna()
+        .astype(str)
+        .tolist()
+    )
+
+def selected_columns(tag: str):
+    df = columns_config().copy()
+
+    first_col = (
+        df.iloc[:, 0]
+        .astype(str)
+        .str.strip()
+        .str.lower()
+    )
+
+    if tag.lower() == "themes":
+        mask = first_col == "themes"
+    else:
+        mask = first_col.isin([tag.lower(), "tous"])
+
+    return (
+        df[mask]
         .iloc[:, 1]
         .dropna()
         .astype(str)
