@@ -1,0 +1,285 @@
+###########
+# Imports #
+###########
+
+import pandas as pd
+import matplotlib.pyplot as plt
+import math
+import textwrap
+from functools import lru_cache
+
+#############
+# Constants #
+#############
+
+# Numeric scales
+SCALE_1_4 = ["1", "2", "3", "4"]
+
+# Yes / No
+SCALE_OUI_NON = ["Oui", "Non"]
+
+# Work dimensions
+SCALE_RPS = [
+    "Reconnaissance",
+    "Ressources",
+    "Climat social",
+    "Autonomie",
+    "Quantité de travail",
+    "Equilibre vie privée et vie professionnelle"
+]
+
+# Work dimensions colors
+RPS_COLORS = {
+    "Reconnaissance": "#4E79A7", # Blue – value, appreciation
+    "Ressources": "#59A14F", # Green – means, support
+    "Climat social": "#F28E2B", # Orange – relationships, dynamics
+    "Autonomie": "#76B7B2", # Teal – independence, space
+    "Quantité de travail": "#E15759", # Red – pressure, overload
+    "Charge émotionnelle": "#B07AA1", # Purple – affective burden
+    "Equilibre vie privée et vie professionnelle": "#EDC948", # Yellow – balance
+}
+
+# Work dimensions priorities
+RPS_PRIORITIES = [1, 2, 3, 4, 5, 6, 7]
+
+# Mapping column → scale
+COLUMN_SCALES = {
+    # examples — adapt to your real column names
+    "Satisfaction globale": SCALE_1_4,
+    "Stress perçu": SCALE_1_4,
+    "Souhaite continuer": SCALE_OUI_NON,
+    "Facteur principal": SCALE_RPS,
+}
+
+# Sentinel value for empty / null answers
+NO_DATA_SENTINEL = "__NO_DATA__"
+
+#Cell content
+CELL = "None"
+
+########
+# Data #
+########
+
+@lru_cache(None)
+def main_df():
+    df = xl("side_by_side_table[#All]")
+
+    # Promote first row to header
+    df.columns = df.iloc[0]
+    df = df[1:].reset_index(drop=True)
+
+    # Normalize "Visible"
+    df["Visible"] = (
+        df["Visible"]
+        .astype(str)
+        .str.lower()
+        .isin(["true", "1", "yes"])
+    )
+
+    # Replace all null / empty cells with sentinel
+    df = df.fillna(NO_DATA_SENTINEL)
+
+    # Also normalize empty strings / whitespace-only cells
+    df = df.replace(
+        to_replace=r"^\s*$",
+        value=NO_DATA_SENTINEL,
+        regex=True,
+    )
+
+    return df
+
+@lru_cache(None)
+def columns_config():
+    df = xl("side_by_side_columns")
+
+    df = df.fillna(NO_DATA_SENTINEL)
+    df = df.replace(
+        to_replace=r"^\s*$",
+        value=NO_DATA_SENTINEL,
+        regex=True,
+    )
+
+    return df
+
+# Materialize for Excel dependency graph
+df_all = main_df()
+df_columns = columns_config()
+
+#########
+# Logic #
+#########
+
+def selected_columns(tag: str):
+    df = columns_config().copy()
+
+    df.iloc[:, 0] = (
+        df.iloc[:, 0]
+        .astype(str)
+        .str.lower()
+        .isin([tag.lower(), "tous"])
+    )
+
+    return (
+        df[df.iloc[:, 0]]
+        .iloc[:, 1]
+        .dropna()
+        .astype(str)
+        .tolist()
+    )
+
+def filter_population(df, role: str):
+    if role == "ergo":
+        return df[
+            (df["Visible"]) &
+            (df["Position"] == "Ergo Practicien")
+        ]
+
+    if role == "chef":
+        return df[
+            (df["Visible"]) &
+            (df["Position"].str.lower().str.startswith("chef"))
+        ]
+
+    raise ValueError(f"Unknown role: {role}")
+
+def value_counts_full(series, scale):
+    """Guarantee full x-axis even if some values are missing"""
+    return (
+        series.astype(str)
+        .value_counts()
+        .reindex(scale, fill_value=0)
+    )
+
+def normalize_series(s):
+    return (
+        s.astype(str)
+         .str.strip()
+         .replace(
+             {
+                 NO_DATA_SENTINEL: pd.NA,
+                 "nan": pd.NA,
+                 "0": pd.NA,
+             }
+         )
+         .dropna()
+    )
+
+def detect_canonical_scale(values):
+    unique = set(values)
+
+    # Numeric Likert 1–4
+    if unique.issubset({"1", "2", "3", "4"}):
+        return ["1", "2", "3", "4"]
+
+    # Yes / No (French)
+    if unique.issubset({"Oui", "Non"}):
+        return ["Oui", "Non"]
+
+    # Yes / No (lowercase / mixed)
+    if unique.issubset({"oui", "non", "Oui", "Non"}):
+        return ["Oui", "Non"]
+
+    return None
+
+def infer_scale_from_dataframe(df, column):
+    all_values = normalize_series(df[column])
+
+    # 1️⃣ Try canonical detection
+    canonical = detect_canonical_scale(all_values)
+    if canonical:
+        return canonical
+
+    # 2️⃣ Numeric strings → numeric order
+    if all_values.str.match(r"^\d+$").all():
+        return sorted(all_values.unique(), key=int)
+
+    # 3️⃣ Categorical → stable alphabetical
+    return sorted(all_values.unique())
+
+def value_counts_full(df, column, visible_df):
+    scale = infer_scale_from_dataframe(df, column)
+
+    observed = normalize_series(visible_df[column]).value_counts()
+
+    return (
+        observed
+        .reindex(scale, fill_value=0),
+        scale,
+    )
+
+##########
+# Charts #
+##########
+
+def plot_questions(
+    full_df,
+    visible_df,
+    columns,
+    role_color,
+    fig_width=9,
+    cols_per_row=1,
+):
+    n = len(columns)
+    rows = math.ceil(n / cols_per_row)
+    fig_height = 5 * rows
+
+    fig, axes = plt.subplots(rows, cols_per_row, figsize=(fig_width, fig_height))
+    axes = axes.flatten()
+
+    for i, col in enumerate(columns):
+        ax = axes[i]
+
+        if col not in visible_df.columns:
+            ax.set_visible(False)
+            continue
+
+        counts, scale = value_counts_full(full_df, col, visible_df)
+
+        wrapped_labels = [
+            textwrap.fill(lbl, width=15) for lbl in scale
+        ]
+
+        subplot_width = fig_width / cols_per_row
+        wrap_width = max(10, int(subplot_width * 8))
+        wrapped_title = textwrap.fill(col, width=wrap_width)
+
+        bars = ax.bar(wrapped_labels, counts.values, color=role_color)
+
+        ax.set_title(wrapped_title, fontsize=11)
+        ax.set_ylim(0, max(counts.values) * 1.15 if counts.max() > 0 else 1)
+        ax.bar_label(bars, fontsize=10)
+        ax.tick_params(axis="x", rotation=0)
+
+    for j in range(i + 1, len(axes)):
+        axes[j].set_visible(False)
+
+    plt.tight_layout()
+    plt.subplots_adjust(wspace=0.3, hspace=0.5)
+    plt.show()
+
+#############
+# App Ouput #
+#############
+
+# Ergos
+df_ergo = filter_population(df_all, "ergo")
+cols = selected_columns("ergo")
+
+plot_questions(
+    full_df=df_all,
+    visible_df=df_ergo,
+    columns=cols,
+    role_color="#689d71",
+)
+
+# Chefs
+df_chef = filter_population(df_all, "chef")
+cols = selected_columns("chef")
+
+plot_questions(
+    full_df=df_all,
+    visible_df=df_chef,
+    columns=cols,
+    role_color="#216477",
+)
