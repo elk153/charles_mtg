@@ -26,6 +26,7 @@ SCALE_RPS = [
     "Climat social",
     "Autonomie",
     "Quantité de travail",
+    "Charge émotionnelle",
     "Equilibre vie privée et vie professionnelle"
 ]
 
@@ -113,24 +114,6 @@ df_columns = columns_config()
 # Logic #
 #########
 
-def selected_columns_old(tag: str):
-    df = columns_config().copy()
-
-    df.iloc[:, 0] = (
-        df.iloc[:, 0]
-        .astype(str)
-        .str.lower()
-        .isin([tag.lower(), "tous"])
-    )
-
-    return (
-        df[df.iloc[:, 0]]
-        .iloc[:, 1]
-        .dropna()
-        .astype(str)
-        .tolist()
-    )
-
 def selected_columns(tag: str):
     df = columns_config().copy()
 
@@ -141,8 +124,10 @@ def selected_columns(tag: str):
         .str.lower()
     )
 
-    if tag.lower() == "themes":
-        mask = first_col == "themes"
+    if tag.lower() == "th_ergo":
+        mask = first_col == "th_ergo"
+    elif tag.lower() == "th_chef":
+        mask = first_col == "th_chef"
     else:
         mask = first_col.isin([tag.lower(), "tous"])
 
@@ -285,7 +270,7 @@ def plot_questions(
     plt.subplots_adjust(wspace=0.3, hspace=0.5)
     plt.show()
 
-def plot_rps_100_stacked(role: str, fig_width=10):
+def plot_rps_100_stacked(role: str, col_mask: str, fig_width=10):
     """
     Build a 100% stacked column chart for ERGO or CHEF.
     Columns are priority questions.
@@ -296,10 +281,10 @@ def plot_rps_100_stacked(role: str, fig_width=10):
     df = filter_population(df_all, role)
 
     # ---- 2. Select priority columns ----
-    columns = selected_columns("priorité")
+    columns = selected_columns(col_mask)
 
     if not columns:
-        raise ValueError("No columns marked as 'priorité'")
+        raise ValueError("No columns marked as 'themes'")
 
     # ---- 3. Count RPS occurrences per column ----
     counts_per_column = []
@@ -340,17 +325,30 @@ def plot_rps_100_stacked(role: str, fig_width=10):
             label=rps,
             color=RPS_COLORS.get(rps, "#999999")
         )
+
+        for i, col in enumerate(columns):
+            val = values[col]
+            if val > 0:
+                ax.text(
+                    i,
+                    bottom[col] + val / 2,
+                    f"{val:.0f}%",
+                    ha='center',
+                    va='center',
+                    fontsize=8
+                )
+
         bottom += values
 
     # ---- 6. Formatting ----
     ax.set_ylabel("Pourcentage (%)")
     ax.set_ylim(0, 100)
     ax.set_xticks(range(len(columns)))
-    ax.set_xticklabels(SCALE_LABELS[:len(columns)])
-    ax.set_title(f"Répartition RPS – 100% empilé ({role.upper()})")
-
+    ax.set_xticklabels(RPS_PRIORITIES[:len(columns)])
+    ax.set_title(f"Ordre d'importance des thèmes ({role})")
+    
     ax.legend(
-        title="Facteurs RPS",
+        title="Thèmes",
         bbox_to_anchor=(1.02, 1),
         loc="upper left"
     )
@@ -386,5 +384,5 @@ plot_questions(
 )
 
 # RPS 100% empilé
-plot_rps_100_stacked("ergo")
-plot_rps_100_stacked("chef")
+plot_rps_100_stacked("ergo","th_ergo")
+plot_rps_100_stacked("chef","th_chef")
