@@ -87,7 +87,6 @@ function displayCard(card) {
             ${card.prices.eur ? card.prices.eur + " €" : "N/A"}
             (${card.prices.eur_foil ? card.prices.eur_foil + " €" : "N/A"})
           </p>
-
         </div>
       </div>
     `;
