@@ -4,6 +4,7 @@
 
 import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
 import math
 import textwrap
 from functools import lru_cache
@@ -347,6 +348,7 @@ def plot_rps_100_stacked(role: str, col_mask: str, fig_width=10):
     ax.set_xticklabels(RPS_PRIORITIES[:len(columns)])
     ax.set_title(f"Ordre d'importance des thèmes ({role})")
     
+
     ax.legend(
         title="Thèmes",
         bbox_to_anchor=(1.02, 1),
@@ -354,6 +356,145 @@ def plot_rps_100_stacked(role: str, col_mask: str, fig_width=10):
     )
 
     plt.tight_layout()
+    plt.show()
+
+
+def plot_clustered_comparison(
+    fig_width=12,
+    cols_per_row=2,
+):
+    """
+    Plot clustered bar charts comparing ERGO-1 and CHEF-1 responses.
+    Each subplot represents a question from the marked columns.
+    For each question: ERGO data in first bar, CHEF data in second bar.
+    Uses ERGO column titles.
+    """
+
+    # Get columns marked as ERGO-1 and CHEF-1
+    ergo_cols = selected_columns("ERGO-1")
+    chef_cols = selected_columns("CHEF-1")
+    
+    if not ergo_cols:
+        raise ValueError("No columns marked as ERGO-1")
+    
+    if not chef_cols:
+        raise ValueError("No columns marked as CHEF-1")
+
+    # Filter populations
+    df_ergo = filter_population(df_all, "ergo")
+    df_chef = filter_population(df_all, "chef")
+
+    # Debug info
+    print(f"ERGO-1 columns: {ergo_cols}")
+    print(f"CHEF-1 columns: {chef_cols}")
+
+    n = len(ergo_cols)
+    rows = math.ceil(n / cols_per_row)
+    fig_height = 5 * rows
+
+    fig, axes = plt.subplots(rows, cols_per_row, figsize=(fig_width, fig_height))
+    
+    # Handle axes array shape
+    if isinstance(axes, np.ndarray):
+        axes = axes.flatten()
+    else:
+        axes = [axes]
+
+    for i, ergo_col in enumerate(ergo_cols):
+        ax = axes[i]
+        
+        # Get corresponding CHEF column (by position in the list)
+        chef_col = chef_cols[i] if i < len(chef_cols) else None
+
+        # Check if ERGO column exists
+        if ergo_col not in df_ergo.columns:
+            print(f"Warning: ERGO column '{ergo_col}' not in df_ergo")
+            ax.set_visible(False)
+            continue
+
+        # Get response counts for ERGO
+        counts_ergo, scale = value_counts_full(df_all, ergo_col, df_ergo)
+
+        # Get response counts for CHEF (if it exists)
+        if chef_col and chef_col in df_chef.columns:
+            counts_chef, scale = value_counts_full(df_all, chef_col, df_chef)
+        else:
+            counts_chef = pd.Series(0, index=scale)
+            print(f"Warning: CHEF column '{chef_col}' not found, showing zeros")
+
+        print(f"\nERGO: {ergo_col} -> CHEF: {chef_col}")
+        print(f"  ERGO counts: {counts_ergo.values}, sum={counts_ergo.sum()}")
+        print(f"  CHEF counts: {counts_chef.values}, sum={counts_chef.sum()}")
+
+        x = range(len(scale))
+        width = 0.35
+
+        # Create bars: ERGO first, CHEF second
+        bars_ergo = ax.bar(
+            [p - width/2 for p in x],
+            counts_ergo.values,
+            width,
+            label='Ergo',
+            color="#689d71"
+        )
+        bars_chef = ax.bar(
+            [p + width/2 for p in x],
+            counts_chef.values,
+            width,
+            label='Chef',
+            color="#216477"
+        )
+
+        # Format labels and title - USE ERGO COLUMN NAME
+        wrapped_labels = [
+            textwrap.fill(lbl, width=12) for lbl in scale
+        ]
+
+        subplot_width = fig_width / cols_per_row
+        wrap_width = max(10, int(subplot_width * 8))
+        wrapped_title = textwrap.fill(ergo_col, width=wrap_width)
+
+        ax.set_xticks(x)
+        ax.set_xticklabels(wrapped_labels, fontsize=9)
+        ax.set_title(wrapped_title, fontsize=11)
+        ax.set_ylabel("Count", fontsize=10)
+
+        max_count = max(max(counts_ergo.values), max(counts_chef.values))
+        ax.set_ylim(0, max_count * 1.15 if max_count > 0 else 1)
+
+        # Add value labels on bars
+        for bar in bars_ergo:
+            height = bar.get_height()
+            if height > 0:
+                ax.text(
+                    bar.get_x() + bar.get_width()/2.,
+                    height + 0.1,
+                    f'{int(height)}',
+                    ha='center',
+                    va='bottom',
+                    fontsize=9
+                )
+
+        for bar in bars_chef:
+            height = bar.get_height()
+            if height > 0:
+                ax.text(
+                    bar.get_x() + bar.get_width()/2.,
+                    height + 0.1,
+                    f'{int(height)}',
+                    ha='center',
+                    va='bottom',
+                    fontsize=9
+                )
+
+        ax.legend(fontsize=10)
+
+    # Hide unused subplots
+    for j in range(i + 1, len(axes)):
+        axes[j].set_visible(False)
+
+    plt.tight_layout()
+    plt.subplots_adjust(wspace=0.3, hspace=0.5)
     plt.show()
 
 
@@ -386,3 +527,7 @@ plot_questions(
 # RPS 100% empilé
 plot_rps_100_stacked("ergo","th_ergo")
 plot_rps_100_stacked("chef","th_chef")
+
+# Clustered comparison: ERGO-1 vs CHEF-1
+plot_clustered_comparison()
+
