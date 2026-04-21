@@ -364,31 +364,45 @@ def plot_clustered_comparison(
     cols_per_row=2,
 ):
     """
-    Plot clustered bar charts comparing ERGO-1 and CHEF-1 responses.
+    Plot clustered bar charts comparing ERGO and CHEF responses for all levels.
     Each subplot represents a question from the marked columns.
     For each question: ERGO data in first bar, CHEF data in second bar.
     Uses ERGO column titles.
     """
 
-    # Get columns marked as ERGO-1 and CHEF-1
-    ergo_cols = selected_columns("ERGO-1")
-    chef_cols = selected_columns("CHEF-1")
-    
-    if not ergo_cols:
-        raise ValueError("No columns marked as ERGO-1")
-    
-    if not chef_cols:
-        raise ValueError("No columns marked as CHEF-1")
+    # Get all levels
+    df = columns_config()
+    first_col = (
+        df.iloc[:, 0]
+        .astype(str)
+        .str.strip()
+        .str.lower()
+    )
+    ergo_tags = first_col[first_col.str.startswith("ergo-")]
+    levels = sorted(set(tag.split('-')[1] for tag in ergo_tags if '-' in tag and len(tag.split('-')) > 1))
+
+    print(f"Found levels: {levels}")
+
+    all_ergo_cols = []
+    all_chef_cols = []
+    for level in levels:
+        ergo_cols = selected_columns(f"ERGO-{level}")
+        chef_cols = selected_columns(f"CHEF-{level}")
+        all_ergo_cols.extend(ergo_cols)
+        all_chef_cols.extend(chef_cols)
+
+    if not all_ergo_cols:
+        raise ValueError("No ERGO columns found")
 
     # Filter populations
     df_ergo = filter_population(df_all, "ergo")
     df_chef = filter_population(df_all, "chef")
 
     # Debug info
-    print(f"ERGO-1 columns: {ergo_cols}")
-    print(f"CHEF-1 columns: {chef_cols}")
+    print(f"All ERGO columns: {all_ergo_cols}")
+    print(f"All CHEF columns: {all_chef_cols}")
 
-    n = len(ergo_cols)
+    n = len(all_ergo_cols)
     rows = math.ceil(n / cols_per_row)
     fig_height = 5 * rows
 
@@ -400,11 +414,11 @@ def plot_clustered_comparison(
     else:
         axes = [axes]
 
-    for i, ergo_col in enumerate(ergo_cols):
+    for i, ergo_col in enumerate(all_ergo_cols):
         ax = axes[i]
         
         # Get corresponding CHEF column (by position in the list)
-        chef_col = chef_cols[i] if i < len(chef_cols) else None
+        chef_col = all_chef_cols[i] if i < len(all_chef_cols) else None
 
         # Check if ERGO column exists
         if ergo_col not in df_ergo.columns:
