@@ -71,9 +71,9 @@
 
   position;
     SWITCH(CHOOSECOLS(answersData; 25);
-      "Ergothérapeute praticien(ne)"; "Ergo Practicien";
-      "Chef de service ergothérapie (ergothérapeute de formation)"; "Chef Ergo";
-      "Chef de service ergothérapie (sans être ergothérapeute de formation)"; "Chef " & CHOOSECOLS(answersData; 26);
+      "Ergothérapeute praticien(ne)"; "Ergothérapeute";
+      "Chef de service ergothérapie (ergothérapeute de formation)"; "Chef (ergothérapeute)";
+      "Chef de service ergothérapie (sans être ergothérapeute de formation)"; "Chef (non-ergothérapeute) ";
       ""
     );
 
@@ -94,11 +94,11 @@
 
   header;
     HSTACK(
-      {"Complet"."Position"."Profession N+1"."Secteur"."Contexte"."Indiv. ou équipe"."Localisation"."Milieu Hospit"."Public Privé"};
+      {"Complet"\"Position"\"Profession N+1"\"Secteur"\"Contexte"\"Indiv. ou équipe"\"Localisation"\"Milieu Hospit"\"Public Privé"};
       CHOOSECOLS(answersHeader; SEQUENCE(2;1;113));
-      {"Emploi"."Contrat"."Horaire"};
+      {"Emploi"\"Contrat"\"Horaire"};
       CHOOSECOLS(answersHeader; SEQUENCE(3;1;119));
-      {"Genre"."Satisfaction"."Commentaires"};
+      {"Genre"\"Satisfaction"\"Commentaires"};
       CHOOSECOLS(answersHeader; SEQUENCE(74;1;29));
       textBetweenBrackets(CHOOSECOLS(answersHeader; SEQUENCE(9;1;10)));{"Autre secteur"};
       textBetweenBrackets(CHOOSECOLS(answersHeader; SEQUENCE(6;1;103)));{"Autre lieu de travail"};
