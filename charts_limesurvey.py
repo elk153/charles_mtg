@@ -468,24 +468,16 @@ def plot_clustered_comparison4(
 
         ax.set_xticks(x)
         ax.set_xticklabels(wrapped_labels, fontsize=fontsize_label)
-        # Set title manually for multi-line with italic
-        title_y = 1.0
-        ax.text(0.5, 
-                title_y, 
-                textwrap.fill(ergo_col, width=wrap_width), 
-                transform=ax.transAxes, 
-                ha='center', 
-                va='top', 
-                fontsize=fontsize_title)
+        # Set title outside chart box with ergo and chef titles (chef in italic)
+        title_y = 1.26
+        title_spacing = 0.24  # Adjust this value to control vertical gap (increase for more space)
+        ax.text(0.5, title_y, textwrap.fill(ergo_col, width=wrap_width), 
+                transform=ax.transAxes, ha='center', va='bottom', 
+                fontsize=fontsize_title, weight='normal')
         if chef_col:
-            ax.text(0.5, 
-                    title_y - 0.05, 
-                    f"- {textwrap.fill(chef_col, width=wrap_width)}", 
-                    transform=ax.transAxes, 
-                    ha='center', 
-                    va='top', 
-                    fontsize=fontsize_title, 
-                    fontstyle='italic')
+            ax.text(0.5, title_y - title_spacing, f"- {textwrap.fill(chef_col, width=wrap_width)}", 
+                    transform=ax.transAxes, ha='center', va='bottom', 
+                    fontsize=fontsize_title, fontstyle='italic')
         ax.set_ylabel("Count", fontsize=fontsize_label)
 
         max_count = max(max(counts_ergo.values), max(counts_chef.values))
@@ -528,7 +520,7 @@ def plot_clustered_comparison4(
         axes[j].set_visible(False)
 
     plt.tight_layout()
-    plt.subplots_adjust(wspace=0.2, hspace=0.3)
+    plt.subplots_adjust(wspace=0.2, hspace=0.48)
     plt.show()
 
 plot_clustered_comparison4()
