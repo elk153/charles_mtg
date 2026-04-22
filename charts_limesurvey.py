@@ -147,17 +147,21 @@ def selected_columns(tag: str):
         .tolist()
     )
 
-def filter_population(df, role: str):
+def filter_population(df, role: str = "all"):
     if role == "ergo":
         return df[
             (df["Visible"]) &
             (df["Position"] == "Ergo Practicien")
         ]
 
-    if role == "chef":
+    elif role == "chef":
         return df[
             (df["Visible"]) &
             (df["Position"].str.lower().str.startswith("chef"))
+        ]
+    else:
+        return df[
+            (df["Visible"])
         ]
 
     raise ValueError(f"Unknown role: {role}")
@@ -255,6 +259,11 @@ def plot_questions(
             continue
 
         counts, scale = value_counts_full(full_df, col, visible_df)
+
+        # Sort by counts descending (highest bars first)
+        sorted_indices = counts.argsort()[::-1]
+        counts = counts.iloc[sorted_indices]
+        scale = [scale[i] for i in sorted_indices]
 
         wrapped_labels = [
             textwrap.fill(lbl, width=15) for lbl in scale
@@ -548,11 +557,15 @@ def plot_demo_summary(
     plot_title="Résumé des données démographiques",
     fontsize_title=11, 
     fontsize_label=10,
+    role="all",
 ):
     """
     Plot a summary bar chart for all DEMO columns.
     Each bar represents the sum of values in that column, sorted descending.
     """
+
+    # Filter population
+    df = filter_population(df_all, role)
 
     # Select DEMO columns
     columns = selected_columns(plot_columns)
@@ -564,9 +577,9 @@ def plot_demo_summary(
     # Calculate sum and count for each column
     summaries = []
     for col in columns:
-        if col not in df_all.columns:
+        if col not in df.columns:
             continue
-        series = normalize_series(df_all[col])
+        series = normalize_series(df[col])
         try:
             total_sum = series.astype(float).sum()
             count = len(series)
@@ -640,14 +653,21 @@ def plot_demo_summary(
 def plot_single_column_summary(
     plot_column_tag,
     plot_title="Résumé d'une colonne",
+    rotation_label=45,
+    align_label="right",
     fig_width=12,
     fontsize_title=11,
     fontsize_label=10,
+    role="all",
+
 ):
     """
     Plot a bar chart for a single column selected by tag.
     Each bar represents the count of each unique value in the column.
     """
+
+    # Filter population
+    df = filter_population(df_all, role)
 
     # Select the column using the same mechanism as plot_demo_summary
     columns = selected_columns(plot_column_tag)
@@ -661,12 +681,12 @@ def plot_single_column_summary(
     
     column_name = columns[0]
 
-    if column_name not in df_all.columns:
+    if column_name not in df.columns:
         print(f"Column '{column_name}' not found")
         return
 
-    series = normalize_series(df_all[column_name])
-    counts = series.value_counts().sort_index()
+    series = normalize_series(df[column_name])
+    counts = series.value_counts().sort_values(ascending=False)
 
     if counts.empty:
         print("No data to plot")
@@ -690,7 +710,7 @@ def plot_single_column_summary(
     bars = ax.bar(range(len(labels)), values, color=colors)
 
     ax.set_xticks(range(len(labels)))
-    ax.set_xticklabels(labels, fontsize=fontsize_label, rotation=45, ha='right')
+    ax.set_xticklabels(labels, fontsize=fontsize_label, rotation=rotation_label, ha=align_label)
 
     # Wrapped title
     wrap_width = max(10, int(fig_width * 10))
