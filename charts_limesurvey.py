@@ -359,9 +359,11 @@ def plot_rps_100_stacked(role: str, col_mask: str, fig_width=10):
     plt.show()
 
 
-def plot_clustered_comparison(
+def plot_clustered_comparison4(
     fig_width=12,
     cols_per_row=2,
+    fontsize_title=11,
+    fontsize_label=10
 ):
     """
     Plot clustered bar charts comparing ERGO and CHEF responses for all levels.
@@ -436,23 +438,19 @@ def plot_clustered_comparison(
             counts_chef = pd.Series(0, index=scale)
             print(f"Warning: CHEF column '{chef_col}' not found, showing zeros")
 
-        print(f"\nERGO: {ergo_col} -> CHEF: {chef_col}")
-        print(f"  ERGO counts: {counts_ergo.values}, sum={counts_ergo.sum()}")
-        print(f"  CHEF counts: {counts_chef.values}, sum={counts_chef.sum()}")
-
         x = range(len(scale))
         width = 0.35
 
         # Create bars: ERGO first, CHEF second
         bars_ergo = ax.bar(
-            [p - width/2 for p in x],
+            [p - 0.2 for p in x],
             counts_ergo.values,
             width,
             label='Ergo',
             color="#689d71"
         )
         bars_chef = ax.bar(
-            [p + width/2 for p in x],
+            [p + 0.2 for p in x],
             counts_chef.values,
             width,
             label='Chef',
@@ -461,55 +459,80 @@ def plot_clustered_comparison(
 
         # Format labels and title - USE ERGO COLUMN NAME
         wrapped_labels = [
-            textwrap.fill(lbl, width=12) for lbl in scale
+            textwrap.fill(lbl, width=fig_width) for lbl in scale
         ]
 
         subplot_width = fig_width / cols_per_row
-        wrap_width = max(10, int(subplot_width * 8))
-        wrapped_title = textwrap.fill(ergo_col, width=wrap_width)
+        wrap_width = max(fig_width, int(subplot_width * 10))
+        # wrapped_title not needed anymore
 
         ax.set_xticks(x)
-        ax.set_xticklabels(wrapped_labels, fontsize=9)
-        ax.set_title(wrapped_title, fontsize=11)
-        ax.set_ylabel("Count", fontsize=10)
+        ax.set_xticklabels(wrapped_labels, fontsize=fontsize_label)
+        # Set title manually for multi-line with italic
+        title_y = 1.0
+        ax.text(0.5, 
+                title_y, 
+                textwrap.fill(ergo_col, width=wrap_width), 
+                transform=ax.transAxes, 
+                ha='center', 
+                va='top', 
+                fontsize=fontsize_title)
+        if chef_col:
+            ax.text(0.5, 
+                    title_y - 0.05, 
+                    f"- {textwrap.fill(chef_col, width=wrap_width)}", 
+                    transform=ax.transAxes, 
+                    ha='center', 
+                    va='top', 
+                    fontsize=fontsize_title, 
+                    fontstyle='italic')
+        ax.set_ylabel("Count", fontsize=fontsize_label)
 
         max_count = max(max(counts_ergo.values), max(counts_chef.values))
         ax.set_ylim(0, max_count * 1.15 if max_count > 0 else 1)
 
         # Add value labels on bars
+        total_ergo = counts_ergo.sum()
         for bar in bars_ergo:
             height = bar.get_height()
             if height > 0:
+                perc = (height / total_ergo) * 100 if total_ergo > 0 else 0
                 ax.text(
                     bar.get_x() + bar.get_width()/2.,
                     height + 0.1,
-                    f'{int(height)}',
+                    f'{perc:.0f}%\n(n={int(height)})',
                     ha='center',
                     va='bottom',
-                    fontsize=9
+                    fontsize=fontsize_label
                 )
 
+        total_chef = counts_chef.sum()
         for bar in bars_chef:
             height = bar.get_height()
             if height > 0:
+                perc = (height / total_chef) * 100 if total_chef > 0 else 0
                 ax.text(
                     bar.get_x() + bar.get_width()/2.,
                     height + 0.1,
-                    f'{int(height)}',
+                    f'{perc:.0f}%\n(n={int(height)})',
                     ha='center',
                     va='bottom',
-                    fontsize=9
+                    fontsize=fontsize_label,
+                    fontstyle='italic'
                 )
 
-        ax.legend(fontsize=10)
+        ax.legend(fontsize=fontsize_label)
 
     # Hide unused subplots
     for j in range(i + 1, len(axes)):
         axes[j].set_visible(False)
 
     plt.tight_layout()
-    plt.subplots_adjust(wspace=0.3, hspace=0.5)
+    plt.subplots_adjust(wspace=0.2, hspace=0.3)
     plt.show()
+
+plot_clustered_comparison4()
+
 
 
 #############
