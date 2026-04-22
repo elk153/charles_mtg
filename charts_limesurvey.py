@@ -635,6 +635,91 @@ def plot_demo_summary(
     plt.show()
 
 
+def plot_single_column_summary(
+    plot_column_tag,
+    plot_title="Résumé d'une colonne",
+    fig_width=12,
+    fontsize_title=11,
+    fontsize_label=10,
+):
+    """
+    Plot a bar chart for a single column selected by tag.
+    Each bar represents the count of each unique value in the column.
+    """
+
+    # Select the column using the same mechanism as plot_demo_summary
+    columns = selected_columns(plot_column_tag)
+
+    if not columns:
+        print(f"No columns found for tag '{plot_column_tag}'")
+        return
+
+    if len(columns) > 1:
+        print(f"Tag '{plot_column_tag}' returns multiple columns, using the first one")
+    
+    column_name = columns[0]
+
+    if column_name not in df_all.columns:
+        print(f"Column '{column_name}' not found")
+        return
+
+    series = normalize_series(df_all[column_name])
+    counts = series.value_counts().sort_index()
+
+    if counts.empty:
+        print("No data to plot")
+        return
+
+    # Prepare data
+    labels = counts.index.tolist()
+    values = counts.values
+
+    # Colors
+    colors = [DEMO_COLORS[i % len(DEMO_COLORS)] for i in range(len(labels))]
+
+    # Calculate figure height based on longest x-label (45° rotation)
+    max_label_length = max((len(str(lbl)) for lbl in labels), default=10)
+    # Estimate: ~0.55 inches per 10 characters at fontsize 10 with 45° rotation
+    bottom_margin = (max_label_length / 10) * 0.55 * (fontsize_label / 10)
+    fig_height = 6
+
+    # Plot
+    fig, ax = plt.subplots(figsize=(fig_width, fig_height))
+    bars = ax.bar(range(len(labels)), values, color=colors)
+
+    ax.set_xticks(range(len(labels)))
+    ax.set_xticklabels(labels, fontsize=fontsize_label, rotation=45, ha='right')
+
+    # Wrapped title
+    wrap_width = max(10, int(fig_width * 10))
+    wrapped_title = textwrap.fill(plot_title, width=wrap_width)
+    ax.set_title(wrapped_title, fontsize=fontsize_title)
+
+    # Bar labels
+    max_val = max(values) if values.size > 0 else 1
+    total = sum(values)
+
+    # Add space for 2-line labels (percentage + count line)
+    label_space = max_val * 0.12  # Reserve ~12% of max height for labels
+    ax.set_ylim(0, max_val + label_space)
+
+    for i, bar in enumerate(bars):
+        height = bar.get_height()
+        perc = (height / total) * 100 if total > 0 else 0
+        ax.text(
+            bar.get_x() + bar.get_width() / 2.,
+            height + 0.01 * max_val,
+            f'{perc:.0f}%\n(n={int(height)})',
+            ha='center',
+            va='bottom',
+            fontsize=fontsize_label
+        )
+
+    plt.subplots_adjust(bottom=min(bottom_margin, 0.4))  # Cap at 40% to avoid excessive space
+    plt.tight_layout()
+    plt.show()
+
+
 #############
 # App Ouput #
 #############
