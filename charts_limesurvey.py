@@ -445,18 +445,18 @@ def plot_clustered_comparison_auto(
 
         # Set up the bar positions
         x = range(len(scale))
-        width = 0.38
+        width = 0.42
 
         # Create bars: ERGO first, CHEF second
         bars_ergo = ax.bar(
-            [p - 0.2 for p in x],
+            [p - 0.24 for p in x],
             counts_ergo.values,
             width,
             label='Ergo',
             color="#90c599"
         )
         bars_chef = ax.bar(
-            [p + 0.2 for p in x],
+            [p + 0.24 for p in x],
             counts_chef.values,
             width,
             label='Chef',
@@ -539,14 +539,13 @@ def plot_clustered_comparison_auto(
         axes[j].set_visible(False)
 
     plt.tight_layout()
-    plt.subplots_adjust(wspace=0.2, hspace=0.50)
+    plt.subplots_adjust(wspace=0.2, hspace=0.66)
     plt.show()
 
 
 def plot_demo_summary(
     plot_columns="demo",
     plot_title="Résumé des données démographiques",
-    fig_width=12, 
     fontsize_title=11, 
     fontsize_label=10,
 ):
@@ -595,11 +594,14 @@ def plot_demo_summary(
     max_label_length = max((len(col) for col, _, _ in summaries), default=10)
     # Estimate: ~0.55 inches per 10 characters at fontsize 10 with 45° rotation
     bottom_margin = (max_label_length / 10) * 0.55 * (fontsize_label / 10)
+    
+    # Adapt figure width to number of bars
+    fig_width = max(5, len(labels) * 1.2)
     fig_height = 6
 
     # Plot
     fig, ax = plt.subplots(figsize=(fig_width, fig_height))
-    bars = ax.bar(range(len(labels)), sums, color=colors)
+    bars = ax.bar(range(len(labels)), sums, width=0.42, color=colors)
 
     ax.set_xticks(range(len(labels)))
     ax.set_xticklabels(labels, fontsize=fontsize_label, rotation=45, ha='right')
