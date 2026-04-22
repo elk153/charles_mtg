@@ -42,6 +42,9 @@ RPS_COLORS = {
     "Equilibre vie privée et vie professionnelle": "#EDC948", # Yellow – balance
 }
 
+# Demo colors (same tint as RPS)
+DEMO_COLORS = list(RPS_COLORS.values())
+
 # Work dimensions priorities
 RPS_PRIORITIES = [1, 2, 3, 4, 5, 6, 7]
 
@@ -56,6 +59,10 @@ COLUMN_SCALES = {
 
 # Sentinel value for empty / null answers
 NO_DATA_SENTINEL = "__NO_DATA__"
+
+# bar colors
+COLOR_ERGO = "#90c599"
+COLOR_CHEF = "#498c9f"
 
 #Cell content
 CELL = "None"
@@ -359,7 +366,7 @@ def plot_rps_100_stacked(role: str, col_mask: str, fig_width=10):
     plt.show()
 
 
-def plot_clustered_comparison4(
+def plot_clustered_comparison_auto(
     fig_width=12,
     cols_per_row=2,
     fontsize_title=11,
@@ -372,7 +379,7 @@ def plot_clustered_comparison4(
     Uses ERGO column titles.
     """
 
-    # Get all levels
+    # Get all levels from columns_config first column
     df = columns_config()
     first_col = (
         df.iloc[:, 0]
@@ -383,8 +390,7 @@ def plot_clustered_comparison4(
     ergo_tags = first_col[first_col.str.startswith("ergo-")]
     levels = sorted(set(tag.split('-')[1] for tag in ergo_tags if '-' in tag and len(tag.split('-')) > 1))
 
-    print(f"Found levels: {levels}")
-
+    # For each level, get corresponding ERGO and CHEF columns
     all_ergo_cols = []
     all_chef_cols = []
     for level in levels:
@@ -393,6 +399,7 @@ def plot_clustered_comparison4(
         all_ergo_cols.extend(ergo_cols)
         all_chef_cols.extend(chef_cols)
 
+    # Check if we found any ERGO columns
     if not all_ergo_cols:
         raise ValueError("No ERGO columns found")
 
@@ -400,10 +407,7 @@ def plot_clustered_comparison4(
     df_ergo = filter_population(df_all, "ergo")
     df_chef = filter_population(df_all, "chef")
 
-    # Debug info
-    print(f"All ERGO columns: {all_ergo_cols}")
-    print(f"All CHEF columns: {all_chef_cols}")
-
+    # Determine figure size based on number of questions
     n = len(all_ergo_cols)
     rows = math.ceil(n / cols_per_row)
     fig_height = 5 * rows
@@ -416,6 +420,7 @@ def plot_clustered_comparison4(
     else:
         axes = [axes]
 
+    # Loop through ERGO columns and plot comparison with CHEF
     for i, ergo_col in enumerate(all_ergo_cols):
         ax = axes[i]
         
@@ -438,8 +443,9 @@ def plot_clustered_comparison4(
             counts_chef = pd.Series(0, index=scale)
             print(f"Warning: CHEF column '{chef_col}' not found, showing zeros")
 
+        # Set up the bar positions
         x = range(len(scale))
-        width = 0.35
+        width = 0.38
 
         # Create bars: ERGO first, CHEF second
         bars_ergo = ax.bar(
@@ -462,22 +468,35 @@ def plot_clustered_comparison4(
             textwrap.fill(lbl, width=fig_width) for lbl in scale
         ]
 
+        # Calculate wrap width based on figure size and number of columns
         subplot_width = fig_width / cols_per_row
         wrap_width = max(fig_width, int(subplot_width * 10))
-        # wrapped_title not needed anymore
 
         ax.set_xticks(x)
         ax.set_xticklabels(wrapped_labels, fontsize=fontsize_label)
-        # Set title outside chart box with ergo and chef titles (chef in italic)
-        title_y = 1.26
-        title_spacing = 0.24  # Adjust this value to control vertical gap (increase for more space)
-        ax.text(0.5, title_y, textwrap.fill(ergo_col, width=wrap_width), 
-                transform=ax.transAxes, ha='center', va='bottom', 
-                fontsize=fontsize_title, weight='normal')
+
+        # Wrap column names for title
+        ergo_wrapped = textwrap.fill(ergo_col, width=wrap_width)
+        chef_wrapped = textwrap.fill(chef_col, width=wrap_width) if chef_col else ""
+        num_lines_ergo = ergo_wrapped.count('\n') + 1
+        num_lines_chef = chef_wrapped.count('\n') + 1 if chef_wrapped else 0
+        
+        # Calculate title position based on number of lines
+        line_height = 0.06 * (fontsize_title / 11.0)
         if chef_col:
-            ax.text(0.5, title_y - title_spacing, f"- {textwrap.fill(chef_col, width=wrap_width)}", 
+            title_y_chef = 0.80 + (num_lines_chef - 1) * line_height + 0.1
+            title_spacing_chef = num_lines_chef * line_height + 0.05
+            ax.text(0.5, title_y_chef, chef_wrapped, 
                     transform=ax.transAxes, ha='center', va='bottom', 
                     fontsize=fontsize_title, fontstyle='italic')
+            ax.text(0.5, title_y_chef + title_spacing_chef, ergo_wrapped, 
+                    transform=ax.transAxes, ha='center', va='bottom', 
+                    fontsize=fontsize_title, weight='normal')
+        else:
+            title_y_ergo = 0.80 + (num_lines_ergo - 1) * line_height + 0.1
+            ax.text(0.5, title_y_ergo, ergo_wrapped, 
+                    transform=ax.transAxes, ha='center', va='bottom', 
+                    fontsize=fontsize_title, weight='normal')
         ax.set_ylabel("Count", fontsize=fontsize_label)
 
         max_count = max(max(counts_ergo.values), max(counts_chef.values))
@@ -520,11 +539,100 @@ def plot_clustered_comparison4(
         axes[j].set_visible(False)
 
     plt.tight_layout()
-    plt.subplots_adjust(wspace=0.2, hspace=0.48)
+    plt.subplots_adjust(wspace=0.2, hspace=0.50)
     plt.show()
 
-plot_clustered_comparison4()
 
+def plot_demo_summary(
+    plot_columns="demo",
+    plot_title="Résumé des données démographiques",
+    fig_width=12, 
+    fontsize_title=11, 
+    fontsize_label=10,
+):
+    """
+    Plot a summary bar chart for all DEMO columns.
+    Each bar represents the sum of values in that column, sorted descending.
+    """
+
+    # Select DEMO columns
+    columns = selected_columns(plot_columns)
+
+    if not columns:
+        print("No columns found")
+        return
+
+    # Calculate sum and count for each column
+    summaries = []
+    for col in columns:
+        if col not in df_all.columns:
+            continue
+        series = normalize_series(df_all[col])
+        try:
+            total_sum = series.astype(float).sum()
+            count = len(series)
+            summaries.append((col, total_sum, count))
+        except ValueError:
+            print(f"Skipping non-numeric column {col}")
+
+    if not summaries:
+        print("No valid DEMO columns to plot")
+        return
+
+    # Sort by sum descending
+    summaries.sort(key=lambda x: x[1], reverse=True)
+
+    # Prepare data - don't pre-wrap labels, let matplotlib handle rotation
+    labels = [col for col, _, _ in summaries]
+    sums = [s for _, s, _ in summaries]
+    counts = [c for _, _, c in summaries]
+
+    # Colors
+    colors = [DEMO_COLORS[i % len(DEMO_COLORS)] for i in range(len(summaries))]
+
+    # Calculate figure height based on longest x-label (45° rotation)
+    # For 45° rotated text, the vertical space needed ≈ label_length * char_width * sin(45°)
+    max_label_length = max((len(col) for col, _, _ in summaries), default=10)
+    # Estimate: ~0.55 inches per 10 characters at fontsize 10 with 45° rotation
+    bottom_margin = (max_label_length / 10) * 0.55 * (fontsize_label / 10)
+    fig_height = 6
+
+    # Plot
+    fig, ax = plt.subplots(figsize=(fig_width, fig_height))
+    bars = ax.bar(range(len(labels)), sums, color=colors)
+
+    ax.set_xticks(range(len(labels)))
+    ax.set_xticklabels(labels, fontsize=fontsize_label, rotation=45, ha='right')
+
+    # Wrapped title
+    wrap_width = max(10, int(fig_width * 10))
+    wrapped_title = textwrap.fill(plot_title, width=wrap_width)
+    ax.set_title(wrapped_title, fontsize=fontsize_title)
+
+    # Bar labels
+    max_sum = max(sums) if sums else 1
+    total_sum = sum(sums)
+    
+    # Add space for 2-line labels (height + count line)
+    label_space = max_sum * 0.12  # Reserve ~12% of max height for labels
+    ax.set_ylim(0, max_sum + label_space)
+    
+    for i, bar in enumerate(bars):
+        height = bar.get_height()
+        count_val = counts[i]
+        perc = (height / total_sum) * 100 if total_sum > 0 else 0
+        ax.text(
+            bar.get_x() + bar.get_width() / 2.,
+            height + 0.01 * max_sum,
+            f'{perc:.0f}%\n(n={int(height)})',
+            ha='center',
+            va='bottom',
+            fontsize=fontsize_label
+        )
+
+    plt.subplots_adjust(bottom=min(bottom_margin, 0.4))  # Cap at 40% to avoid excessive space
+    plt.tight_layout()
+    plt.show()
 
 
 #############
@@ -558,5 +666,8 @@ plot_rps_100_stacked("ergo","th_ergo")
 plot_rps_100_stacked("chef","th_chef")
 
 # Clustered comparison: ERGO-1 vs CHEF-1
-plot_clustered_comparison()
+plot_clustered_comparison_auto()
+
+# Demo summary
+plot_demo_summary("Secteurs d'activité")
 
