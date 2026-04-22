@@ -447,14 +447,14 @@ def plot_clustered_comparison4(
             counts_ergo.values,
             width,
             label='Ergo',
-            color="#689d71"
+            color="#90c599"
         )
         bars_chef = ax.bar(
             [p + 0.2 for p in x],
             counts_chef.values,
             width,
             label='Chef',
-            color="#216477"
+            color="#498c9f"
         )
 
         # Format labels and title - USE ERGO COLUMN NAME
