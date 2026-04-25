@@ -10,6 +10,8 @@ import textwrap
 from functools import lru_cache
 
 
+
+
 #############
 # Constants #
 #############
@@ -68,6 +70,8 @@ COLOR_CHEF = "#498c9f"
 CELL = "None"
 
 
+
+
 ########
 # Data #
 ########
@@ -118,6 +122,8 @@ df_all = main_df()
 df_columns = columns_config()
 
 
+
+
 #########
 # Logic #
 #########
@@ -148,26 +154,20 @@ def selected_columns(tag: str):
     )
 
 def filter_population(df, role: str = "all"):
-    if role == "ergo":
+    if role in ("ergo", "chef"):
         return df[
             (df["Visible"]) &
-            (df["Position"] == "Ergo Practicien")
-        ]
-
-    elif role == "chef":
-        return df[
-            (df["Visible"]) &
-            (df["Position"].str.lower().str.startswith("chef"))
+            (df["Position"].str.lower().str.startswith(role))
         ]
     else:
         return df[
             (df["Visible"])
         ]
 
-    raise ValueError(f"Unknown role: {role}")
-
 def value_counts_full(series, scale):
-    """Guarantee full x-axis even if some values are missing"""
+    """
+    Guarantee full x-axis even if some values are missing
+    """
     return (
         series.astype(str)
         .value_counts()
@@ -244,6 +244,11 @@ def plot_questions(
     fig_width=9,
     cols_per_row=1,
 ):
+    """
+    Plot a series of bar charts for the given columns.
+    Each subplot represents a column.
+    """
+    
     n = len(columns)
     rows = math.ceil(n / cols_per_row)
     fig_height = 5 * rows
@@ -286,6 +291,7 @@ def plot_questions(
     plt.tight_layout()
     plt.subplots_adjust(wspace=0.3, hspace=0.5)
     plt.show()
+
 
 def plot_rps_100_stacked(role: str, col_mask: str, fig_width=10):
     """
@@ -360,11 +366,11 @@ def plot_rps_100_stacked(role: str, col_mask: str, fig_width=10):
     # ---- 6. Formatting ----
     ax.set_ylabel("Pourcentage (%)")
     ax.set_ylim(0, 100)
+    ax.set_xlabel("Ordre d'importance (rang)")
     ax.set_xticks(range(len(columns)))
     ax.set_xticklabels(RPS_PRIORITIES[:len(columns)])
-    ax.set_title(f"Ordre d'importance des thèmes ({role})")
+    ax.set_title(f"Ordre d'importance des thématiques pour les {'ergothérapeutes' if role == 'ergo' else 'responsables' if role == 'chef' else ''}")
     
-
     ax.legend(
         title="Thèmes",
         bbox_to_anchor=(1.02, 1),
@@ -552,6 +558,159 @@ def plot_clustered_comparison_auto(
     plt.show()
 
 
+def plot_cluster_bars_compare_single_column(
+    col_measure,
+    col_group,
+    fig_width=12,
+    cols_per_row=2,
+    font_size_title=11,
+    font_size_label=10,
+    font_size_value=10,
+):
+    """
+    Plot clustered bar charts comparing values of col_group for each col_measure.
+    Each subplot represents a col_measure column.
+    Bar heights are counts of different values of col_measure.
+    Clusters are the different values of col_group.
+    """
+
+    # Get columns using selected_columns
+    measure_cols = selected_columns(col_measure)
+    group_cols = selected_columns(col_group)
+
+    if not measure_cols:
+        raise ValueError(f"No columns found for measure tag '{col_measure}'")
+    if not group_cols:
+        raise ValueError(f"No columns found for group tag '{col_group}'")
+
+    # Filter population
+    df = filter_population(df_all, "all")
+
+    # Determine figure size based on number of questions
+    n = len(measure_cols)
+    rows = math.ceil(n / cols_per_row)
+    fig_height = 5 * rows
+
+    fig, axes = plt.subplots(rows, cols_per_row, figsize=(fig_width, fig_height))
+    
+    # Handle axes array shape
+    if isinstance(axes, np.ndarray):
+        axes = axes.flatten()
+    else:
+        axes = [axes]
+
+    # Get unique group values for clustering
+    group_values = []
+    for group_col in group_cols:
+        if group_col in df.columns:
+            values = normalize_series(df[group_col]).unique()
+            group_values.extend(values)
+    group_values = sorted(set(group_values))
+
+    # Colors for groups - use ERGO/CHEF colors like plot_clustered_comparison_auto
+    if len(group_values) == 2:
+        # Assume first is ERGO, second is CHEF
+        group_colors = [COLOR_ERGO, COLOR_CHEF]
+    else:
+        group_colors = [DEMO_COLORS[i % len(DEMO_COLORS)] for i in range(len(group_values))]
+
+    # Loop through measure columns
+    for i, measure_col in enumerate(measure_cols):
+        ax = axes[i]
+        
+        # Check if measure column exists
+        if measure_col not in df.columns:
+            print(f"Warning: Measure column '{measure_col}' not in dataframe")
+            ax.set_visible(False)
+            continue
+
+        # Get scale for x-axis (values of measure column)
+        scale = infer_scale_from_dataframe(df, measure_col)
+        
+        # Set up the bar positions
+        x = range(len(scale))
+        width = 0.8 / len(group_values)
+
+        # Create bars for each group value
+        bars_list = []
+        for g_idx, group_val in enumerate(group_values):
+            counts_per_scale = []
+            for scale_val in scale:
+                count = 0
+                for group_col in group_cols:
+                    if group_col not in df.columns:
+                        continue
+                    group_series = normalize_series(df[group_col])
+                    measure_series = normalize_series(df[measure_col])
+                    # Get rows where group matches this group_val AND measure matches this scale_val
+                    mask = (group_series == group_val) & (measure_series == scale_val)
+                    count += mask.sum()
+                counts_per_scale.append(count)
+            
+            offset = (g_idx - len(group_values)/2 + 0.5) * width
+            bars = ax.bar(
+                [p + offset for p in x],
+                counts_per_scale,
+                width,
+                label=str(group_val),
+                color=group_colors[g_idx]
+            )
+            bars_list.append(bars)
+
+        # Format labels
+        wrapped_labels = [
+            textwrap.fill(str(lbl), width=15) for lbl in scale
+        ]
+
+        # Calculate wrap width based on figure size and number of columns
+        subplot_width = fig_width / cols_per_row
+        wrap_width = max(10, int(subplot_width * 8))
+
+        ax.set_xticks(x)
+        ax.set_xticklabels(wrapped_labels, fontsize=font_size_label)
+
+        # Title inside the plot area (like plot_clustered_comparison_auto)
+        measure_wrapped = textwrap.fill(measure_col, width=wrap_width)
+        ax.set_title(measure_wrapped, fontsize=font_size_title)
+        
+        ax.set_ylabel("Count", fontsize=font_size_label)
+
+        # Calculate max count for y-axis
+        max_count = 0
+        for bars in bars_list:
+            if len(bars) > 0:
+                bar_heights = [bar.get_height() for bar in bars]
+                max_count = max(max_count, max(bar_heights) if bar_heights else 0)
+        ax.set_ylim(0, max_count * 1.15 if max_count > 0 else 1)
+
+        # Add value labels on bars - percentage based on TOTAL (all groups together)
+        total_all = sum(bar.get_height() for bars in bars_list for bar in bars)
+        for bars in bars_list:
+            for bar in bars:
+                height = bar.get_height()
+                if height > 0:
+                    perc = (height / total_all) * 100 if total_all > 0 else 0
+                    ax.text(
+                        bar.get_x() + bar.get_width()/2.,
+                        height + 0.1,
+                        f'{perc:.0f}%\n(n={int(height)})',
+                        ha='center',
+                        va='bottom',
+                        fontsize=font_size_value
+                    )
+
+        ax.legend(fontsize=font_size_label, title=col_group)
+
+    # Hide unused subplots
+    for j in range(i + 1, len(axes)):
+        axes[j].set_visible(False)
+
+    plt.tight_layout()
+    plt.subplots_adjust(wspace=0.2, hspace=0.66)
+    plt.show()
+
+
+
 def plot_demo_summary(
     plot_columns="demo",
     plot_title="Résumé des données démographiques",
@@ -659,7 +818,6 @@ def plot_single_column_summary(
     fontsize_title=11,
     fontsize_label=10,
     role="all",
-
 ):
     """
     Plot a bar chart for a single column selected by tag.
@@ -740,6 +898,8 @@ def plot_single_column_summary(
     plt.subplots_adjust(bottom=min(bottom_margin, 0.4))  # Cap at 40% to avoid excessive space
     plt.tight_layout()
     plt.show()
+
+
 
 
 #############
