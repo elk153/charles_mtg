@@ -385,6 +385,200 @@ def plot_rps_100_stacked(role: str, col_mask: str, fig_width=10):
     plt.show()
 
 
+def plot_stack100_single_column(
+    col_measure: str,
+    col_group: str,
+    measure_order=None,
+    group_order=None,
+    fig_width=12,
+    cols_per_row=2,
+    font_size_title=11,
+    font_size_label=10,
+    font_size_value=9
+):
+    """
+    100% stacked bar charts for multiple measure columns.
+    
+    - X axis: values of col_measure
+    - Stacks: groups from col_group
+    - Labels: n=count
+    
+    Parameters:
+    - col_measure: tag to select measure columns using selected_columns
+    - col_group: column name to group by
+    - measure_order: order of x-axis values (default: ascending)
+    - group_order: order of stack groups (default: ascending)
+    - fig_width: figure width
+    - cols_per_row: number of columns per row
+    - font_size_title: title font size
+    - font_size_label: label font size
+    - font_size_value: bar label font size
+    """
+
+    # ---- 1. Select measure columns ----
+    measure_cols = selected_columns(col_measure)
+
+    if not measure_cols:
+        raise ValueError(f"No columns found for measure tag '{col_measure}'")
+
+    # ---- 2. Select group columns ----
+    group_cols = selected_columns(col_group)
+
+    if not group_cols:
+        raise ValueError(f"No columns found for group tag '{col_group}'")
+
+    # Filter population
+    df = filter_population(df_all, "all")
+
+    # ---- 3. Determine group order ----
+    # Get unique values from all group columns
+    group_values = []
+    for group_col in group_cols:
+        if group_col in df.columns:
+            values = normalize_series(df[group_col]).unique()
+            group_values.extend(values)
+    group_values = sorted(set(group_values))
+
+    if group_order is None:
+        groups = sorted(group_values)
+    else:
+        groups = list(group_order)
+
+    # Colors for groups - use COMPARISON_COLORS
+    if len(groups) == 2:
+        colors = {g: COMPARISON_COLORS.get(f"GROUP_{i+1}", DEMO_COLORS[i]) for i, g in enumerate(groups)}
+    else:
+        colors = {g: DEMO_COLORS[i % len(DEMO_COLORS)] for i, g in enumerate(groups)}
+
+    # ---- 3. Layout ----
+    n_plots = len(measure_cols)
+    n_rows = math.ceil(n_plots / cols_per_row)
+    fig_height = 5 * n_rows
+
+    fig, axes = plt.subplots(n_rows, cols_per_row, figsize=(fig_width, fig_height))
+    
+    # Handle axes array shape
+    if isinstance(axes, np.ndarray):
+        axes = axes.flatten()
+    else:
+        axes = [axes]
+
+    # ---- 4. Plot each measure ----
+    for idx, measure_col in enumerate(measure_cols):
+        ax = axes[idx]
+
+        if measure_col not in df.columns:
+            print(f"Warning: Measure column '{measure_col}' not in dataframe")
+            ax.set_visible(False)
+            continue
+
+        values = normalize_series(df[measure_col])
+
+        # Determine measure order (x-axis)
+        unique_vals = values.dropna().unique()
+        if measure_order is None:
+            x_vals = sorted(unique_vals)
+        else:
+            x_vals = list(measure_order)
+
+        # ---- Counts per group and measure value ----
+        # Build counts by iterating over all group columns
+        counts_dict = {g: {x: 0 for x in x_vals} for g in groups}
+        
+        for group_col in group_cols:
+            if group_col not in df.columns:
+                continue
+            group_series = normalize_series(df[group_col])
+            
+            for group_val in groups:
+                # Get rows where group matches this group_val
+                group_mask = group_series == group_val
+                
+                for x_val in x_vals:
+                    # Get rows where measure matches this x_val AND group matches
+                    measure_mask = values == x_val
+                    count = (group_mask & measure_mask).sum()
+                    counts_dict[group_val][x_val] += count
+
+        # Convert to DataFrame
+        counts = pd.DataFrame(counts_dict).T
+        counts = counts.reindex(index=groups, columns=x_vals, fill_value=0)
+
+        # ---- Convert to % ----
+        percentages = counts.div(counts.sum(axis=0), axis=1).fillna(0) * 100
+
+        x = range(len(x_vals))
+        bottom = np.zeros(len(x_vals))
+
+        # ---- Stacked bars ----
+        for group in groups:
+            if group not in percentages.index:
+                continue
+            vals_pct = percentages.loc[group]
+            vals_count = counts.loc[group]
+
+            bars = ax.bar(
+                x,
+                vals_pct.values,
+                bottom=bottom,
+                color=colors[group],
+                label=str(group)
+            )
+
+            # Labels: n=count
+            for i in range(len(x_vals)):
+                h = vals_pct.iloc[i]
+                c = vals_count.iloc[i]
+
+                if h > 0:
+                    ax.text(
+                        i,
+                        bottom[i] + h / 2,
+                        f"n={int(c)}",
+                        ha="center",
+                        va="center",
+                        fontsize=font_size_value
+                    )
+
+            bottom += vals_pct.values
+
+        # ---- Formatting ----
+        ax.set_xticks(x)
+        
+        # Wrap x-axis labels
+        wrapped_labels = [textwrap.fill(str(v), width=15) for v in x_vals]
+        ax.set_xticklabels(wrapped_labels, fontsize=font_size_label)
+        
+        ax.set_ylabel("Pourcentage (%)", fontsize=font_size_label)
+        ax.set_ylim(0, 100)
+        
+        # Title above plot area
+        measure_wrapped = textwrap.fill(measure_col, width=30)
+        ax.set_title(measure_wrapped, fontsize=font_size_title, pad=10)
+
+    # ---- Hide unused axes ----
+    for j in range(idx + 1, len(axes)):
+        axes[j].set_visible(False)
+
+    # ---- Legend ----
+    # Use first group column name as legend title
+    legend_title = group_cols[0] if group_cols else col_group
+    handles, labels = axes[0].get_legend_handles_labels()
+    if handles:
+        fig.legend(
+            handles,
+            labels,
+            title=legend_title,
+            bbox_to_anchor=(1.02, 0.9),
+            loc="upper left",
+            fontsize=font_size_label
+        )
+
+    plt.tight_layout()
+    plt.subplots_adjust(wspace=0.2, hspace=0.5)
+    plt.show()
+
+
 def plot_clustered_comparison_auto(
     fig_width=12,
     cols_per_row=2,
@@ -565,8 +759,8 @@ def plot_clustered_comparison_auto(
 def plot_cluster_bars_compare_single_column(
     col_measure,
     col_group,
-    fig_width=12,
-    cols_per_row=2,
+    fig_width=6,
+    cols_per_row=1,
     font_size_title=11,
     font_size_label=10,
     font_size_value=10,
