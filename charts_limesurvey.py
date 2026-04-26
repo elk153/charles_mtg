@@ -66,6 +66,10 @@ NO_DATA_SENTINEL = "__NO_DATA__"
 COLOR_ERGO = "#90c599"
 COLOR_CHEF = "#498c9f"
 
+# comparison colors (use RPS colors for consistency)
+COLOR_GROUP_1 = "#F28E2B"
+COLOR_GROUP_2 = "#B07AA1"
+
 #Cell content
 CELL = "None"
 
@@ -610,7 +614,7 @@ def plot_cluster_bars_compare_single_column(
     # Colors for groups - use ERGO/CHEF colors like plot_clustered_comparison_auto
     if len(group_values) == 2:
         # Assume first is ERGO, second is CHEF
-        group_colors = [COLOR_ERGO, COLOR_CHEF]
+        group_colors = [COLOR_GROUP_1, COLOR_GROUP_2]
     else:
         group_colors = [DEMO_COLORS[i % len(DEMO_COLORS)] for i in range(len(group_values))]
 
@@ -664,7 +668,7 @@ def plot_cluster_bars_compare_single_column(
 
         # Calculate wrap width based on figure size and number of columns
         subplot_width = fig_width / cols_per_row
-        wrap_width = max(10, int(subplot_width * 8))
+        wrap_width = max(12, int(subplot_width * 10))
 
         ax.set_xticks(x)
         ax.set_xticklabels(wrapped_labels, fontsize=font_size_label)
@@ -699,7 +703,7 @@ def plot_cluster_bars_compare_single_column(
                         fontsize=font_size_value
                     )
 
-        ax.legend(fontsize=font_size_label, title=col_group)
+        ax.legend(fontsize=font_size_label, title=group_cols[0] if group_cols else "Groupe")
 
     # Hide unused subplots
     for j in range(i + 1, len(axes)):
