@@ -1244,8 +1244,9 @@ def plot_bar_cluster_compare_single_col(
         role="all",
         order="desc",
         custom_order=None,
+        group_order="As found",
         h_space=0.40,
-        w_space=,0.16
+        w_space=0.16,
     ):
     """
     Plot clustered bar chart subplots comparing one or more columns selected by plot_column_tag.
@@ -1253,6 +1254,7 @@ def plot_bar_cluster_compare_single_col(
 
     # ---- 1. Filter population ----
     df = filter_population(df_all, role)
+    n = len(df)
 
     # ---- 2. Resolve measure columns ----
     measure_cols_titles = selected_cols_titles(plot_column_tag)
@@ -1427,7 +1429,7 @@ def plot_bar_cluster_compare_single_col(
         # ---- 10. Subplot title ----
         subplot_width = fig_width / cols_per_row
         wrap_width = max(12, int(subplot_width * 10))
-        wrapped_subplot_title = textwrap.fill(measure_title, width=wrap_width)
+        wrapped_subplot_title = textwrap.fill(f"{measure_title} (n={n})", width=wrap_width)
         ax.set_title(wrapped_subplot_title, fontsize=fontsize_title, pad=8)
 
         # ---- 11. Y axis ----
