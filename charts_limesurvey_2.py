@@ -1451,3 +1451,223 @@ def plot_bar_cluster_compare_single_col(
     plt.tight_layout()
     plt.subplots_adjust(top=0.90, wspace=w_space, hspace=h_space)
     plt.show()
+
+
+
+
+
+
+def plot_bar_cluster_compare_roles(
+        left_prefix="ERGO-REC",
+        right_prefix="CHEF-REC",
+        left_role="ergo",
+        right_role="chef",
+        left_label="Ergo",
+        right_label="Chef",
+        left_color=COLOR_ERGO,
+        right_color=COLOR_CHEF,
+        fig_width=12,
+        cols_per_row=2,
+        rotation_label=0,
+        align_label="center",
+        fontsize_title=11,
+        fontsize_label=10,
+        fontsize_value=10,
+        h_space=0.66,
+        w_space=0.20,
+    ):
+    """
+    Plot clustered bar charts comparing two role-based populations
+    for all shared levels defined in columns_config.
+    Each subplot represents a question pair:
+    left_prefix-<level> versus right_prefix-<level>.
+    Titles use the left-side column names.
+    """
+
+    # ---- 1. Detect levels from config ----
+    df_cfg = columns_config()
+    first_col = (
+        df_cfg.iloc[:, 0]
+        .astype(str)
+        .str.strip()
+        .str.lower()
+    )
+
+    left_prefix_lc = left_prefix.lower()
+    right_prefix_lc = right_prefix.lower()
+
+    left_tags = first_col[first_col.str.startswith(f"{left_prefix_lc}-")]
+    levels = sorted(
+        set(
+            tag.split("-")[1]
+            for tag in left_tags
+            if "-" in tag and len(tag.split("-")) > 1
+        )
+    )
+
+    # ---- 2. Resolve matching columns ----
+    all_left_cols = []
+    all_right_cols = []
+
+    for level in levels:
+        left_cols = selected_columns(f"{left_prefix}-{level}")
+        right_cols = selected_columns(f"{right_prefix}-{level}")
+        all_left_cols.extend(left_cols)
+        all_right_cols.extend(right_cols)
+
+    if not all_left_cols:
+        raise ValueError(f"No columns found for prefix '{left_prefix}'")
+
+    # ---- 3. Filter populations ----
+    df_left = filter_population(df_all, left_role)
+    df_right = filter_population(df_all, right_role)
+
+    # ---- 4. Figure layout ----
+    n = len(all_left_cols)
+    rows = math.ceil(n / cols_per_row)
+    fig_height = 5 * rows
+
+    fig, axes = plt.subplots(rows, cols_per_row, figsize=(fig_width, fig_height))
+
+    if isinstance(axes, np.ndarray):
+        axes = axes.flatten()
+    else:
+        axes = [axes]
+
+    # ---- 5. Plot each pair ----
+    for i, left_col in enumerate(all_left_cols):
+        ax = axes[i]
+
+        right_col = all_right_cols[i] if i < len(all_right_cols) else None
+
+        if left_col not in df_left.columns:
+            print(f"Warning: left column '{left_col}' not in filtered dataframe")
+            ax.set_visible(False)
+            continue
+
+        counts_left, scale = value_counts_full(df_all, left_col, df_left)
+
+        if right_col and right_col in df_right.columns:
+            counts_right, scale = value_counts_full(df_all, right_col, df_right)
+        else:
+            counts_right = pd.Series(0, index=scale)
+            print(f"Warning: right column '{right_col}' not found, showing zeros")
+
+        # ---- 6. Bars ----
+        x = np.arange(len(scale))
+        width = 0.42
+
+        bars_left = ax.bar(
+            x - 0.24,
+            counts_left.values,
+            width,
+            label=left_label,
+            color=left_color
+        )
+
+        bars_right = ax.bar(
+            x + 0.24,
+            counts_right.values,
+            width,
+            label=right_label,
+            color=right_color
+        )
+
+        # ---- 7. X labels ----
+        wrapped_labels = [textwrap.fill(str(lbl), width=fig_width) for lbl in scale]
+
+        ax.set_xticks(x)
+        ax.set_xticklabels(
+            wrapped_labels,
+            fontsize=fontsize_label,
+            rotation=rotation_label,
+            ha=align_label
+        )
+
+        # ---- 8. Title block ----
+        subplot_width = fig_width / cols_per_row
+        wrap_width = max(fig_width, int(subplot_width * 10))
+
+        left_wrapped = textwrap.fill(left_col, width=wrap_width)
+        right_wrapped = textwrap.fill(right_col, width=wrap_width) if right_col else ""
+
+        num_lines_left = left_wrapped.count("\n") + 1
+        num_lines_right = right_wrapped.count("\n") + 1 if right_wrapped else 0
+
+        line_height = 0.06 * (fontsize_title / 11.0)
+
+        if right_col:
+            title_y_right = 0.80 + (num_lines_right - 1) * line_height + 0.1
+            title_spacing_right = num_lines_right * line_height + 0.05
+
+            ax.text(
+                0.5, title_y_right, right_wrapped,
+                transform=ax.transAxes,
+                ha="center", va="bottom",
+                fontsize=fontsize_title,
+                fontstyle="italic"
+            )
+
+            ax.text(
+                0.5, title_y_right + title_spacing_right, left_wrapped,
+                transform=ax.transAxes,
+                ha="center", va="bottom",
+                fontsize=fontsize_title,
+                weight="normal"
+            )
+        else:
+            title_y_left = 0.80 + (num_lines_left - 1) * line_height + 0.1
+            ax.text(
+                0.5, title_y_left, left_wrapped,
+                transform=ax.transAxes,
+                ha="center", va="bottom",
+                fontsize=fontsize_title,
+                weight="normal"
+            )
+
+        # ---- 9. Y axis ----
+        ax.set_ylabel("Count", fontsize=fontsize_label)
+
+        max_count = max(max(counts_left.values), max(counts_right.values))
+        ax.set_ylim(0, max_count * 1.15 if max_count > 0 else 1)
+
+        # ---- 10. Value labels ----
+        total_left = counts_left.sum()
+        for bar in bars_left:
+            height = bar.get_height()
+            if height > 0:
+                perc = (height / total_left) * 100 if total_left > 0 else 0
+                ax.text(
+                    bar.get_x() + bar.get_width() / 2.0,
+                    height + 0.1,
+                    f"{perc:.0f}%\n(n={int(height)})",
+                    ha="center",
+                    va="bottom",
+                    fontsize=fontsize_value
+                )
+
+        total_right = counts_right.sum()
+        for bar in bars_right:
+            height = bar.get_height()
+            if height > 0:
+                perc = (height / total_right) * 100 if total_right > 0 else 0
+                ax.text(
+                    bar.get_x() + bar.get_width() / 2.0,
+                    height + 0.1,
+                    f"{perc:.0f}%\n(n={int(height)})",
+                    ha="center",
+                    va="bottom",
+                    fontsize=fontsize_value,
+                    fontstyle="italic"
+                )
+
+        # ---- 11. Legend ----
+        ax.legend(fontsize=fontsize_label)
+
+    # ---- 12. Hide unused subplots ----
+    for j in range(i + 1, len(axes)):
+        axes[j].set_visible(False)
+
+    plt.tight_layout()
+    plt.subplots_adjust(wspace=w_space, hspace=h_space)
+    plt.show()
