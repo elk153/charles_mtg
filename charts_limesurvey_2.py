@@ -30,6 +30,17 @@ SCALE_OUI_NON = ["Oui", "Non"]
 
 # Work dimensions
 SCALE_RPS = [
+    "Equilibre vie privée et vie professionnelle",
+    "Reconnaissance",
+    "Autonomie",
+    "Climat social",
+    "Ressources",    
+    "Quantité de travail",
+    "Charge émotionnelle",    
+]
+
+# Work dimensions
+SCALE_THEMES = [
     "Reconnaissance",
     "Ressources",
     "Climat social",
@@ -55,6 +66,14 @@ SCALE_SENIORITY_CHIEF = [
     "15 à 20 ans",
     "Plus de 20 ans"
 ]
+
+CUSTOM_ORDERS = {
+    "SCALE_SENIORITY": SCALE_SENIORITY,
+    "SCALE_SENIORITY_CHIEF": SCALE_SENIORITY_CHIEF,
+    "SCALE_1_4": SCALE_1_4,
+    "SCALE_OUI_NON": SCALE_OUI_NON,
+    "SCALE_RPS": SCALE_RPS,
+}
 
 # Work dimensions priorities
 RPS_PRIORITIES = [1, 2, 3, 4, 5, 6, 7]
@@ -216,7 +235,7 @@ def selected_cols_titles(tag: str):
         .values
         .tolist()
     )
-
+    
 def filter_population(df, role: str = "all"):
     if role in ("ergo", "chef"):
         return df[
@@ -297,7 +316,7 @@ def value_counts_full(df, column, visible_df):
 
 def cm_2_in(value):
     return value / 2.54
- 
+
 def interpolate(value, in_min, in_max, out_min, out_max):
     value = max(in_min, min(in_max, value))
     return out_min + (value - in_min) * (out_max - out_min) / (in_max - in_min)
@@ -437,6 +456,8 @@ def plot_bar_regular_single_col(
         fontsize_title=11,
         fontsize_label=9,
         role="all",
+        order="desc",
+        custom_order=None,
     ):
     """
     Plot a bar chart for a single column selected by tag.
@@ -467,12 +488,37 @@ def plot_bar_regular_single_col(
         return
 
     series = normalize_series(df[column_name])
-    counts = series.value_counts().sort_values(ascending=False)
 
+    # Count observed values
+    counts = series.value_counts()
+    
     if counts.empty:
         print("No data to plot")
         return
 
+    # Apply ordering
+    if order == "desc":
+        counts = counts.sort_values(ascending=False)
+
+    elif order == "custom":
+        if custom_order is None:
+            print("custom_order must be provided when order='custom'")
+            return
+
+        # If a string is passed, resolve it via the registry
+        if isinstance(custom_order, str):
+            custom_order = CUSTOM_ORDERS.get(custom_order)
+
+            if custom_order is None:
+                print("Unknown custom_order string")
+                return
+
+        counts = counts.reindex(custom_order, fill_value=0)
+
+    else:
+        print("order must be 'desc' or 'custom'")
+        return
+        
     # Use metadata title by default
     final_title = plot_title if plot_title is not None else column_title
 
