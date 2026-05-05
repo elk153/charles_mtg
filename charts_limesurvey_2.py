@@ -192,6 +192,31 @@ def selected_columns(tag: str):
         .tolist()
     )
 
+def selected_cols_titles(tag: str):
+    df = columns_config().copy()
+
+    first_col = (
+        df.iloc[:, 0]
+        .astype(str)
+        .str.strip()
+        .str.lower()
+    )
+
+    if tag.lower() == "th_ergo":
+        mask = first_col == "th_ergo"
+    elif tag.lower() == "th_chef":
+        mask = first_col == "th_chef"
+    else:
+        mask = first_col.isin([tag.lower(), "tous"])
+
+    return (
+        df.loc[mask, [df.columns[1], df.columns[2]]]
+        .fillna(NO_DATA_SENTINEL)
+        .astype(str)
+        .values
+        .tolist()
+    )
+
 def filter_population(df, role: str = "all"):
     if role in ("ergo", "chef"):
         return df[
@@ -273,6 +298,10 @@ def value_counts_full(df, column, visible_df):
 def cm_2_in(value):
     return value / 2.54
  
+def interpolate(value, in_min, in_max, out_min, out_max):
+    value = max(in_min, min(in_max, value))
+    return out_min + (value - in_min) * (out_max - out_min) / (in_max - in_min)
+
 
 
 
@@ -286,10 +315,122 @@ def cm_2_in(value):
 # Charts #
 ##########
 
+def plot_bar_stacked_100(
+        role: str, 
+        col_mask: str, 
+        fig_width=10,
+        fontsize_title=11,
+        fontsize_label=9
+    ):
+    """
+    Build a 100% stacked column chart for ERGO or CHEF.
+    Columns are priority questions.
+    Stacks represent SCALE_RPS distribution.
+    """
 
-def plot_bar_regular_single_column(
+    # ---- 1. Select population ----
+    df = filter_population(df_all, role)
+    n = len(df)
+
+    # ---- 2. Select priority columns ----
+    columns = selected_columns(col_mask)
+
+    if not columns:
+        raise ValueError("No columns marked as 'themes'")
+
+    # ---- 3. Count RPS occurrences per column ----
+    counts_per_column = []
+
+    for col in columns:
+        if col not in df.columns:
+            # Column missing → all zeros
+            counts = pd.Series(0, index=SCALE_RPS)
+        else:
+            values = normalize_series(df[col])
+            counts = (
+                values
+                .value_counts()
+                .reindex(SCALE_RPS, fill_value=0)
+            )
+
+        counts_per_column.append(counts)
+
+    # DataFrame: rows = SCALE_RPS, columns = questions
+    counts_df = pd.DataFrame(counts_per_column, index=columns).T
+
+    # ---- 4. Convert to percentages (100%) ----
+    percentages = counts_df.div(counts_df.sum(axis=0), axis=1) * 100
+    percentages = percentages.fillna(0)
+
+    # ---- 5. Plot ----
+    fig_height = max(4, len(columns) * 0.6)
+    fig, ax = plt.subplots(figsize=(fig_width, fig_height))
+
+    bottom = pd.Series([0] * len(columns), index=columns)
+
+    for rps in SCALE_RPS:
+        values = percentages.loc[rps]
+        ax.bar(
+            columns,
+            values,
+            bottom=bottom,
+            label=rps,
+            color=RPS_COLORS.get(rps, "#999999")
+        )
+
+        for i, col in enumerate(columns):
+            val = values[col]
+            if val > 0:
+                ax.text(
+                    i,
+                    bottom[col] + val / 2,
+                    f"{val:.0f}%",
+                    ha='center',
+                    va='center',
+                    fontsize=8
+                )
+
+        bottom += values
+
+    # ---- 6. Formatting ----
+    ax.set_ylabel("Pourcentage (%)", fontsize=fontsize_label)
+    ax.set_ylim(0, 100)
+    ax.set_xlabel("Ordre d'importance (rang)", fontsize=fontsize_label)
+    ax.set_xticks(range(len(columns)))
+    ax.set_xticklabels(RPS_PRIORITIES[:len(columns)])
+
+    wrap_width = max(10, int(fig_width * 6.2))
+    title_wrap = textwrap.fill(
+        f"Ordre d'importance des thématiques pour les {'ergothérapeutes' if role == 'ergo' else 'responsables' if role == 'chef' else ''} (n={n})",
+        width=wrap_width
+    )
+    ax.set_title(
+        title_wrap,
+        fontsize=fontsize_title,
+        pad=12
+    )
+    
+    ax.legend(
+        title="Thématiques",
+        bbox_to_anchor=(1.02, 0.5),
+        loc="center left", 
+        fontsize=fontsize_label        
+    )
+
+    plt.tight_layout()
+    plt.show()
+
+
+
+
+
+
+
+
+
+def plot_bar_regular_single_col(
         plot_column_tag,
-        plot_title="Résumé d'une colonne",
+        plot_title=None,
         rotation_label=45,
         align_label="right",
         fig_width=10,
@@ -299,24 +440,27 @@ def plot_bar_regular_single_column(
     ):
     """
     Plot a bar chart for a single column selected by tag.
-    Each bar represents the count of each unique value in the column.
+    Uses selected_cols_titles():
+      - first value = dataframe column name
+      - second value = display title for chart
+    Figure height stays constant, while bar width adapts to fig_width.
     """
 
     # Filter population
     df = filter_population(df_all, role)
     n = len(df)
 
-    # Select the column using the same mechanism as plot_demo_summary
-    columns = selected_columns(plot_column_tag)
+    # Select config pair(s): [column_name, column_title]
+    cols_titles = selected_cols_titles(plot_column_tag)
 
-    if not columns:
+    if not cols_titles:
         print(f"No columns found for tag '{plot_column_tag}'")
         return
 
-    if len(columns) > 1:
+    if len(cols_titles) > 1:
         print(f"Tag '{plot_column_tag}' returns multiple columns, using the first one")
-    
-    column_name = columns[0]
+
+    column_name, column_title = cols_titles[0]
 
     if column_name not in df.columns:
         print(f"Column '{column_name}' not found")
@@ -329,158 +473,67 @@ def plot_bar_regular_single_column(
         print("No data to plot")
         return
 
-    # Prepare data
-    labels = counts.index.tolist()
-    values = counts.values
-
-    # Colors
-    colors = [DEMO_COLORS[i % len(DEMO_COLORS)] for i in range(len(labels))]
-
-    # Calculate figure height based on longest x-label (45° rotation)
-    max_label_length = max((len(str(lbl)) for lbl in labels), default=10)
-    # Estimate: ~0.55 inches per 10 characters at fontsize 10 with 45° rotation
-    bottom_margin = (max_label_length / 10) * 0.55 * (fontsize_label / 10)
-    fig_height = fig_width / 16 * 9
-
-    # Plot
-    fig, ax = plt.subplots(figsize=(fig_width, fig_height))
-    bars = ax.bar(range(len(labels)), values, color=colors)
-
-    ax.set_xticks(range(len(labels)))
-    ax.set_xticklabels(labels, fontsize=fontsize_label, rotation=rotation_label, ha=align_label)
-
-    # Wrapped title
-    wrap_width = fig_width * 4.5
-    wrapped_title = textwrap.fill(f"{plot_title} (n={n})", width=wrap_width)
-    ax.set_title(
-        wrapped_title, 
-        fontsize=fontsize_title,
-        pad=12)
-
-    # Bar labels
-    max_val = max(values) if values.size > 0 else 1
-    total = sum(values)
-
-    # Add space for 2-line labels (percentage + count line)
-    label_space = max_val * 0.18  # Reserve ~12% of max height for labels
-    ax.set_ylim(0, max_val + label_space)
-
-    for i, bar in enumerate(bars):
-        height = bar.get_height()
-        perc = (height / total) * 100 if total > 0 else 0
-        ax.text(
-            bar.get_x() + bar.get_width() / 2.,
-            height + 0.01 * max_val,
-            f'{perc:.0f}%\n(n={int(height)})',
-            ha='center',
-            va='bottom',
-            fontsize=fontsize_label
-        )
-
-    plt.subplots_adjust(bottom=min(bottom_margin, 0.4))  # Cap at 40% to avoid excessive space
-    plt.tight_layout()
-    plt.show()
-    
-
-################################################################################
-
-
-
-
-
-
-
-
-
-def plot_bar_regular_single_column(
-        plot_column_tag,
-        plot_title="Résumé d'une colonne",
-        rotation_label=45,
-        align_label="right",
-        fig_width=10,
-        fontsize_title=11,
-        fontsize_label=9,
-        role="all",
-    ):
-    """
-    Plot a bar chart for a single column selected by tag.
-    Each bar represents the count of each unique value in the column.
-    """
-
-    # Filter population
-    df = filter_population(df_all, role)
-
-    # Select the column using the same mechanism as plot_demo_summary
-    columns = selected_columns(plot_column_tag)
-
-    if not columns:
-        print(f"No columns found for tag '{plot_column_tag}'")
-        return
-
-    if len(columns) > 1:
-        print(f"Tag '{plot_column_tag}' returns multiple columns, using the first one")
-    
-    column_name = columns[0]
-
-    if column_name not in df.columns:
-        print(f"Column '{column_name}' not found")
-        return
-
-    series = normalize_series(df[column_name])
-    counts = series.value_counts().sort_values(ascending=False)
-
-    if counts.empty:
-        print("No data to plot")
-        return
+    # Use metadata title by default
+    final_title = plot_title if plot_title is not None else column_title
 
     # Prepare data
     labels = counts.index.tolist()
     values = counts.values
+    x = np.arange(len(labels))
 
     # Colors
     colors = [DEMO_COLORS[i % len(DEMO_COLORS)] for i in range(len(labels))]
 
-    # Calculate figure height based on longest x-label (45° rotation)
+    # Keep height constant, adapt width only
+    fig_height = 3.6
+
+    # Adapt bar thickness according to figure width
+    bar_width = interpolate(fig_width, 5, 10, 0.65, 0.80)
+
+    # Bottom margin based on label length
     max_label_length = max((len(str(lbl)) for lbl in labels), default=10)
-    # Estimate: ~0.55 inches per 10 characters at fontsize 10 with 45° rotation
     bottom_margin = (max_label_length / 10) * 0.55 * (fontsize_label / 10)
-    fig_height = fig_width / 16 *
 
     # Plot
     fig, ax = plt.subplots(figsize=(fig_width, fig_height))
-    bars = ax.bar(range(len(labels)), values, color=colors)
+    bars = ax.bar(x, values, width=bar_width, color=colors)
 
-    ax.set_xticks(range(len(labels)))
-    ax.set_xticklabels(labels, fontsize=fontsize_label, rotation=rotation_label, ha=align_label)
+    ax.set_xticks(x)
+    ax.set_xticklabels(
+        labels,
+        fontsize=fontsize_label,
+        rotation=rotation_label,
+        ha=align_label
+    )
 
     # Wrapped title
-    wrap_width = fig_width * 4.5
-    wrapped_title = textwrap.fill(plot_title, width=wrap_width)
+    wrap_width = int(fig_width * 12)
+    wrapped_title = textwrap.fill(f"{final_title} (n={n})", width=wrap_width)
     ax.set_title(
-        wrapped_title, 
+        wrapped_title,
         fontsize=fontsize_title,
-        pad=12)
+        pad=10
+    )
 
-    # Bar labels
-    max_val = max(values) if values.size > 0 else 1
+    # Labels above bars
+    max_val = max(values) if len(values) > 0 else 1
     total = sum(values)
 
-    # Add space for 2-line labels (percentage + count line)
-    label_space = max_val * 0.12  # Reserve ~12% of max height for labels
+    label_space = max_val * 0.18
     ax.set_ylim(0, max_val + label_space)
 
-    for i, bar in enumerate(bars):
+    for bar in bars:
         height = bar.get_height()
         perc = (height / total) * 100 if total > 0 else 0
         ax.text(
-            bar.get_x() + bar.get_width() / 2.,
+            bar.get_x() + bar.get_width() / 2,
             height + 0.01 * max_val,
-            f'{perc:.0f}%\n(n={int(height)})',
-            ha='center',
-            va='bottom',
+            f"{perc:.0f}%\n(n={int(height)})",
+            ha="center",
+            va="bottom",
             fontsize=fontsize_label
         )
 
-    plt.subplots_adjust(bottom=min(bottom_margin, 0.4))  # Cap at 40% to avoid excessive space
+    plt.subplots_adjust(bottom=min(bottom_margin, 0.4))
     plt.tight_layout()
     plt.show()
