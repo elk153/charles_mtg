@@ -107,6 +107,8 @@ DEMO_COLORS = list(RPS_COLORS.values())
 COLOR_ERGO = "#90c599"
 COLOR_CHEF = "#498c9f"
 
+POS_COLORS = (COLOR_ERGO, COLOR_CHEF)
+
 # comparison colors
 COLOR_GROUP_1 = "#F28E2B"
 COLOR_GROUP_2 = "#B07AA1"
@@ -687,5 +689,355 @@ def plot_bar_regular_multi_col(
         ax.text(bar.get_x() + bar.get_width() / 2, h + 0.01 * max_val, 
                 f"{perc:.0f}%\n(n={int(h)})", ha="center", va="bottom", fontsize=fontsize_label)
                 
+    plt.tight_layout()
+    plt.show()
+
+
+
+
+
+
+
+def plot_bar_cluster_single_col(
+        plot_column_tag,
+        ec_tag="ec",
+        plot_title=None,
+        rotation_label=45,
+        align_label="right",
+        fig_width=10,
+        fontsize_title=11,
+        fontsize_label=9,
+        role="all",
+        order="desc",
+        custom_order=None,
+    ):
+    """
+    Clustered bar chart for one selected column.
+    X-axis = response categories of the selected column.
+    Cluster bars = categories of the 'ec' column.
+    Legend title = col_title of the 'ec' column.
+    """
+
+    # Filter population
+    df = filter_population(df_all, role)
+
+    # Main column
+    cols_titles = selected_cols_titles(plot_column_tag)
+    if not cols_titles:
+        print(f"No columns found for tag '{plot_column_tag}'")
+        return
+
+    if len(cols_titles) > 1:
+        print(f"Tag '{plot_column_tag}' returns multiple columns, using the first one")
+
+    column_name, column_title = cols_titles[0]
+
+    if column_name not in df.columns:
+        print(f"Column '{column_name}' not found")
+        return
+
+    # Cluster column
+    ec_cols_titles = selected_cols_titles(ec_tag)
+    if not ec_cols_titles:
+        print(f"No columns found for ec tag '{ec_tag}'")
+        return
+
+    ec_name, ec_title = ec_cols_titles[0]
+
+    if ec_name not in df.columns:
+        print(f"Column '{ec_name}' not found")
+        return
+
+    # Cleaned working frame
+    work_df = df[[column_name, ec_name]].copy()
+    work_df[column_name] = normalize_series(work_df[column_name])
+    work_df[ec_name] = normalize_series(work_df[ec_name])
+
+    work_df = work_df.dropna()
+
+    if work_df.empty:
+        print("No data to plot")
+        return
+
+    # Crosstab
+    counts_df = pd.crosstab(work_df[column_name], work_df[ec_name])
+
+    # Ordering on x-axis categories
+    if order == "desc":
+        counts_df = counts_df.loc[counts_df.sum(axis=1).sort_values(ascending=False).index]
+    elif order == "custom":
+        if custom_order is None:
+            print("custom_order must be provided when order='custom'")
+            return
+
+        if isinstance(custom_order, str):
+            custom_order = CUSTOM_ORDERS.get(custom_order)
+            if custom_order is None:
+                print("Unknown custom_order string")
+                return
+
+        counts_df = counts_df.reindex(custom_order, fill_value=0)
+    else:
+        print("order must be 'desc' or 'custom'")
+        return
+
+    # Plot title logic
+    final_title = plot_title if plot_title is not None else column_title
+
+    labels = counts_df.index.tolist()
+    cluster_labels = counts_df.columns.tolist()
+    x = np.arange(len(labels))
+
+    n_clusters = len(cluster_labels)
+    fig_height = 3.6
+
+    total_cluster_width = interpolate(fig_width, 5, 10, 0.70, 0.90)
+    intra_gap = interpolate(fig_width, 5, 10, 0.10, 0.04)
+
+    bar_width = total_cluster_width / max(n_clusters + (n_clusters - 1) * intra_gap, 1)
+
+    colors = [POS_COLORS[i % len(POS_COLORS)] for i in range(n_clusters)]
+
+    fig, ax = plt.subplots(figsize=(fig_width, fig_height))
+
+    for i, cluster in enumerate(cluster_labels):
+        offset = (
+            - total_cluster_width / 2
+            + bar_width / 2
+            + i * bar_width * (1 + intra_gap)
+        )
+
+        bars = ax.bar(
+            x + offset,
+            counts_df[cluster].values,
+            width=bar_width,
+            color=colors[i],
+            label=cluster
+        )
+
+        total = counts_df.values.sum()
+        max_val = counts_df.values.max() if counts_df.values.size > 0 else 1
+
+        for bar in bars:
+            height = bar.get_height()
+            perc = (height / total) * 100 if total > 0 else 0
+            if height > 0:
+                ax.text(
+                    bar.get_x() + bar.get_width() / 2,
+                    height + 0.01 * max_val,
+                    f"{perc:.0f}%\n(n={int(height)})",
+                    ha="center",
+                    va="bottom",
+                    fontsize=fontsize_label
+                )
+
+    ax.set_xticks(x)
+    ax.set_xticklabels(
+        labels,
+        fontsize=fontsize_label,
+        rotation=rotation_label,
+        ha=align_label
+    )
+
+    max_val = counts_df.values.max() if counts_df.values.size > 0 else 1
+    ax.set_ylim(0, max_val * 1.22)
+
+    wrapped_title = textwrap.fill(
+        f"{final_title} (n={int(counts_df.values.sum())})",
+        width=int(fig_width * 12)
+    )
+    ax.set_title(wrapped_title, fontsize=fontsize_title, pad=10)
+
+    ax.legend(
+        title=ec_title,
+        fontsize=fontsize_label,
+        title_fontsize=fontsize_label
+    )
+
+    plt.tight_layout()
+    plt.show()
+
+
+
+
+
+
+
+
+def plot_bar_cluster_multi_col(
+        plot_tag,
+        ec_tag="ec",
+        plot_title=None,
+        rotation_label=45,
+        align_label="right",
+        fig_width=10,
+        fontsize_title=11,
+        fontsize_label=9,
+        role="all",
+        order="desc",
+        custom_order=None,
+    ):
+    """
+    Clustered bar chart for multiple selected columns.
+    X-axis = col_name of selected columns.
+    Cluster bars = groups from the 'ec' column.
+    Legend title = col_title of the 'ec' column.
+    Default title = first col_title from plot_tag selection.
+    """
+
+    # Filter population
+    df = filter_population(df_all, role)
+
+    # Main columns
+    cols_titles = selected_cols_titles(plot_tag)
+    if not cols_titles:
+        print(f"No columns found for tag '{plot_tag}'")
+        return
+
+    first_col_title = cols_titles[0][1]
+
+    # Cluster column
+    ec_cols_titles = selected_cols_titles(ec_tag)
+    if not ec_cols_titles:
+        print(f"No columns found for ec tag '{ec_tag}'")
+        return
+
+    ec_name, ec_title = ec_cols_titles[0]
+
+    if ec_name not in df.columns:
+        print(f"Column '{ec_name}' not found")
+        return
+
+    summaries = []
+
+    for col_name, col_title in cols_titles:
+        if col_name not in df.columns:
+            continue
+
+        for ec_value in normalize_series(df[ec_name]).unique():
+            mask = normalize_series(df[ec_name].copy()).eq(ec_value)
+            subset = df.loc[mask.index[mask], col_name]
+
+            try:
+                val = normalize_series(subset).astype(float).sum()
+            except ValueError:
+                print(f"Skipping non-numeric column {col_name}")
+                val = None
+
+            if val is not None:
+                summaries.append({
+                    "label": col_name,
+                    "title": col_title,
+                    "cluster": ec_value,
+                    "value": val
+                })
+
+    if not summaries:
+        print("No valid data to plot")
+        return
+
+    df_data = pd.DataFrame(summaries)
+
+    pivot_df = (
+        df_data
+        .pivot_table(index=["label", "title"], columns="cluster", values="value", aggfunc="sum")
+        .fillna(0)
+    )
+
+    # Ordering on x-axis groups
+    if order == "desc":
+        pivot_df = pivot_df.loc[pivot_df.sum(axis=1).sort_values(ascending=False).index]
+    elif order == "custom":
+        if custom_order is None:
+            print("custom_order must be provided when order='custom'")
+            return
+
+        if isinstance(custom_order, str):
+            custom_order = CUSTOM_ORDERS.get(custom_order)
+            if custom_order is None:
+                print("Unknown custom_order string")
+                return
+
+        current_titles = pivot_df.index.get_level_values("title")
+        mapper = {t: i for i, t in enumerate(custom_order)}
+        sort_key = [mapper.get(t, 10**9) for t in current_titles]
+        pivot_df = pivot_df.iloc[np.argsort(sort_key)]
+    else:
+        print("order must be 'desc' or 'custom'")
+        return
+
+    labels = pivot_df.index.get_level_values("label").tolist()
+    cluster_labels = pivot_df.columns.tolist()
+    values_matrix = pivot_df.values
+    x = np.arange(len(labels))
+
+    final_title = plot_title if plot_title is not None else first_col_title
+
+    n_clusters = len(cluster_labels)
+    fig_height = 3.6
+
+    total_cluster_width = interpolate(fig_width, 5, 10, 0.70, 0.90)
+    intra_gap = interpolate(fig_width, 5, 10, 0.10, 0.04)
+
+    bar_width = total_cluster_width / max(n_clusters + (n_clusters - 1) * intra_gap, 1)
+
+    colors = [POS_COLORS[i % len(POS_COLORS)] for i in range(n_clusters)]
+
+    fig, ax = plt.subplots(figsize=(fig_width, fig_height))
+
+    for i, cluster in enumerate(cluster_labels):
+        offset = (
+            - total_cluster_width / 2
+            + bar_width / 2
+            + i * bar_width * (1 + intra_gap)
+        )
+
+        bars = ax.bar(
+            x + offset,
+            pivot_df[cluster].values,
+            width=bar_width,
+            color=colors[i],
+            label=cluster
+        )
+
+        total_val = values_matrix.sum()
+        max_val = values_matrix.max() if values_matrix.size > 0 else 1
+
+        for bar in bars:
+            height = bar.get_height()
+            perc = (height / total_val) * 100 if total_val > 0 else 0
+            if height > 0:
+                ax.text(
+                    bar.get_x() + bar.get_width() / 2,
+                    height + 0.01 * max_val,
+                    f"{perc:.0f}%\n(n={int(height)})",
+                    ha="center",
+                    va="bottom",
+                    fontsize=fontsize_label
+                )
+
+    ax.set_xticks(x)
+    ax.set_xticklabels(
+        labels,
+        fontsize=fontsize_label,
+        rotation=rotation_label,
+        ha=align_label
+    )
+
+    max_val = values_matrix.max() if values_matrix.size > 0 else 1
+    ax.set_ylim(0, max_val * 1.22)
+
+    wrapped_title = textwrap.fill(
+        f"{final_title} (n={int(values_matrix.sum())})",
+        width=int(fig_width * 12)
+    )
+    ax.set_title(wrapped_title, fontsize=fontsize_title, pad=10)
+
+    ax.legend(
+        title=ec_title,
+        fontsize=fontsize_label,
+        title_fontsize=fontsize_label
+    )
+
     plt.tight_layout()
     plt.show()
