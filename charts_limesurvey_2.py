@@ -583,3 +583,111 @@ def plot_bar_regular_single_col(
     plt.subplots_adjust(bottom=min(bottom_margin, 0.4))
     plt.tight_layout()
     plt.show()
+
+
+
+
+
+
+
+
+
+
+def plot_bar_regular_multi_col(
+        plot_tag,
+        plot_title=None,
+        rotation_label=45,
+        align_label="right",
+        fig_width=10,
+        fontsize_title=11,
+        fontsize_label=9,
+        role="all",
+        order="desc",
+        custom_order=None,
+    ):
+    """
+    Plots a multi-column bar chart where each bar represents an aggregate.
+    Default title is derived from the first title in the tag configuration.
+    Bar labels use the column name (col_name).
+    'n' is the sum of all values.
+    """
+    
+    # 1. Filter population
+    df = filter_population(df_all, role)
+    
+    # 2. Get list of [col_name, col_title] pairs
+    cols_titles = selected_cols_titles(plot_tag)
+    if not cols_titles:
+        print(f"No columns found for tag '{plot_tag}'")
+        return
+        
+    # Default title from the first pair in the configuration
+    first_col_title = cols_titles[0][1]
+    
+    # 3. Calculate data for each variable
+    summaries = []
+    for col_name, col_title in cols_titles:
+        if col_name not in df.columns:
+            continue
+        series = normalize_series(df[col_name])
+        try:
+            val = series.astype(float).sum()
+            # Storing col_name as 'label' (for the chart xticks)
+            # Storing col_title as 'title' (for sorting/reindexing)
+            summaries.append({"label": col_name, "title": col_title, "value": val})
+        except ValueError:
+            print(f"Skipping non-numeric column {col_name}")
+            
+    if not summaries:
+        print("No valid data to plot")
+        return
+        
+    # 4. Sorting logic
+    df_data = pd.DataFrame(summaries)
+    
+    if order == "desc":
+        df_data = df_data.sort_values(by="value", ascending=False)
+    elif order == "custom":
+        if isinstance(custom_order, str):
+            custom_order = CUSTOM_ORDERS.get(custom_order)
+        # Reindexing by title but preserving the associated 'label' (col_name)
+        df_data = df_data.set_index('title').reindex(custom_order).reset_index().fillna(0)
+        
+    labels = df_data["label"].tolist()
+    values = df_data["value"].tolist()
+    
+    # 5. n must be the sum of all values
+    total_val = sum(values)
+    
+    # 6. Default Title Logic
+    final_title = plot_title if plot_title is not None else first_col_title
+    
+    # 7. Plotting
+    x = np.arange(len(labels))
+    colors = [DEMO_COLORS[i % len(DEMO_COLORS)] for i in range(len(labels))]
+    
+    fig_height = 3.6
+    bar_width = interpolate(fig_width, 5, 10, 0.65, 0.80)
+    
+    fig, ax = plt.subplots(figsize=(fig_width, fig_height))
+    bars = ax.bar(x, values, width=bar_width, color=colors)
+    
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels, fontsize=fontsize_label, rotation=rotation_label, ha=align_label)
+    
+    # Wrapped title
+    wrapped_title = textwrap.fill(f"{final_title} (n={int(total_val)})", width=int(fig_width * 12))
+    ax.set_title(wrapped_title, fontsize=fontsize_title, pad=10)
+    
+    # Labels
+    max_val = max(values) if values else 1
+    ax.set_ylim(0, max_val * 1.25)
+    
+    for bar in bars:
+        h = bar.get_height()
+        perc = (h / total_val) * 100 if total_val > 0 else 0
+        ax.text(bar.get_x() + bar.get_width() / 2, h + 0.01 * max_val, 
+                f"{perc:.0f}%\n(n={int(h)})", ha="center", va="bottom", fontsize=fontsize_label)
+                
+    plt.tight_layout()
+    plt.show()
