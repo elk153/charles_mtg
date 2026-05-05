@@ -1250,11 +1250,11 @@ def plot_bar_cluster_compare_single_col(
     ):
     """
     Plot clustered bar chart subplots comparing one or more columns selected by plot_column_tag.
+    Percentages above bars are based on the total within each group.
     """
 
     # ---- 1. Filter population ----
     df = filter_population(df_all, role)
-    n = len(df)
 
     # ---- 2. Resolve measure columns ----
     measure_cols_titles = selected_cols_titles(plot_column_tag)
@@ -1275,16 +1275,7 @@ def plot_bar_cluster_compare_single_col(
         return
 
     # Normalize group column once for stable indexing
-    group_series = (
-        df[group_name]
-        .astype(str)
-        .str.strip()
-        .replace({
-            NO_DATA_SENTINEL: pd.NA,
-            "nan": pd.NA,
-            "0": pd.NA,
-        })
-    )
+    group_series = normalize_series(df[group_name])
 
     valid_group_values = sorted(group_series.dropna().unique())
     if len(valid_group_values) == 0:
@@ -1330,19 +1321,8 @@ def plot_bar_cluster_compare_single_col(
             ax.set_visible(False)
             continue
 
-        measure_series = (
-            df[measure_name]
-            .astype(str)
-            .str.strip()
-            .replace({
-                NO_DATA_SENTINEL: pd.NA,
-                "nan": pd.NA,
-                "0": pd.NA,
-            })
-        )
-
         work_df = pd.DataFrame({
-            "measure": measure_series,
+            "measure": normalize_series(df[measure_name]),
             "group": group_series,
         }).dropna()
 
@@ -1369,7 +1349,7 @@ def plot_bar_cluster_compare_single_col(
         else:
             print("group_order must be 'as_found', 'asc', 'desc' or 'custom'")
             ax.set_visible(False)
-            continue           
+            continue
 
         # ---- 7. Ordering on measure categories ----
         if order == "desc":
@@ -1398,6 +1378,7 @@ def plot_bar_cluster_compare_single_col(
         labels = counts_df.index.tolist()
         x = np.arange(len(labels))
         bars_all = []
+        n = int(counts_df.values.sum())
 
         # ---- 8. Draw clustered bars ----
         for g_idx, group_val in enumerate(valid_group_values):
@@ -1414,7 +1395,9 @@ def plot_bar_cluster_compare_single_col(
                 label=str(group_val),
                 color=group_colors[g_idx]
             )
-            bars_all.append(bars)
+
+            group_total = counts_df[group_val].sum()
+            bars_all.append((bars, group_total))
 
         # ---- 9. X labels ----
         wrapped_labels = [textwrap.fill(str(lbl), width=15) for lbl in labels]
@@ -1438,13 +1421,11 @@ def plot_bar_cluster_compare_single_col(
         ax.set_ylabel("Nombre de réponses", fontsize=fontsize_label)
 
         # ---- 12. Value labels ----
-        total_all = counts_df.values.sum()
-
-        for bars in bars_all:
+        for bars, group_total in bars_all:
             for bar in bars:
                 height = bar.get_height()
                 if height > 0:
-                    perc = (height / total_all) * 100 if total_all > 0 else 0
+                    perc = (height / group_total) * 100 if group_total > 0 else 0
                     ax.text(
                         bar.get_x() + bar.get_width() / 2,
                         height + 0.01 * max_count,
@@ -1456,9 +1437,9 @@ def plot_bar_cluster_compare_single_col(
 
         # ---- 13. Legend ----
         ax.legend(
-            #title=group_title,
+            # title=group_title,
             fontsize=fontsize_label,
-            #title_fontsize=fontsize_label,
+            # title_fontsize=fontsize_label,
             bbox_to_anchor=(0.01, 0.99),
             loc="upper left",
         )
@@ -1466,7 +1447,6 @@ def plot_bar_cluster_compare_single_col(
     # ---- 14. Hide unused subplots ----
     for j in range(n_plots, len(axes)):
         axes[j].set_visible(False)
-
 
     plt.tight_layout()
     plt.subplots_adjust(top=0.90, wspace=w_space, hspace=h_space)
