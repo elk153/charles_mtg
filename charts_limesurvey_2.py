@@ -67,9 +67,20 @@ SCALE_SENIORITY_CHIEF = [
     "Plus de 20 ans"
 ]
 
+SCALE_SCHEDULE = [
+    "Temps plein",
+    "9/10 temps",
+    "4/5 temps",
+    "3/4 temps",
+    "3/5 temps",
+    "1/2 temps"
+]
+
 CUSTOM_ORDERS = {
+    "NONE": None,
     "SCALE_SENIORITY": SCALE_SENIORITY,
     "SCALE_SENIORITY_CHIEF": SCALE_SENIORITY_CHIEF,
+    "SCALE_SCHEDULE": SCALE_SCHEDULE,
     "SCALE_1_4": SCALE_1_4,
     "SCALE_OUI_NON": SCALE_OUI_NON,
     "SCALE_RPS": SCALE_RPS,
@@ -77,15 +88,6 @@ CUSTOM_ORDERS = {
 
 # Work dimensions priorities
 RPS_PRIORITIES = [1, 2, 3, 4, 5, 6, 7]
-
-# Mapping column → scale
-COLUMN_SCALES = {
-    # examples — adapt to your real column names
-    "Satisfaction globale": SCALE_1_4,
-    "Stress perçu": SCALE_1_4,
-    "Souhaite continuer": SCALE_OUI_NON,
-    "Facteur principal": SCALE_RPS,
-}
 
 # Work dimensions colors
 RPS_COLORS = {
@@ -329,10 +331,6 @@ def interpolate(value, in_min, in_max, out_min, out_max):
 
 
 
-
-##########
-# Charts #
-##########
 
 def plot_bar_stacked_100(
         role: str, 
