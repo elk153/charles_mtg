@@ -76,8 +76,14 @@ SCALE_SCHEDULE = [
     "1/2 temps"
 ]
 
+SCALE_POS = [
+    "Ergo",
+    "Chef"
+]
+
 CUSTOM_ORDERS = {
     "NONE": None,
+    "SCALE_POS": SCALE_POS,
     "SCALE_SENIORITY": SCALE_SENIORITY,
     "SCALE_SENIORITY_CHIEF": SCALE_SENIORITY_CHIEF,
     "SCALE_SCHEDULE": SCALE_SCHEDULE,
@@ -430,7 +436,7 @@ def plot_bar_stacked_100(
     )
     
     ax.legend(
-        title="Thématiques",
+        #title="Thématiques",
         bbox_to_anchor=(1.02, 0.5),
         loc="center left", 
         fontsize=fontsize_label        
@@ -544,6 +550,8 @@ def plot_bar_regular_single_col(
     fig, ax = plt.subplots(figsize=(fig_width, fig_height))
     bars = ax.bar(x, values, width=bar_width, color=colors)
 
+    ax.set_ylabel("Nombre de réponses", fontsize=fontsize_label)
+    
     ax.set_xticks(x)
     ax.set_xticklabels(
         labels,
@@ -674,6 +682,7 @@ def plot_bar_regular_multi_col(
     
     ax.set_xticks(x)
     ax.set_xticklabels(labels, fontsize=fontsize_label, rotation=rotation_label, ha=align_label)
+    ax.set_ylabel("Nombre de réponses", fontsize=fontsize_label)
     
     # Wrapped title
     wrapped_title = textwrap.fill(f"{final_title} (n={int(total_val)})", width=int(fig_width * 12))
@@ -691,6 +700,10 @@ def plot_bar_regular_multi_col(
                 
     plt.tight_layout()
     plt.show()
+
+
+
+
 
 
 
@@ -841,6 +854,7 @@ def plot_bar_cluster_single_col(
 
     max_val = counts_df.values.max() if counts_df.values.size > 0 else 1
     ax.set_ylim(0, max_val * 1.22)
+    ax.set_ylabel("Nombre de réponses", fontsize=fontsize_label)
 
     wrapped_title = textwrap.fill(
         f"{final_title} (n={int(counts_df.values.sum())})",
@@ -849,13 +863,17 @@ def plot_bar_cluster_single_col(
     ax.set_title(wrapped_title, fontsize=fontsize_title, pad=10)
 
     ax.legend(
-        title=ec_title,
+        #title=ec_title,
         fontsize=fontsize_label,
         title_fontsize=fontsize_label
     )
 
     plt.tight_layout()
     plt.show()
+
+
+
+
 
 
 
@@ -1026,6 +1044,7 @@ def plot_bar_cluster_multi_col(
 
     max_val = values_matrix.max() if values_matrix.size > 0 else 1
     ax.set_ylim(0, max_val * 1.22)
+    ax.set_ylabel("Nombre de réponses", fontsize=fontsize_label)
 
     wrapped_title = textwrap.fill(
         f"{final_title} (n={int(values_matrix.sum())})",
@@ -1048,185 +1067,6 @@ def plot_bar_cluster_multi_col(
 
 
 
-def plot_bar_cluster_compare_ergo_chef(
-    fig_width=12,
-    cols_per_row=2,
-    fontsize_title=11,
-    fontsize_label=10
-):
-    """
-    Plot clustered bar charts comparing ERGO and CHEF responses for all levels.
-    Each subplot represents a question from the marked columns.
-    For each question: ERGO data in first bar, CHEF data in second bar.
-    Uses ERGO column titles.
-    """
-
-    # Get all levels from columns_config first column
-    df = columns_config()
-    first_col = (
-        df.iloc[:, 0]
-        .astype(str)
-        .str.strip()
-        .str.lower()
-    )
-    ergo_tags = first_col[first_col.str.startswith("ergo-")]
-    levels = sorted(set(tag.split('-')[1] for tag in ergo_tags if '-' in tag and len(tag.split('-')) > 1))
-
-    # For each level, get corresponding ERGO and CHEF columns
-    all_ergo_cols = []
-    all_chef_cols = []
-    for level in levels:
-        ergo_cols = selected_columns(f"ERGO-{level}")
-        chef_cols = selected_columns(f"CHEF-{level}")
-        all_ergo_cols.extend(ergo_cols)
-        all_chef_cols.extend(chef_cols)
-
-    # Check if we found any ERGO columns
-    if not all_ergo_cols:
-        raise ValueError("No ERGO columns found")
-
-    # Filter populations
-    df_ergo = filter_population(df_all, "ergo")
-    df_chef = filter_population(df_all, "chef")
-
-    # Determine figure size based on number of questions
-    n = len(all_ergo_cols)
-    rows = math.ceil(n / cols_per_row)
-    fig_height = 5 * rows
-
-    fig, axes = plt.subplots(rows, cols_per_row, figsize=(fig_width, fig_height))
-    
-    # Handle axes array shape
-    if isinstance(axes, np.ndarray):
-        axes = axes.flatten()
-    else:
-        axes = [axes]
-
-    # Loop through ERGO columns and plot comparison with CHEF
-    for i, ergo_col in enumerate(all_ergo_cols):
-        ax = axes[i]
-        
-        # Get corresponding CHEF column (by position in the list)
-        chef_col = all_chef_cols[i] if i < len(all_chef_cols) else None
-
-        # Check if ERGO column exists
-        if ergo_col not in df_ergo.columns:
-            print(f"Warning: ERGO column '{ergo_col}' not in df_ergo")
-            ax.set_visible(False)
-            continue
-
-        # Get response counts for ERGO
-        counts_ergo, scale = value_counts_full(df_all, ergo_col, df_ergo)
-
-        # Get response counts for CHEF (if it exists)
-        if chef_col and chef_col in df_chef.columns:
-            counts_chef, scale = value_counts_full(df_all, chef_col, df_chef)
-        else:
-            counts_chef = pd.Series(0, index=scale)
-            print(f"Warning: CHEF column '{chef_col}' not found, showing zeros")
-
-        # Set up the bar positions
-        x = range(len(scale))
-        width = 0.42
-
-        # Create bars: ERGO first, CHEF second
-        bars_ergo = ax.bar(
-            [p - 0.24 for p in x],
-            counts_ergo.values,
-            width,
-            label='Ergo',
-            color="#90c599"
-        )
-        bars_chef = ax.bar(
-            [p + 0.24 for p in x],
-            counts_chef.values,
-            width,
-            label='Chef',
-            color="#498c9f"
-        )
-
-        # Format labels and title - USE ERGO COLUMN NAME
-        wrapped_labels = [
-            textwrap.fill(lbl, width=fig_width) for lbl in scale
-        ]
-
-        # Calculate wrap width based on figure size and number of columns
-        subplot_width = fig_width / cols_per_row
-        wrap_width = max(fig_width, int(subplot_width * 10))
-
-        ax.set_xticks(x)
-        ax.set_xticklabels(wrapped_labels, fontsize=fontsize_label)
-
-        # Wrap column names for title
-        ergo_wrapped = textwrap.fill(ergo_col, width=wrap_width)
-        chef_wrapped = textwrap.fill(chef_col, width=wrap_width) if chef_col else ""
-        num_lines_ergo = ergo_wrapped.count('\n') + 1
-        num_lines_chef = chef_wrapped.count('\n') + 1 if chef_wrapped else 0
-        
-        # Calculate title position based on number of lines
-        line_height = 0.06 * (fontsize_title / 11.0)
-        if chef_col:
-            title_y_chef = 0.80 + (num_lines_chef - 1) * line_height + 0.1
-            title_spacing_chef = num_lines_chef * line_height + 0.05
-            ax.text(0.5, title_y_chef, chef_wrapped, 
-                    transform=ax.transAxes, ha='center', va='bottom', 
-                    fontsize=fontsize_title, fontstyle='italic')
-            ax.text(0.5, title_y_chef + title_spacing_chef, ergo_wrapped, 
-                    transform=ax.transAxes, ha='center', va='bottom', 
-                    fontsize=fontsize_title, weight='normal')
-        else:
-            title_y_ergo = 0.80 + (num_lines_ergo - 1) * line_height + 0.1
-            ax.text(0.5, title_y_ergo, ergo_wrapped, 
-                    transform=ax.transAxes, ha='center', va='bottom', 
-                    fontsize=fontsize_title, weight='normal')
-        ax.set_ylabel("Count", fontsize=fontsize_label)
-
-        max_count = max(max(counts_ergo.values), max(counts_chef.values))
-        ax.set_ylim(0, max_count * 1.15 if max_count > 0 else 1)
-
-        # Add value labels on bars
-        total_ergo = counts_ergo.sum()
-        for bar in bars_ergo:
-            height = bar.get_height()
-            if height > 0:
-                perc = (height / total_ergo) * 100 if total_ergo > 0 else 0
-                ax.text(
-                    bar.get_x() + bar.get_width()/2.,
-                    height + 0.1,
-                    f'{perc:.0f}%\n(n={int(height)})',
-                    ha='center',
-                    va='bottom',
-                    fontsize=fontsize_label
-                )
-
-        total_chef = counts_chef.sum()
-        for bar in bars_chef:
-            height = bar.get_height()
-            if height > 0:
-                perc = (height / total_chef) * 100 if total_chef > 0 else 0
-                ax.text(
-                    bar.get_x() + bar.get_width()/2.,
-                    height + 0.1,
-                    f'{perc:.0f}%\n(n={int(height)})',
-                    ha='center',
-                    va='bottom',
-                    fontsize=fontsize_label,
-                    fontstyle='italic'
-                )
-
-        ax.legend(fontsize=fontsize_label)
-
-    # Hide unused subplots
-    for j in range(i + 1, len(axes)):
-        axes[j].set_visible(False)
-
-    plt.tight_layout()
-    plt.subplots_adjust(wspace=0.2, hspace=0.66)
-    plt.show()
-
-
-
-
 
 
 
@@ -1243,7 +1083,7 @@ def plot_bar_cluster_compare_single_col(
         fontsize_value=7,
         role="all",
         order="desc",
-        custom_order=None,
+        custom_order="desc",
         group_order="As found",
         h_space=0.40,
         w_space=0.16,
@@ -1457,9 +1297,14 @@ def plot_bar_cluster_compare_single_col(
 
 
 
+
+
+
+
+
 def plot_bar_cluster_compare_roles(
-        left_prefix="ERGO-REC",
-        right_prefix="CHEF-REC",
+        left_prefix="ERGO",
+        right_prefix="CHEF",
         left_role="ergo",
         right_role="chef",
         left_label="Ergo",
@@ -1479,12 +1324,14 @@ def plot_bar_cluster_compare_roles(
     """
     Plot clustered bar charts comparing two role-based populations
     for all shared levels defined in columns_config.
-    Each subplot represents a question pair:
-    left_prefix-<level> versus right_prefix-<level>.
-    Titles use the left-side column names.
+
+    Each subplot represents a paired question:
+    left_prefix-<suffix> versus right_prefix-<suffix>.
+
+    Titles use the configured column titles returned by selected_cols_titles().
     """
 
-    # ---- 1. Detect levels from config ----
+    # ---- 1. Detect suffixes from config ----
     df_cfg = columns_config()
     first_col = (
         df_cfg.iloc[:, 0]
@@ -1494,28 +1341,29 @@ def plot_bar_cluster_compare_roles(
     )
 
     left_prefix_lc = left_prefix.lower()
-    right_prefix_lc = right_prefix.lower()
+    prefix_pattern = left_prefix_lc + "-"
 
-    left_tags = first_col[first_col.str.startswith(f"{left_prefix_lc}-")]
-    levels = sorted(
-        set(
-            tag.split("-")[1]
-            for tag in left_tags
-            if "-" in tag and len(tag.split("-")) > 1
-        )
+    left_tags = first_col[first_col.str.startswith(prefix_pattern)]
+
+    suffixes = sorted(
+        set(tag[len(prefix_pattern):] for tag in left_tags)
     )
 
-    # ---- 2. Resolve matching columns ----
-    all_left_cols = []
-    all_right_cols = []
+    if not suffixes:
+        raise ValueError(f"No columns found for prefix '{left_prefix}'")
 
-    for level in levels:
-        left_cols = selected_columns(f"{left_prefix}-{level}")
-        right_cols = selected_columns(f"{right_prefix}-{level}")
-        all_left_cols.extend(left_cols)
-        all_right_cols.extend(right_cols)
+    # ---- 2. Resolve matching columns + titles ----
+    all_left_cols_titles = []
+    all_right_cols_titles = []
 
-    if not all_left_cols:
+    for suffix in suffixes:
+        left_cols_titles = selected_cols_titles(f"{left_prefix}-{suffix}")
+        right_cols_titles = selected_cols_titles(f"{right_prefix}-{suffix}")
+
+        all_left_cols_titles.extend(left_cols_titles)
+        all_right_cols_titles.extend(right_cols_titles)
+
+    if not all_left_cols_titles:
         raise ValueError(f"No columns found for prefix '{left_prefix}'")
 
     # ---- 3. Filter populations ----
@@ -1523,7 +1371,7 @@ def plot_bar_cluster_compare_roles(
     df_right = filter_population(df_all, right_role)
 
     # ---- 4. Figure layout ----
-    n = len(all_left_cols)
+    n = len(all_left_cols_titles)
     rows = math.ceil(n / cols_per_row)
     fig_height = 5 * rows
 
@@ -1535,30 +1383,36 @@ def plot_bar_cluster_compare_roles(
         axes = [axes]
 
     # ---- 5. Plot each pair ----
-    for i, left_col in enumerate(all_left_cols):
+    for i, (left_col, left_title) in enumerate(all_left_cols_titles):
         ax = axes[i]
 
-        right_col = all_right_cols[i] if i < len(all_right_cols) else None
+        if i < len(all_right_cols_titles):
+            right_col, right_title = all_right_cols_titles[i]
+        else:
+            right_col, right_title = None, None
 
+        # Check left column exists
         if left_col not in df_left.columns:
             print(f"Warning: left column '{left_col}' not in filtered dataframe")
             ax.set_visible(False)
             continue
 
+        # Get response counts for left population
         counts_left, scale = value_counts_full(df_all, left_col, df_left)
 
+        # Get response counts for right population
         if right_col and right_col in df_right.columns:
             counts_right, scale = value_counts_full(df_all, right_col, df_right)
         else:
             counts_right = pd.Series(0, index=scale)
             print(f"Warning: right column '{right_col}' not found, showing zeros")
 
-        # ---- 6. Bars ----
+        # ---- 6. Bar positions ----
         x = np.arange(len(scale))
         width = 0.42
 
         bars_left = ax.bar(
-            x - 0.24,
+            [p - 0.24 for p in x],
             counts_left.values,
             width,
             label=left_label,
@@ -1566,7 +1420,7 @@ def plot_bar_cluster_compare_roles(
         )
 
         bars_right = ax.bar(
-            x + 0.24,
+            [p + 0.24 for p in x],
             counts_right.values,
             width,
             label=right_label,
@@ -1574,7 +1428,9 @@ def plot_bar_cluster_compare_roles(
         )
 
         # ---- 7. X labels ----
-        wrapped_labels = [textwrap.fill(str(lbl), width=fig_width) for lbl in scale]
+        wrapped_labels = [
+            textwrap.fill(str(lbl), width=fig_width) for lbl in scale
+        ]
 
         ax.set_xticks(x)
         ax.set_xticklabels(
@@ -1584,19 +1440,19 @@ def plot_bar_cluster_compare_roles(
             ha=align_label
         )
 
-        # ---- 8. Title block ----
+        # ---- 8. Subplot title using col_title ----
         subplot_width = fig_width / cols_per_row
-        wrap_width = max(fig_width, int(subplot_width * 10))
+        wrap_width = max(fig_width, int(subplot_width * 9))
 
-        left_wrapped = textwrap.fill(left_col, width=wrap_width)
-        right_wrapped = textwrap.fill(right_col, width=wrap_width) if right_col else ""
+        left_wrapped = textwrap.fill(str(left_title), width=wrap_width)
+        right_wrapped = textwrap.fill(str(right_title), width=wrap_width) if right_title else ""
 
         num_lines_left = left_wrapped.count("\n") + 1
         num_lines_right = right_wrapped.count("\n") + 1 if right_wrapped else 0
 
         line_height = 0.06 * (fontsize_title / 11.0)
 
-        if right_col:
+        if right_title:
             title_y_right = 0.80 + (num_lines_right - 1) * line_height + 0.1
             title_spacing_right = num_lines_right * line_height + 0.05
 
@@ -1626,7 +1482,7 @@ def plot_bar_cluster_compare_roles(
             )
 
         # ---- 9. Y axis ----
-        ax.set_ylabel("Count", fontsize=fontsize_label)
+        ax.set_ylabel("Nombre de réponses", fontsize=fontsize_label)
 
         max_count = max(max(counts_left.values), max(counts_right.values))
         ax.set_ylim(0, max_count * 1.15 if max_count > 0 else 1)
@@ -1638,7 +1494,7 @@ def plot_bar_cluster_compare_roles(
             if height > 0:
                 perc = (height / total_left) * 100 if total_left > 0 else 0
                 ax.text(
-                    bar.get_x() + bar.get_width() / 2.0,
+                    bar.get_x() + bar.get_width() / 2.,
                     height + 0.1,
                     f"{perc:.0f}%\n(n={int(height)})",
                     ha="center",
@@ -1652,7 +1508,7 @@ def plot_bar_cluster_compare_roles(
             if height > 0:
                 perc = (height / total_right) * 100 if total_right > 0 else 0
                 ax.text(
-                    bar.get_x() + bar.get_width() / 2.0,
+                    bar.get_x() + bar.get_width() / 2.,
                     height + 0.1,
                     f"{perc:.0f}%\n(n={int(height)})",
                     ha="center",
@@ -1671,3 +1527,10 @@ def plot_bar_cluster_compare_roles(
     plt.tight_layout()
     plt.subplots_adjust(wspace=w_space, hspace=h_space)
     plt.show()
+
+
+
+
+
+
+
