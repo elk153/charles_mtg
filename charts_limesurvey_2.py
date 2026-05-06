@@ -70,6 +70,8 @@ SCALE_SENIORITY_CHIEF = [
 SCALE_SCHEDULE = [
     "Temps plein",
     "9/10 temps",
+    "7/10 temps",
+    "6/10 temps",
     "4/5 temps",
     "3/4 temps",
     "3/5 temps",
@@ -426,13 +428,13 @@ def plot_bar_stacked_100(
 
     wrap_width = max(10, int(fig_width * 6.2))
     title_wrap = textwrap.fill(
-        f"Ordre d'importance des thématiques pour les {'ergothérapeutes' if role == 'ergo' else 'responsables' if role == 'chef' else ''} (n={n})",
+        f"{'Comme ergothérapeute, je classe les thématiques selon cet ordre d\'importance' if role == 'ergo' else 'En tant que chef(fe) de service, je pense que les ergothérapeutes de mon équipe classent les thématiques selon cet ordre d\'importance ' if role == 'chef' else ''} (n={n})",
         width=wrap_width
     )
     ax.set_title(
         title_wrap,
         fontsize=fontsize_title,
-        pad=12
+        pad=10
     )
     
     ax.legend(
@@ -723,12 +725,24 @@ def plot_bar_cluster_single_col(
         role="all",
         order="desc",
         custom_order=None,
+        group_order="desc",
+        custom_group_order=None,
     ):
     """
     Clustered bar chart for one selected column.
     X-axis = response categories of the selected column.
-    Cluster bars = categories of the 'ec' column.
-    Legend title = col_title of the 'ec' column.
+    Cluster bars = categories of the cluster column (ec_tag).
+    Legend title = col_title of the cluster column.
+
+    Parameters for x-axis category order:
+    - order: "desc" or "custom"
+    - custom_order: list or CUSTOM_ORDERS key string
+
+    Parameters for group/legend order:
+    - group_order: "as_found", "asc", "desc", or "custom"
+    - custom_group_order: list or CUSTOM_ORDERS key string
+
+    Bar-label percentages are based on group totals.
     """
 
     # Filter population
@@ -765,7 +779,6 @@ def plot_bar_cluster_single_col(
     work_df = df[[column_name, ec_name]].copy()
     work_df[column_name] = normalize_series(work_df[column_name])
     work_df[ec_name] = normalize_series(work_df[ec_name])
-
     work_df = work_df.dropna()
 
     if work_df.empty:
@@ -775,9 +788,10 @@ def plot_bar_cluster_single_col(
     # Crosstab
     counts_df = pd.crosstab(work_df[column_name], work_df[ec_name])
 
-    # Ordering on x-axis categories
+    # ---- Ordering on x-axis categories (rows) ----
     if order == "desc":
         counts_df = counts_df.loc[counts_df.sum(axis=1).sort_values(ascending=False).index]
+
     elif order == "custom":
         if custom_order is None:
             print("custom_order must be provided when order='custom'")
@@ -790,8 +804,36 @@ def plot_bar_cluster_single_col(
                 return
 
         counts_df = counts_df.reindex(custom_order, fill_value=0)
+
     else:
         print("order must be 'desc' or 'custom'")
+        return
+
+    # ---- Ordering on group columns (cluster bars + legend) ----
+    if group_order == "as_found":
+        pass
+
+    elif group_order == "asc":
+        counts_df = counts_df.reindex(sorted(counts_df.columns), axis=1)
+
+    elif group_order == "desc":
+        counts_df = counts_df.reindex(sorted(counts_df.columns, reverse=True), axis=1)
+
+    elif group_order == "custom":
+        if custom_group_order is None:
+            print("custom_group_order must be provided when group_order='custom'")
+            return
+
+        if isinstance(custom_group_order, str):
+            custom_group_order = CUSTOM_ORDERS.get(custom_group_order)
+            if custom_group_order is None:
+                print("Unknown custom_group_order string")
+                return
+
+        counts_df = counts_df.reindex(columns=custom_group_order, fill_value=0)
+
+    else:
+        print("group_order must be 'as_found', 'asc', 'desc' or 'custom'")
         return
 
     # Plot title logic
@@ -807,11 +849,16 @@ def plot_bar_cluster_single_col(
     total_cluster_width = interpolate(fig_width, 5, 10, 0.70, 0.90)
     intra_gap = interpolate(fig_width, 5, 10, 0.10, 0.04)
 
-    bar_width = total_cluster_width / max(n_clusters + (n_clusters - 1) * intra_gap, 1)
+    bar_width = total_cluster_width / max(
+        n_clusters + (n_clusters - 1) * intra_gap,
+        1
+    )
 
     colors = [POS_COLORS[i % len(POS_COLORS)] for i in range(n_clusters)]
 
     fig, ax = plt.subplots(figsize=(fig_width, fig_height))
+
+    max_val = counts_df.values.max() if counts_df.values.size > 0 else 1
 
     for i, cluster in enumerate(cluster_labels):
         offset = (
@@ -828,12 +875,11 @@ def plot_bar_cluster_single_col(
             label=cluster
         )
 
-        total = counts_df.values.sum()
-        max_val = counts_df.values.max() if counts_df.values.size > 0 else 1
+        group_total = counts_df[cluster].sum()
 
         for bar in bars:
             height = bar.get_height()
-            perc = (height / total) * 100 if total > 0 else 0
+            perc = (height / group_total) * 100 if group_total > 0 else 0
             if height > 0:
                 ax.text(
                     bar.get_x() + bar.get_width() / 2,
@@ -852,8 +898,7 @@ def plot_bar_cluster_single_col(
         ha=align_label
     )
 
-    max_val = counts_df.values.max() if counts_df.values.size > 0 else 1
-    ax.set_ylim(0, max_val * 1.22)
+    ax.set_ylim(0, max_val * 1.22 if max_val > 0 else 1)
     ax.set_ylabel("Nombre de réponses", fontsize=fontsize_label)
 
     wrapped_title = textwrap.fill(
@@ -863,7 +908,7 @@ def plot_bar_cluster_single_col(
     ax.set_title(wrapped_title, fontsize=fontsize_title, pad=10)
 
     ax.legend(
-        #title=ec_title,
+        # title=ec_title,
         fontsize=fontsize_label,
         title_fontsize=fontsize_label
     )
@@ -894,6 +939,8 @@ def plot_bar_cluster_multi_col(
         role="all",
         order="desc",
         custom_order=None,
+        group_order="desc",
+        custom_group_order="desc",
     ):
     """
     Clustered bar chart for multiple selected columns.
@@ -901,6 +948,16 @@ def plot_bar_cluster_multi_col(
     Cluster bars = groups from the 'ec' column.
     Legend title = col_title of the 'ec' column.
     Default title = first col_title from plot_tag selection.
+
+    Bar-label percentages are based on the total within each group.
+
+    Parameters for x-axis group order:
+    - order: "desc" or "custom"
+    - custom_order: list or CUSTOM_ORDERS key string
+
+    Parameters for cluster/legend order:
+    - group_order: "as_found", "asc", "desc", or "custom"
+    - custom_group_order: list or CUSTOM_ORDERS key string
     """
 
     # Filter population
@@ -932,7 +989,9 @@ def plot_bar_cluster_multi_col(
         if col_name not in df.columns:
             continue
 
-        for ec_value in normalize_series(df[ec_name]).unique():
+        ec_values = normalize_series(df[ec_name]).unique()
+
+        for ec_value in ec_values:
             mask = normalize_series(df[ec_name].copy()).eq(ec_value)
             subset = df.loc[mask.index[mask], col_name]
 
@@ -962,9 +1021,10 @@ def plot_bar_cluster_multi_col(
         .fillna(0)
     )
 
-    # Ordering on x-axis groups
+    # ---- Ordering on x-axis groups ----
     if order == "desc":
         pivot_df = pivot_df.loc[pivot_df.sum(axis=1).sort_values(ascending=False).index]
+
     elif order == "custom":
         if custom_order is None:
             print("custom_order must be provided when order='custom'")
@@ -980,8 +1040,36 @@ def plot_bar_cluster_multi_col(
         mapper = {t: i for i, t in enumerate(custom_order)}
         sort_key = [mapper.get(t, 10**9) for t in current_titles]
         pivot_df = pivot_df.iloc[np.argsort(sort_key)]
+
     else:
         print("order must be 'desc' or 'custom'")
+        return
+
+    # ---- Ordering on group columns (cluster bars + legend) ----
+    if group_order == "as_found":
+        pass
+
+    elif group_order == "asc":
+        pivot_df = pivot_df.reindex(sorted(pivot_df.columns), axis=1)
+
+    elif group_order == "desc":
+        pivot_df = pivot_df.reindex(sorted(pivot_df.columns, reverse=True), axis=1)
+
+    elif group_order == "custom":
+        if custom_group_order is None:
+            print("custom_group_order must be provided when group_order='custom'")
+            return
+
+        if isinstance(custom_group_order, str):
+            custom_group_order = CUSTOM_ORDERS.get(custom_group_order)
+            if custom_group_order is None:
+                print("Unknown custom_group_order string")
+                return
+
+        pivot_df = pivot_df.reindex(columns=custom_group_order, fill_value=0)
+
+    else:
+        print("group_order must be 'as_found', 'asc', 'desc' or 'custom'")
         return
 
     labels = pivot_df.index.get_level_values("label").tolist()
@@ -997,11 +1085,16 @@ def plot_bar_cluster_multi_col(
     total_cluster_width = interpolate(fig_width, 5, 10, 0.70, 0.90)
     intra_gap = interpolate(fig_width, 5, 10, 0.10, 0.04)
 
-    bar_width = total_cluster_width / max(n_clusters + (n_clusters - 1) * intra_gap, 1)
+    bar_width = total_cluster_width / max(
+        n_clusters + (n_clusters - 1) * intra_gap,
+        1
+    )
 
     colors = [POS_COLORS[i % len(POS_COLORS)] for i in range(n_clusters)]
 
     fig, ax = plt.subplots(figsize=(fig_width, fig_height))
+
+    max_val = values_matrix.max() if values_matrix.size > 0 else 1
 
     for i, cluster in enumerate(cluster_labels):
         offset = (
@@ -1018,12 +1111,11 @@ def plot_bar_cluster_multi_col(
             label=cluster
         )
 
-        total_val = values_matrix.sum()
-        max_val = values_matrix.max() if values_matrix.size > 0 else 1
+        group_total = pivot_df[cluster].sum()
 
         for bar in bars:
             height = bar.get_height()
-            perc = (height / total_val) * 100 if total_val > 0 else 0
+            perc = (height / group_total) * 100 if group_total > 0 else 0
             if height > 0:
                 ax.text(
                     bar.get_x() + bar.get_width() / 2,
@@ -1042,8 +1134,7 @@ def plot_bar_cluster_multi_col(
         ha=align_label
     )
 
-    max_val = values_matrix.max() if values_matrix.size > 0 else 1
-    ax.set_ylim(0, max_val * 1.22)
+    ax.set_ylim(0, max_val * 1.22 if max_val > 0 else 1)
     ax.set_ylabel("Nombre de réponses", fontsize=fontsize_label)
 
     wrapped_title = textwrap.fill(
@@ -1053,246 +1144,13 @@ def plot_bar_cluster_multi_col(
     ax.set_title(wrapped_title, fontsize=fontsize_title, pad=10)
 
     ax.legend(
-        title=ec_title,
+        # title=ec_title,
         fontsize=fontsize_label,
         title_fontsize=fontsize_label
     )
 
     plt.tight_layout()
     plt.show()
-
-
-
-
-
-
-
-
-
-
-def plot_bar_cluster_compare_single_col(
-        plot_column_tag,
-        group_tag,
-        plot_title=None,
-        rotation_label=45,
-        align_label="right",
-        fig_width=24,
-        cols_per_row=2,
-        fontsize_title=9,
-        fontsize_label=7,
-        fontsize_value=7,
-        role="all",
-        order="desc",
-        custom_order="desc",
-        group_order="As found",
-        h_space=0.40,
-        w_space=0.16,
-    ):
-    """
-    Plot clustered bar chart subplots comparing one or more columns selected by plot_column_tag.
-    Percentages above bars are based on the total within each group.
-    """
-
-    # ---- 1. Filter population ----
-    df = filter_population(df_all, role)
-
-    # ---- 2. Resolve measure columns ----
-    measure_cols_titles = selected_cols_titles(plot_column_tag)
-    if not measure_cols_titles:
-        print(f"No columns found for tag '{plot_column_tag}'")
-        return
-
-    # ---- 3. Resolve group column ----
-    group_cols_titles = selected_cols_titles(group_tag)
-    if not group_cols_titles:
-        print(f"No columns found for group tag '{group_tag}'")
-        return
-
-    group_name, group_title = group_cols_titles[0]
-
-    if group_name not in df.columns:
-        print(f"Column '{group_name}' not found")
-        return
-
-    # Normalize group column once for stable indexing
-    group_series = normalize_series(df[group_name])
-
-    valid_group_values = sorted(group_series.dropna().unique())
-    if len(valid_group_values) == 0:
-        print("No valid group values found")
-        return
-
-    # ---- 4. Figure layout ----
-    n_plots = len(measure_cols_titles)
-    rows = math.ceil(n_plots / cols_per_row)
-    fig_height = 4.4 * rows
-
-    fig, axes = plt.subplots(rows, cols_per_row, figsize=(fig_width, fig_height))
-
-    if isinstance(axes, np.ndarray):
-        axes = axes.flatten()
-    else:
-        axes = [axes]
-
-    # ---- 5. Colors ----
-    if len(valid_group_values) == 2:
-        group_colors = [COLOR_GROUP_1, COLOR_GROUP_2]
-    else:
-        group_colors = [DEMO_COLORS[i % len(DEMO_COLORS)] for i in range(len(valid_group_values))]
-
-    # Cluster width and adaptive gap
-    total_cluster_width = interpolate(fig_width, 5, 10, 0.70, 0.90)
-    intra_gap = interpolate(fig_width, 5, 10, 0.10, 0.04)
-    bar_width = total_cluster_width / max(
-        len(valid_group_values) + (len(valid_group_values) - 1) * intra_gap,
-        1
-    )
-
-    # Global title fallback
-    default_global_title = measure_cols_titles[0][1]
-    final_global_title = plot_title if plot_title is not None else default_global_title
-
-    # ---- 6. Plot each selected measure column ----
-    for i, (measure_name, measure_title) in enumerate(measure_cols_titles):
-        ax = axes[i]
-
-        if measure_name not in df.columns:
-            print(f"Column '{measure_name}' not found")
-            ax.set_visible(False)
-            continue
-
-        work_df = pd.DataFrame({
-            "measure": normalize_series(df[measure_name]),
-            "group": group_series,
-        }).dropna()
-
-        if work_df.empty:
-            ax.set_visible(False)
-            continue
-
-        # Crosstab = counts per measure value x group value
-        counts_df = pd.crosstab(work_df["measure"], work_df["group"])
-
-        # Ensure all group columns exist and in a stable order
-        counts_df = counts_df.reindex(columns=valid_group_values, fill_value=0)
-
-        # ---- Group ordering on clustered bars ----
-        if group_order == "as_found":
-            pass
-
-        elif group_order == "asc":
-            counts_df = counts_df.reindex(sorted(counts_df.columns), axis=1)
-
-        elif group_order == "desc":
-            counts_df = counts_df.reindex(sorted(counts_df.columns, reverse=True), axis=1)
-
-        else:
-            print("group_order must be 'as_found', 'asc', 'desc' or 'custom'")
-            ax.set_visible(False)
-            continue
-
-        # ---- 7. Ordering on measure categories ----
-        if order == "desc":
-            counts_df = counts_df.loc[counts_df.sum(axis=1).sort_values(ascending=False).index]
-
-        elif order == "custom":
-            if custom_order is None:
-                print("custom_order must be provided when order='custom'")
-                ax.set_visible(False)
-                continue
-
-            if isinstance(custom_order, str):
-                custom_order = CUSTOM_ORDERS.get(custom_order)
-                if custom_order is None:
-                    print("Unknown custom_order string")
-                    ax.set_visible(False)
-                    continue
-
-            counts_df = counts_df.reindex(custom_order, fill_value=0)
-
-        else:
-            print("order must be 'desc' or 'custom'")
-            ax.set_visible(False)
-            continue
-
-        labels = counts_df.index.tolist()
-        x = np.arange(len(labels))
-        bars_all = []
-        n = int(counts_df.values.sum())
-
-        # ---- 8. Draw clustered bars ----
-        for g_idx, group_val in enumerate(valid_group_values):
-            offset = (
-                - total_cluster_width / 2
-                + bar_width / 2
-                + g_idx * bar_width * (1 + intra_gap)
-            )
-
-            bars = ax.bar(
-                x + offset,
-                counts_df[group_val].values,
-                width=bar_width,
-                label=str(group_val),
-                color=group_colors[g_idx]
-            )
-
-            group_total = counts_df[group_val].sum()
-            bars_all.append((bars, group_total))
-
-        # ---- 9. X labels ----
-        wrapped_labels = [textwrap.fill(str(lbl), width=15) for lbl in labels]
-        ax.set_xticks(x)
-        ax.set_xticklabels(
-            wrapped_labels,
-            fontsize=fontsize_label,
-            rotation=rotation_label,
-            ha=align_label
-        )
-
-        # ---- 10. Subplot title ----
-        subplot_width = fig_width / cols_per_row
-        wrap_width = max(12, int(subplot_width * 10))
-        wrapped_subplot_title = textwrap.fill(f"{measure_title} (n={n})", width=wrap_width)
-        ax.set_title(wrapped_subplot_title, fontsize=fontsize_title, pad=8)
-
-        # ---- 11. Y axis ----
-        max_count = counts_df.values.max() if counts_df.values.size > 0 else 1
-        ax.set_ylim(0, max_count * 1.24 if max_count > 0 else 1)
-        ax.set_ylabel("Nombre de réponses", fontsize=fontsize_label)
-
-        # ---- 12. Value labels ----
-        for bars, group_total in bars_all:
-            for bar in bars:
-                height = bar.get_height()
-                if height > 0:
-                    perc = (height / group_total) * 100 if group_total > 0 else 0
-                    ax.text(
-                        bar.get_x() + bar.get_width() / 2,
-                        height + 0.01 * max_count,
-                        f"{perc:.0f}%\n(n={int(height)})",
-                        ha="center",
-                        va="bottom",
-                        fontsize=fontsize_value
-                    )
-
-        # ---- 13. Legend ----
-        ax.legend(
-            # title=group_title,
-            fontsize=fontsize_label,
-            # title_fontsize=fontsize_label,
-            bbox_to_anchor=(0.01, 0.99),
-            loc="upper left",
-        )
-
-    # ---- 14. Hide unused subplots ----
-    for j in range(n_plots, len(axes)):
-        axes[j].set_visible(False)
-
-    plt.tight_layout()
-    plt.subplots_adjust(top=0.90, wspace=w_space, hspace=h_space)
-    plt.show()
-
-
 
 
 
@@ -1329,6 +1187,10 @@ def plot_bar_cluster_compare_roles(
     left_prefix-<suffix> versus right_prefix-<suffix>.
 
     Titles use the configured column titles returned by selected_cols_titles().
+
+    Title placement:
+    - bottom of lower title aligned like set_title(..., pad=10)
+    - bottom of upper title aligned with the same pad above the lower title
     """
 
     # ---- 1. Detect suffixes from config ----
@@ -1440,45 +1302,60 @@ def plot_bar_cluster_compare_roles(
             ha=align_label
         )
 
-        # ---- 8. Subplot title using col_title ----
+        # ---- 8. Subplot title using point offsets ----
         subplot_width = fig_width / cols_per_row
         wrap_width = max(fig_width, int(subplot_width * 9))
 
         left_wrapped = textwrap.fill(str(left_title), width=wrap_width)
         right_wrapped = textwrap.fill(str(right_title), width=wrap_width) if right_title else ""
 
-        num_lines_left = left_wrapped.count("\n") + 1
-        num_lines_right = right_wrapped.count("\n") + 1 if right_wrapped else 0
+        pad_pts = 10
+        line_gap_pts = 10
 
-        line_height = 0.06 * (fontsize_title / 11.0)
-
+        # Lower title: bottom aligned at pad=10 above axes top
         if right_title:
-            title_y_right = 0.80 + (num_lines_right - 1) * line_height + 0.1
-            title_spacing_right = num_lines_right * line_height + 0.05
-
-            ax.text(
-                0.5, title_y_right, right_wrapped,
-                transform=ax.transAxes,
-                ha="center", va="bottom",
-                fontsize=fontsize_title,
-                fontstyle="italic"
-            )
-
-            ax.text(
-                0.5, title_y_right + title_spacing_right, left_wrapped,
-                transform=ax.transAxes,
-                ha="center", va="bottom",
-                fontsize=fontsize_title,
-                weight="normal"
-            )
+            lower_text = right_wrapped
+            upper_text = left_wrapped
+            lower_style = dict(fontstyle="italic")
+            upper_style = dict(weight="normal")
         else:
-            title_y_left = 0.80 + (num_lines_left - 1) * line_height + 0.1
-            ax.text(
-                0.5, title_y_left, left_wrapped,
-                transform=ax.transAxes,
-                ha="center", va="bottom",
+            lower_text = left_wrapped
+            upper_text = None
+            lower_style = dict(weight="normal")
+            upper_style = {}
+
+        lower_artist = ax.annotate(
+            lower_text,
+            xy=(0.5, 1.0),
+            xycoords="axes fraction",
+            xytext=(0, pad_pts),
+            textcoords="offset points",
+            ha="center",
+            va="bottom",
+            fontsize=fontsize_title,
+            annotation_clip=False,
+            **lower_style
+        )
+
+        # Draw to get text extent for exact stacking
+        fig.canvas.draw()
+        renderer = fig.canvas.get_renderer()
+        lower_bbox = lower_artist.get_window_extent(renderer=renderer)
+        lower_height_pts = lower_bbox.height * 72.0 / fig.dpi
+
+        # Upper title: bottom aligned pad=10 above lower title
+        if upper_text is not None:
+            ax.annotate(
+                upper_text,
+                xy=(0.5, 1.0),
+                xycoords="axes fraction",
+                xytext=(0, pad_pts + lower_height_pts + line_gap_pts),
+                textcoords="offset points",
+                ha="center",
+                va="bottom",
                 fontsize=fontsize_title,
-                weight="normal"
+                annotation_clip=False,
+                **upper_style
             )
 
         # ---- 9. Y axis ----
@@ -1526,6 +1403,244 @@ def plot_bar_cluster_compare_roles(
 
     plt.tight_layout()
     plt.subplots_adjust(wspace=w_space, hspace=h_space)
+    plt.show()
+
+
+
+
+
+
+
+
+
+
+def plot_bar_cluster_compare_single_col(
+        plot_column_tag,
+        group_tag,
+        plot_title=None,
+        rotation_label=45,
+        align_label="right",
+        fig_width=24,
+        cols_per_row=2,
+        fontsize_title=9,
+        fontsize_label=7,
+        fontsize_value=7,
+        role="all",
+        order="desc",
+        custom_order="desc",
+        group_order="As found",
+        h_space=0.40,
+        w_space=0.16,
+    ):
+    """
+    Plot clustered bar chart subplots comparing one or more columns selected by plot_column_tag.
+    Percentages above bars are based on the total within each group.
+
+    If order == "custom" and custom_order == "NONE",
+    the row order is inferred from the data:
+    - SCALE_1_4 for Likert 1-4
+    - SCALE_OUI_NON for Yes/No data
+    """
+
+    # ---- 1. Filter population ----
+    df = filter_population(df_all, role)
+
+    # ---- 2. Resolve measure columns ----
+    measure_cols_titles = selected_cols_titles(plot_column_tag)
+    if not measure_cols_titles:
+        print(f"No columns found for tag '{plot_column_tag}'")
+        return
+
+    # ---- 3. Resolve group column ----
+    group_cols_titles = selected_cols_titles(group_tag)
+    if not group_cols_titles:
+        print(f"No columns found for group tag '{group_tag}'")
+        return
+
+    group_name, group_title = group_cols_titles[0]
+
+    if group_name not in df.columns:
+        print(f"Column '{group_name}' not found")
+        return
+
+    # Normalize group column once for stable indexing
+    group_series = normalize_series(df[group_name])
+
+    valid_group_values = sorted(group_series.dropna().unique())
+    if len(valid_group_values) == 0:
+        print("No valid group values found")
+        return
+
+    # ---- 4. Figure layout ----
+    n_plots = len(measure_cols_titles)
+    rows = math.ceil(n_plots / cols_per_row)
+    fig_height = 4.4 * rows
+
+    fig, axes = plt.subplots(rows, cols_per_row, figsize=(fig_width, fig_height))
+
+    if isinstance(axes, np.ndarray):
+        axes = axes.flatten()
+    else:
+        axes = [axes]
+
+    # ---- 5. Colors ----
+    if len(valid_group_values) == 2:
+        group_colors = [COLOR_GROUP_1, COLOR_GROUP_2]
+    else:
+        group_colors = [DEMO_COLORS[i % len(DEMO_COLORS)] for i in range(len(valid_group_values))]
+
+    # Cluster width and adaptive gap
+    total_cluster_width = interpolate(fig_width, 5, 10, 0.70, 0.90)
+    intra_gap = interpolate(fig_width, 5, 10, 0.10, 0.04)
+    bar_width = total_cluster_width / max(
+        len(valid_group_values) + (len(valid_group_values) - 1) * intra_gap,
+        1
+    )
+
+    # Global title fallback
+    default_global_title = measure_cols_titles[0][1]
+    final_global_title = plot_title if plot_title is not None else default_global_title
+
+    # ---- 6. Plot each selected measure column ----
+    for i, (measure_name, measure_title) in enumerate(measure_cols_titles):
+        ax = axes[i]
+
+        if measure_name not in df.columns:
+            print(f"Column '{measure_name}' not found")
+            ax.set_visible(False)
+            continue
+
+        work_df = pd.DataFrame({
+            "measure": normalize_series(df[measure_name]),
+            "group": group_series,
+        }).dropna()
+
+        if work_df.empty:
+            ax.set_visible(False)
+            continue
+
+        # Crosstab = counts per measure value x group value
+        counts_df = pd.crosstab(work_df["measure"], work_df["group"])
+
+        # Ensure all group columns exist and in a stable order
+        counts_df = counts_df.reindex(columns=valid_group_values, fill_value=0)
+
+        # ---- Group ordering on clustered bars ----
+        if str(group_order).lower() == "as found" or str(group_order).lower() == "as_found":
+            pass
+
+        elif str(group_order).lower() == "asc":
+            counts_df = counts_df.reindex(sorted(counts_df.columns), axis=1)
+
+        elif str(group_order).lower() == "desc":
+            counts_df = counts_df.reindex(sorted(counts_df.columns, reverse=True), axis=1)
+
+        else:
+            print("group_order must be 'as_found', 'asc', 'desc' or 'custom'")
+            ax.set_visible(False)
+            continue
+
+        # ---- 7. Ordering on measure categories ----
+        if order == "desc":
+            counts_df = counts_df.loc[counts_df.sum(axis=1).sort_values(ascending=False).index]
+
+        elif order == "asc":
+            counts_df = counts_df.loc[counts_df.sum(axis=1).sort_values(ascending=True).index]
+
+        elif order == "custom":
+            resolved_order = custom_order
+
+            if isinstance(resolved_order, str) and resolved_order.upper() == "NONE":
+                detected_scale = detect_canonical_scale(counts_df.index.astype(str))
+                if detected_scale is not None:
+                    resolved_order = detected_scale
+                else:
+                    resolved_order = counts_df.index.tolist()
+
+            elif isinstance(resolved_order, str):
+                resolved_order = CUSTOM_ORDERS.get(resolved_order)
+                if resolved_order is None:
+                    print("Unknown custom_order string")
+                    ax.set_visible(False)
+                    continue
+
+            counts_df = counts_df.reindex(resolved_order, fill_value=0)
+
+        labels = counts_df.index.tolist()
+        x = np.arange(len(labels))
+        bars_all = []
+        n = int(counts_df.values.sum())
+
+        # ---- 8. Draw clustered bars ----
+        for g_idx, group_val in enumerate(valid_group_values):
+            offset = (
+                - total_cluster_width / 2
+                + bar_width / 2
+                + g_idx * bar_width * (1 + intra_gap)
+            )
+
+            bars = ax.bar(
+                x + offset,
+                counts_df[group_val].values,
+                width=bar_width,
+                label=str(group_val),
+                color=group_colors[g_idx]
+            )
+
+            group_total = counts_df[group_val].sum()
+            bars_all.append((bars, group_total))
+
+        # ---- 9. X labels ----
+        wrapped_labels = [textwrap.fill(str(lbl), width=15) for lbl in labels]
+        ax.set_xticks(x)
+        ax.set_xticklabels(
+            wrapped_labels,
+            fontsize=fontsize_label,
+            rotation=rotation_label,
+            ha=align_label
+        )
+
+        # ---- 10. Subplot title ----
+        subplot_width = fig_width / cols_per_row
+        wrap_width = max(12, int(subplot_width * 10))
+        wrapped_subplot_title = textwrap.fill(f"{measure_title} (n={n})", width=wrap_width)
+        ax.set_title(wrapped_subplot_title, fontsize=fontsize_title, pad=8)
+
+        # ---- 11. Y axis ----
+        max_count = counts_df.values.max() if counts_df.values.size > 0 else 1
+        ax.set_ylim(0, max_count * 1.24 if max_count > 0 else 1)
+        ax.set_ylabel("Nombre de réponses", fontsize=fontsize_label)
+
+        # ---- 12. Value labels ----
+        for bars, group_total in bars_all:
+            for bar in bars:
+                height = bar.get_height()
+                if height > 0:
+                    perc = (height / group_total) * 100 if group_total > 0 else 0
+                    ax.text(
+                        bar.get_x() + bar.get_width() / 2,
+                        height + 0.01 * max_count,
+                        f"{perc:.0f}%\n(n={int(height)})",
+                        ha="center",
+                        va="bottom",
+                        fontsize=fontsize_value
+                    )
+
+        # ---- 13. Legend ----
+        ax.legend(
+            # title=group_title,
+            fontsize=fontsize_label,
+            # title_fontsize=fontsize_label,
+            #bbox_to_anchor=(0.01, 0.99),
+            loc="best",
+        )
+
+    # ---- 14. Hide unused subplots ----
+    for j in range(n_plots, len(axes)):
+        axes[j].set_visible(False)
+
+    plt.tight_layout()
+    plt.subplots_adjust(top=0.90, wspace=w_space, hspace=h_space)
     plt.show()
 
 
