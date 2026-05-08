@@ -342,6 +342,20 @@ def interpolate(value, in_min, in_max, out_min, out_max):
 
 
 
+##########
+# Charts #
+##########
+
+
+
+
+
+
+
+
+
+
+
 def plot_bar_stacked_100(
         role: str, 
         col_mask: str, 
@@ -446,6 +460,8 @@ def plot_bar_stacked_100(
 
     plt.tight_layout()
     plt.show()
+
+
 
 
 
