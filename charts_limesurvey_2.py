@@ -564,11 +564,15 @@ def plot_bar_regular_single_col(
     max_label_length = max((len(str(lbl)) for lbl in labels), default=10)
     bottom_margin = (max_label_length / 10) * 0.55 * (fontsize_label / 10)
 
+    # Compute percentages for bar heights
+    total = sum(values)
+    percentages = np.array([(v / total) * 100 if total > 0 else 0 for v in values])
+
     # Plot
     fig, ax = plt.subplots(figsize=(fig_width, fig_height))
-    bars = ax.bar(x, values, width=bar_width, color=colors)
+    bars = ax.bar(x, percentages, width=bar_width, color=colors)
 
-    ax.set_ylabel("Nombre de réponses", fontsize=fontsize_label)
+    ax.set_ylabel("Pourcentage (%)", fontsize=fontsize_label)
     
     ax.set_xticks(x)
     ax.set_xticklabels(
@@ -588,19 +592,18 @@ def plot_bar_regular_single_col(
     )
 
     # Labels above bars
-    max_val = max(values) if len(values) > 0 else 1
-    total = sum(values)
+    max_perc = max(percentages) if len(percentages) > 0 else 1
 
-    label_space = max_val * 0.18
-    ax.set_ylim(0, max_val + label_space)
+    label_space = max_perc * 0.18
+    ax.set_ylim(0, max_perc + label_space)
 
-    for bar in bars:
-        height = bar.get_height()
-        perc = (height / total) * 100 if total > 0 else 0
+    for bar, height_count in zip(bars, values):
+        height_perc = bar.get_height()
+        perc = (height_count / total) * 100 if total > 0 else 0
         ax.text(
             bar.get_x() + bar.get_width() / 2,
-            height + 0.01 * max_val,
-            f"{perc:.0f}%\n(n={int(height)})",
+            height_perc + 0.01 * max_perc,
+            f"{perc:.0f}%\n(n={int(height_count)})",
             ha="center",
             va="bottom",
             fontsize=fontsize_label
@@ -694,27 +697,30 @@ def plot_bar_regular_multi_col(
     
     fig_height = 3.6
     bar_width = interpolate(fig_width, 5, 10, 0.65, 0.80)
+
+    # convert to percentages for bar heights
+    percentages = np.array([(v / total_val) * 100 if total_val > 0 else 0 for v in values])
     
     fig, ax = plt.subplots(figsize=(fig_width, fig_height))
-    bars = ax.bar(x, values, width=bar_width, color=colors)
+    bars = ax.bar(x, percentages, width=bar_width, color=colors)
     
     ax.set_xticks(x)
     ax.set_xticklabels(labels, fontsize=fontsize_label, rotation=rotation_label, ha=align_label)
-    ax.set_ylabel("Nombre de réponses", fontsize=fontsize_label)
+    ax.set_ylabel("Pourcentage (%)", fontsize=fontsize_label)
     
     # Wrapped title
     wrapped_title = textwrap.fill(f"{final_title} (n={int(total_val)})", width=int(fig_width * 12))
     ax.set_title(wrapped_title, fontsize=fontsize_title, pad=10)
     
     # Labels
-    max_val = max(values) if values else 1
-    ax.set_ylim(0, max_val * 1.25)
+    max_perc = max(percentages) if len(percentages) > 0 else 1
+    ax.set_ylim(0, max_perc * 1.25)
     
-    for bar in bars:
-        h = bar.get_height()
-        perc = (h / total_val) * 100 if total_val > 0 else 0
-        ax.text(bar.get_x() + bar.get_width() / 2, h + 0.01 * max_val, 
-                f"{perc:.0f}%\n(n={int(h)})", ha="center", va="bottom", fontsize=fontsize_label)
+    for bar, val in zip(bars, values):
+        h_perc = bar.get_height()
+        perc = (val / total_val) * 100 if total_val > 0 else 0
+        ax.text(bar.get_x() + bar.get_width() / 2, h_perc + 0.01 * max_perc, 
+                f"{perc:.0f}%\n(n={int(val)})", ha="center", va="bottom", fontsize=fontsize_label)
                 
     plt.tight_layout()
     plt.show()
@@ -874,7 +880,7 @@ def plot_bar_cluster_single_col(
 
     fig, ax = plt.subplots(figsize=(fig_width, fig_height))
 
-    max_val = counts_df.values.max() if counts_df.values.size > 0 else 1
+    max_count = counts_df.values.max() if counts_df.values.size > 0 else 1
 
     for i, cluster in enumerate(cluster_labels):
         offset = (
@@ -883,24 +889,26 @@ def plot_bar_cluster_single_col(
             + i * bar_width * (1 + intra_gap)
         )
 
+        group_counts = counts_df[cluster].values
+        group_total = counts_df[cluster].sum()
+        percentages = np.array([(v / group_total) * 100 if group_total > 0 else 0 for v in group_counts])
+
         bars = ax.bar(
             x + offset,
-            counts_df[cluster].values,
+            percentages,
             width=bar_width,
             color=colors[i],
             label=cluster
         )
 
-        group_total = counts_df[cluster].sum()
-
-        for bar in bars:
+        for bar, height_count in zip(bars, group_counts):
             height = bar.get_height()
-            perc = (height / group_total) * 100 if group_total > 0 else 0
-            if height > 0:
+            perc = (height_count / group_total) * 100 if group_total > 0 else 0
+            if height_count > 0:
                 ax.text(
                     bar.get_x() + bar.get_width() / 2,
-                    height + 0.01 * max_val,
-                    f"{perc:.0f}%\n(n={int(height)})",
+                    height + 0.01 * max_count,
+                    f"{perc:.0f}%\n(n={int(height_count)})",
                     ha="center",
                     va="bottom",
                     fontsize=fontsize_label
@@ -914,8 +922,9 @@ def plot_bar_cluster_single_col(
         ha=align_label
     )
 
-    ax.set_ylim(0, max_val * 1.22 if max_val > 0 else 1)
-    ax.set_ylabel("Nombre de réponses", fontsize=fontsize_label)
+    max_perc = 100
+    ax.set_ylim(0, max_perc * 1.10)
+    ax.set_ylabel("Pourcentage par groupe (%)", fontsize=fontsize_label)
 
     wrapped_title = textwrap.fill(
         f"{final_title} (n={int(counts_df.values.sum())})",
@@ -1119,24 +1128,26 @@ def plot_bar_cluster_multi_col(
             + i * bar_width * (1 + intra_gap)
         )
 
+        group_counts = pivot_df[cluster].values
+        group_total = pivot_df[cluster].sum()
+        percentages = np.array([(v / group_total) * 100 if group_total > 0 else 0 for v in group_counts])
+
         bars = ax.bar(
             x + offset,
-            pivot_df[cluster].values,
+            percentages,
             width=bar_width,
             color=colors[i],
             label=cluster
         )
 
-        group_total = pivot_df[cluster].sum()
-
-        for bar in bars:
+        for bar, height_count in zip(bars, group_counts):
             height = bar.get_height()
-            perc = (height / group_total) * 100 if group_total > 0 else 0
-            if height > 0:
+            perc = (height_count / group_total) * 100 if group_total > 0 else 0
+            if height_count > 0:
                 ax.text(
                     bar.get_x() + bar.get_width() / 2,
                     height + 0.01 * max_val,
-                    f"{perc:.0f}%\n(n={int(height)})",
+                    f"{perc:.0f}%\n(n={int(height_count)})",
                     ha="center",
                     va="bottom",
                     fontsize=fontsize_label
@@ -1150,8 +1161,8 @@ def plot_bar_cluster_multi_col(
         ha=align_label
     )
 
-    ax.set_ylim(0, max_val * 1.22 if max_val > 0 else 1)
-    ax.set_ylabel("Nombre de réponses", fontsize=fontsize_label)
+    ax.set_ylim(0, 100 * 1.10)
+    ax.set_ylabel("Pourcentage par groupe (%)", fontsize=fontsize_label)
 
     wrapped_title = textwrap.fill(
         f"{final_title} (n={int(values_matrix.sum())})",
@@ -1289,9 +1300,15 @@ def plot_bar_cluster_compare_roles(
         x = np.arange(len(scale))
         width = 0.42
 
+        total_left = counts_left.sum()
+        total_right = counts_right.sum()
+
+        left_percentages = np.array([(v / total_left) * 100 if total_left > 0 else 0 for v in counts_left.values])
+        right_percentages = np.array([(v / total_right) * 100 if total_right > 0 else 0 for v in counts_right.values])
+
         bars_left = ax.bar(
             [p - 0.24 for p in x],
-            counts_left.values,
+            left_percentages,
             width,
             label=left_label,
             color=left_color
@@ -1299,7 +1316,7 @@ def plot_bar_cluster_compare_roles(
 
         bars_right = ax.bar(
             [p + 0.24 for p in x],
-            counts_right.values,
+            right_percentages,
             width,
             label=right_label,
             color=right_color
@@ -1375,35 +1392,36 @@ def plot_bar_cluster_compare_roles(
             )
 
         # ---- 9. Y axis ----
-        ax.set_ylabel("Nombre de réponses", fontsize=fontsize_label)
+        ax.set_ylabel("Pourcentage par groupe (%)", fontsize=fontsize_label)
 
-        max_count = max(max(counts_left.values), max(counts_right.values))
-        ax.set_ylim(0, max_count * 1.15 if max_count > 0 else 1)
+        max_perc = max(
+            left_percentages.max() if len(left_percentages) > 0 else 0,
+            right_percentages.max() if len(right_percentages) > 0 else 0
+        )
+        ax.set_ylim(0, max_perc * 1.30 if max_perc > 0 else 100)
 
         # ---- 10. Value labels ----
-        total_left = counts_left.sum()
-        for bar in bars_left:
+        for bar, height_count in zip(bars_left, counts_left.values):
             height = bar.get_height()
-            if height > 0:
-                perc = (height / total_left) * 100 if total_left > 0 else 0
+            if height_count > 0:
+                perc = (height_count / total_left) * 100 if total_left > 0 else 0
                 ax.text(
                     bar.get_x() + bar.get_width() / 2.,
                     height + 0.1,
-                    f"{perc:.0f}%\n(n={int(height)})",
+                    f"{perc:.0f}%\n(n={int(height_count)})",
                     ha="center",
                     va="bottom",
                     fontsize=fontsize_value
                 )
 
-        total_right = counts_right.sum()
-        for bar in bars_right:
+        for bar, height_count in zip(bars_right, counts_right.values):
             height = bar.get_height()
-            if height > 0:
-                perc = (height / total_right) * 100 if total_right > 0 else 0
+            if height_count > 0:
+                perc = (height_count / total_right) * 100 if total_right > 0 else 0
                 ax.text(
                     bar.get_x() + bar.get_width() / 2.,
                     height + 0.1,
-                    f"{perc:.0f}%\n(n={int(height)})",
+                    f"{perc:.0f}%\n(n={int(height_count)})",
                     ha="center",
                     va="bottom",
                     fontsize=fontsize_value,
@@ -1595,16 +1613,19 @@ def plot_bar_cluster_compare_single_col(
                 + g_idx * bar_width * (1 + intra_gap)
             )
 
+            group_counts = counts_df[group_val].values
+            group_total = counts_df[group_val].sum()
+            percentages = np.array([(v / group_total) * 100 if group_total > 0 else 0 for v in group_counts])
+
             bars = ax.bar(
                 x + offset,
-                counts_df[group_val].values,
+                percentages,
                 width=bar_width,
                 label=str(group_val),
                 color=group_colors[g_idx]
             )
 
-            group_total = counts_df[group_val].sum()
-            bars_all.append((bars, group_total))
+            bars_all.append((bars, group_total, group_counts))
 
         # ---- 9. X labels ----
         wrapped_labels = [textwrap.fill(str(lbl), width=15) for lbl in labels]
@@ -1623,20 +1644,20 @@ def plot_bar_cluster_compare_single_col(
         ax.set_title(wrapped_subplot_title, fontsize=fontsize_title, pad=8)
 
         # ---- 11. Y axis ----
-        max_count = counts_df.values.max() if counts_df.values.size > 0 else 1
-        ax.set_ylim(0, max_count * 1.24 if max_count > 0 else 1)
-        ax.set_ylabel("Nombre de réponses", fontsize=fontsize_label)
+        max_perc = 100
+        ax.set_ylim(0, max_perc * 1.10)
+        ax.set_ylabel("Pourcentage par groupe (%)", fontsize=fontsize_label)
 
         # ---- 12. Value labels ----
-        for bars, group_total in bars_all:
-            for bar in bars:
+        for bars, group_total, group_counts in bars_all:
+            for bar, count in zip(bars, group_counts):
                 height = bar.get_height()
-                if height > 0:
-                    perc = (height / group_total) * 100 if group_total > 0 else 0
+                if count > 0:
+                    perc = (count / group_total) * 100 if group_total > 0 else 0
                     ax.text(
                         bar.get_x() + bar.get_width() / 2,
-                        height + 0.01 * max_count,
-                        f"{perc:.0f}%\n(n={int(height)})",
+                        height + 0.01 * max_perc,
+                        f"{perc:.0f}%\n(n={int(count)})",
                         ha="center",
                         va="bottom",
                         fontsize=fontsize_value
