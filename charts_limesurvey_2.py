@@ -477,6 +477,8 @@ def plot_bar_regular_single_col(
         rotation_label=45,
         align_label="right",
         fig_width=10,
+        fig_height=3.6,
+        label_area=0.30,
         fontsize_title=11,
         fontsize_label=9,
         role="all",
@@ -554,15 +556,8 @@ def plot_bar_regular_single_col(
     # Colors
     colors = [DEMO_COLORS[i % len(DEMO_COLORS)] for i in range(len(labels))]
 
-    # Keep height constant, adapt width only
-    fig_height = 3.6
-
     # Adapt bar thickness according to figure width
     bar_width = interpolate(fig_width, 5, 10, 0.65, 0.80)
-
-    # Bottom margin based on label length
-    max_label_length = max((len(str(lbl)) for lbl in labels), default=10)
-    bottom_margin = (max_label_length / 10) * 0.55 * (fontsize_label / 10)
 
     # Compute percentages for bar heights
     total = sum(values)
@@ -574,9 +569,12 @@ def plot_bar_regular_single_col(
 
     ax.set_ylabel("Pourcentage (%)", fontsize=fontsize_label)
     
+    wrap_width = max(6, int(fig_width * 1.8))
+    wrapped_labels = [textwrap.fill(str(lbl), width=wrap_width) for lbl in labels]
+
     ax.set_xticks(x)
     ax.set_xticklabels(
-        labels,
+        wrapped_labels,
         fontsize=fontsize_label,
         rotation=rotation_label,
         ha=align_label
@@ -609,10 +607,8 @@ def plot_bar_regular_single_col(
             fontsize=fontsize_label
         )
 
-    plt.subplots_adjust(bottom=min(bottom_margin, 0.4))
-    plt.tight_layout()
+    fig.subplots_adjust(left=0.08, right=0.98, top=0.82, bottom=label_area)
     plt.show()
-
 
 
 
