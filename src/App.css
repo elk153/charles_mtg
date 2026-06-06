@@ -1,0 +1,10 @@
+#root{
+  margin: 0;
+  padding: 0;
+  width: 100vw;
+  height: 100vh;
+  font-family: 'Palatino Linotype', Palatino, 'Book Antiqua', Serif; /* A nice serif font for a card-related app */
+  text-align: center; /* Center the content */
+  background-color: rgba(127, 255, 212, 0.849); /*aquamarine*/
+
+}

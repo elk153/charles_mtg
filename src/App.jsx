@@ -1,6 +1,7 @@
 import React, {useEffect} from "react";
+import Header from "./components/Header/Header.jsx";
 import Card from "./components/Card/Card.jsx";
-
+import "./App.css";
 const App = () => {
 
   useEffect( () => {
@@ -13,8 +14,8 @@ const App = () => {
 
   return (
     <>
-        <h1>MTG Card Collector</h1>
-        <label for="request">I'm looking for </label>
+        <Header />
+        <label htmlFor="request">I'm looking for </label>
         <input type="text" id="request" placeholder="card name" />
         <button id="searchButton">Go for it</button>
         <Card child="Common" style="gold" />
