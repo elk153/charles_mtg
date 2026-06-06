@@ -55,6 +55,7 @@ const fetchCards = async (type, method, queryValue, order) => {
 };
 
 function createApiClient(baseUrl) {
+  
   function buildQueryUrl(type, method, params = {}) {
     const filteredParams = Object.fromEntries(
       Object.entries(params).filter(([, v]) => v != null)

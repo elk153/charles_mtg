@@ -1,7 +1,9 @@
-import React, {useEffect} from "react";
+import React, { useEffect } from "react";
 import Header from "./components/Header/Header.jsx";
 import Card from "./components/Card/Card.jsx";
+import createApiClient from "./services/createApiClient.js";
 import "./App.css";
+
 const App = () => {
 
   useEffect( () => {
@@ -11,6 +13,10 @@ const App = () => {
     if (logoButton) { logoButton.classList.add("ready")};
 
   }, []);
+
+  const scryfallClient = createApiClient("https://api.scryfall.com");
+  const card = scryfallClient.fetchData("cards/named",  { exact: "Black Lotus" });;
+  console.log(card);
 
   return (
     <>
