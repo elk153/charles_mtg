@@ -1,0 +1,21 @@
+.pill{
+    /* Variables */
+    --shadow-color: rgba(0, 0, 0, 0.15); /* Default shadow color if no modifier is provided */
+ 
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 1.5rem;
+    font-weight: 600;
+    background-color: #ffffff; /* to have shadow to pop */
+    color:#1a1a1a;
+    border-radius: 9999px; /* for pill shape */
+    box-shadow: 6px 6px 0px 0px var(--shadow-color);
+    transition: box-shadow 0.2s ease, transform 0.2s ease; /* Smooth transition when hovering or switching colors */
+}
+
+.pill:hover{
+    cursor: default;
+    transform: translate(-1px, -1px);
+    box-shadow: 8px 8px 0px 0px var(--shadow-color);
+}
