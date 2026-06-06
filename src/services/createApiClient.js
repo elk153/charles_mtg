@@ -32,8 +32,8 @@ export default function createApiClient(baseUrl) {
     if (!json) { // .data for lists
       throw new Error("Unexpected resp onse shape: missing data field");
     }
-
-    return json.data;
+    
+    return json;
   };
 
   return { fetchData };

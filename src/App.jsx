@@ -1,10 +1,12 @@
-import React, { useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import Header from "./components/Header/Header.jsx";
 import Card from "./components/Card/Card.jsx";
 import createApiClient from "./services/createApiClient.js";
 import "./App.css";
 
 const App = () => {
+
+  const [cardData, setCardData] = useState(null);
 
   useEffect( () => {
 
@@ -14,9 +16,14 @@ const App = () => {
 
   }, []);
 
-  const scryfallClient = createApiClient("https://api.scryfall.com");
-  const card = scryfallClient.fetchData("cards/named",  { exact: "Black Lotus" });;
-  console.log(card);
+  //const scryfallClient = createApiClient("https://api.scryfall.com");
+  //scryfallClient
+  //  .fetchData("cards/named", { exact: "Black Lotus" })
+  //  .then((data) => {
+    //  console
+  //    setCardData(data);
+ //   });
+
 
   return (
     <>
@@ -24,7 +31,7 @@ const App = () => {
         <label htmlFor="request">I'm looking for </label>
         <input type="text" id="request" placeholder="card name" />
         <button id="searchButton">Go for it</button>
-        <Card child="Common" style="gold" />
+        <Card child=/*{cardData.name}*/"Rare" style="gold" />
     </>
   );
 
