@@ -15,7 +15,7 @@ const Header = () => {
       </nav>
 
       <h1 className="title">
-        MTG Collector
+        Charles' MTG Collection
       </h1>
 
       <img className="logo" src="/favicon.svg" />
