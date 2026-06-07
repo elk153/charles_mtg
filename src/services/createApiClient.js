@@ -22,16 +22,15 @@ export default function createApiClient(baseUrl) {
     }
 
     const url = buildQueryUrl(path, params);
-
     const response = await fetch(url);
+    console.log(`[HTTP Request] ${url} | [Return Code] ${response.status}`);
+
     if (!response.ok) {
-      throw new Error(`API Error: ${response.status} — ${response.statusText}`);
+      throw new Error(`[API Error] ${response.status} — ${response.statusText}`);
     }
 
     const json = await response.json();
-    if (!json) { // .data for lists
-      throw new Error("Unexpected resp onse shape: missing data field");
-    }
+    console.log(`[API Response] ${json}`);
     
     return json;
   };
