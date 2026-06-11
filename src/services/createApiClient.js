@@ -2,7 +2,7 @@ export default function createApiClient(baseUrl) {
 
   function buildQueryUrl(path, params = {}) {
 
-    // Clean-up the params from null en undefined values. 1) Destructure, 2) Filter, 3) Restructure
+    // Clean-up the params of null and undefined values. 1) Destructure, 2) Filter, 3) Restructure
     const filteredParams = Object.fromEntries(
       Object.entries(params).filter(([, v]) => v != null)
     );
@@ -30,13 +30,20 @@ export default function createApiClient(baseUrl) {
     }
 
     const json = await response.json();
-    console.log(`[API Response] ${json}`);
+    console.log(`[API Response] ${json.object}`);
+    
+      switch (json.object) {
+        case "card": return json;
+        case "list": return json.data;
+        case "error": throw new Error(`[API Error] ${json.code} — ${json.details} — ${json.warnings}`);
+        default: throw new Error(`[API Error] Unexpected answer`);
+      }
     
     return json;
   };
 
   return { fetchData };
-
+  
 }
 
 //const scryfallClient = createApiClient('https://api.scryfall.com');

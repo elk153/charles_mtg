@@ -35,7 +35,6 @@ const Input = ({
             type="radio" 
             name="path" 
             value="cards/named" 
-            checked={searchQuery.path === "cards/search"} 
             onChange={(event) => setSearchQuery(previousState => ({
               ...previousState,
               path: event.target.value

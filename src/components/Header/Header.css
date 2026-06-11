@@ -19,6 +19,13 @@
   color: var(--text-header);
 }
 
+.nav-icon{
+  height: 80%;
+  width: auto;
+  object-fit: contain;
+  fill: var(--text-header);;
+}
+
 .title{
   color: var(--text-header);
 }

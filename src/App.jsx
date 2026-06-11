@@ -10,24 +10,26 @@ const scryfallClient = createApiClient("https://api.scryfall.com");
 const App = () => {
 
   const [theme, setTheme] =useState("dark");
-  const [searchQuery, setSearchQuery] = useState({
-    path: "",
-    params: {}
-  });
+  const [searchQuery, setSearchQuery] = useState({ path: "", params: {} });
   const [isLoading, setIsloading] = useState(false);
   const [cardData, setCardData] = useState(null);
+  const [isFirstRender, setIsFirstRender] = useState(true);
   
   // When state value theme changes, modify the data)theme attribute
   useEffect( () => {
     document.documentElement.setAttribute("data-theme", theme);
-  }, [theme]);
+  }, [theme] );
 
   // Make the splashcreen clickable once react is loaded
   useEffect( () => {
     window.reactIsReady = true;
     const logoButton = document.getElementById("splash-logo");
     if (logoButton) { logoButton.classList.add("ready")};
-  }, []);
+  }, [] );
+
+  useEffect( () => {    
+    firstSearch()
+  }, [] );
 
   const handleSearch  = async (event) => {
     event.preventDefault();
@@ -46,9 +48,23 @@ const App = () => {
     }
   }
 
+  const firstSearch  = async (event) => {
+
+    setIsloading(true);
+    try {
+      const data = await scryfallClient.fetchData("cards/random", {format:"json"});
+      setCardData(data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsloading(false);
+    }
+  }
+
   return (
     <>
         <Header />
+
         <Input 
           id="scryfall-named" 
           placeholder="Enter card name" 
@@ -58,12 +74,13 @@ const App = () => {
           searchQuery={searchQuery} 
           setSearchQuery={setSearchQuery}
         />
+
         {cardData && (
           <>
-            <h2>{cardData.name}</h2>
             <img src={cardData.image_uris.border_crop} alt={cardData.name} />
           </>
         )}
+
     </>
   );
 

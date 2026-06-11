@@ -1,5 +1,7 @@
 import React from "react";
 import "./Header.css";
+import magnifier from "../../assets/magnifier.svg";
+import deck from "../../assets/deck.svg";
 
 const Header = () => {
 
@@ -9,8 +11,8 @@ const Header = () => {
 
       <nav aria-label="Main Navigation">
         <ul className="nav-menu">
-          <li>Search Tool</li>
-          <li>Collection</li>
+          <li><img src={magnifier} alt="Search for cards" /></li>
+          <li><img src={deck} alt="My decks" /></li>
         </ul>
       </nav>
 
