@@ -25,9 +25,9 @@ export default function createApiClient(baseUrl) {
     console.log(`[HTTP Request] ${url} | [Return Code] ${response.status}`);
 
     // Throw an error if the response code is negative
-    if (!response.ok) {
-      throw new Error(`[API error] ${response.status} — ${response.statusText}`);
-    }
+    //if (!response.ok) {
+    //  throw new Error(`[API error] ${response.status} — ${response.statusText}`);
+    //}
 
     // Extract the JSON part of the response and log the type of object
     const json = await response.json();
@@ -37,7 +37,8 @@ export default function createApiClient(baseUrl) {
     switch (json.object) {
       case "card": return json;
       case "list": return json.data;
-      case "error": throw new Error(`[API error] ${json.code} — ${json.details} — ${json.warnings}`);
+      case "catalog": return json.data;
+      case "error": console.log(`[API error] ${json.code} — ${json.details} — ${json.warnings}`);
       default: throw new Error(`[API Error] Unexpected answer`);
     }
     

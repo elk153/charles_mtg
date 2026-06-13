@@ -22,5 +22,6 @@
 
 .card{
   border-radius: 1rem;
-  width: 400px;
+  max-width: 90vw;
+  width: 330px;
 }

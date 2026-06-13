@@ -10,7 +10,10 @@
 .input label{
     color: var(--text-primary);
 }
+
 .input input{
+    font-size: inherit;
+    font-family: inherit;
     border-radius: 12px;
     border-width: 0px;
     margin: 0px 24px 0px 24px;
@@ -21,6 +24,8 @@
 }
 
 .input button{
+    font-size: inherit;
+    font-family: inherit;
     border-radius: 12px;
     border-width: 0px;
     padding: 6px;

@@ -44,7 +44,7 @@ const App = () => {
   }, [] );
 
   // Handle search on call
-  const handleSearch  = async (path, params) => {
+  const handleSearch  = async (event, path, params) => {
 
     // Difference between first page load and subsequent ones
     { isFirstPageLoad.current == false && event.preventDefault() }
@@ -69,7 +69,7 @@ const App = () => {
           id="scryfall-named" 
           placeholder="Enter card name" 
           label="I'm looking for" 
-          onSubmit={ () => {handleSearch(searchQuery.path, searchQuery.params) } }
+          onSubmit={ () => {handleSearch(event, "cards/search", searchQuery.params) } }
           isLoading={isLoading}
           searchQuery={searchQuery} 
           setSearchQuery={setSearchQuery}
