@@ -7,7 +7,7 @@ export default function createApiClient(baseUrl) {
       Object.entries(params).filter(([, v]) => v != null)
     );
 
-    // Convert filtered params into standard search param (after?)
+    // Convert cleaned-up params into standard search param (after?)
     const query = new URLSearchParams(filteredParams).toString();
 
     // Concatenate the baseUrl, the path, and the parameters
@@ -15,29 +15,31 @@ export default function createApiClient(baseUrl) {
 
   }
 
-  const fetchData = async (path, params = {}) => {
+  async function fetchData (path, params = {}) {
 
-    if (Object.keys(params).length === 0) {
-      throw new Error("At least one query parameter is required");
-    }
-
+    // Call the build query function
     const url = buildQueryUrl(path, params);
+    
+    // Send the HTTP request and log the return code
     const response = await fetch(url);
     console.log(`[HTTP Request] ${url} | [Return Code] ${response.status}`);
 
+    // Throw an error if the response code is positive
     if (!response.ok) {
       throw new Error(`[API Error] ${response.status} — ${response.statusText}`);
     }
 
+    // Extract the JSON part of the response and log the type of object
     const json = await response.json();
     console.log(`[API Response] ${json.object}`);
     
-      switch (json.object) {
-        case "card": return json;
-        case "list": return json.data;
-        case "error": throw new Error(`[API Error] ${json.code} — ${json.details} — ${json.warnings}`);
-        default: throw new Error(`[API Error] Unexpected answer`);
-      }
+    // Depending on the JSON object value, return the correct object
+    switch (json.object) {
+      case "card": return json;
+      case "list": return json.data;
+      case "error": throw new Error(`[API Error] ${json.code} — ${json.details} — ${json.warnings}`);
+      default: throw new Error(`[API Error] Unexpected answer`);
+    }
     
     return json;
   };
