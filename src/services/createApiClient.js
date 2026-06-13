@@ -24,20 +24,20 @@ export default function createApiClient(baseUrl) {
     const response = await fetch(url);
     console.log(`[HTTP Request] ${url} | [Return Code] ${response.status}`);
 
-    // Throw an error if the response code is positive
+    // Throw an error if the response code is negative
     if (!response.ok) {
-      throw new Error(`[API Error] ${response.status} — ${response.statusText}`);
+      throw new Error(`[API error] ${response.status} — ${response.statusText}`);
     }
 
     // Extract the JSON part of the response and log the type of object
     const json = await response.json();
-    console.log(`[API Response] ${json.object}`);
+    console.log(`[API returned object] ${json.object}`);
     
     // Depending on the JSON object value, return the correct object
     switch (json.object) {
       case "card": return json;
       case "list": return json.data;
-      case "error": throw new Error(`[API Error] ${json.code} — ${json.details} — ${json.warnings}`);
+      case "error": throw new Error(`[API error] ${json.code} — ${json.details} — ${json.warnings}`);
       default: throw new Error(`[API Error] Unexpected answer`);
     }
     
