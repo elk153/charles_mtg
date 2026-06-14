@@ -31,11 +31,11 @@ export default function createApiClient(baseUrl) {
 
     // Extract the JSON part of the response and log the type of object
     const json = await response.json();
-    console.log(`[API returned object] ${json.object}`);
+    console.log(`[API returned object] ${json}`);
     
     // Depending on the JSON object value, return the correct object
     switch (json.object) {
-      case "card": return json;
+      case "card": return [json];
       case "list": return json.data;
       case "catalog": return json.data;
       case "error": console.log(`[API error] ${json.code} — ${json.details} — ${json.warnings}`);

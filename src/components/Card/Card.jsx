@@ -1,8 +1,8 @@
 import React from "react";
 import "./Card.css";
 
-const Card = ({ cardData, setCardId, onCardClick }) => {
-  //console.log(cardData.id);
+const Card = ({ cardData, setCardId, setIsCardDetails }) => {
+  console.log(cardData.id);
 
   if(!cardData?.image_uris?.normal) {return null;}
 
@@ -13,7 +13,7 @@ const Card = ({ cardData, setCardId, onCardClick }) => {
     className="cardButton" 
     onClick={ () => {
       setCardId(cardData.id);
-      onCardClick();
+      setIsCardDetails(true);
     }}
   >
     

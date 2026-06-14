@@ -2,8 +2,10 @@ import React, { useState, useEffect, useRef } from "react";
 import Header from "./components/Header/Header.jsx";
 import Input from "./components/Input/Input.jsx";
 import CardsList from "./components/CardsList/CardsList.jsx";
+import CardDetails from "./components/CardDetails/CardDetails.jsx";
 import createApiClient from "./services/createApiClient.js";
 import "./App.css";
+
 
 // Create a API Client to run Scryfall requests
 const scryfallClient = createApiClient("https://api.scryfall.com");
@@ -14,8 +16,9 @@ const App = () => {
   const [theme, setTheme] =useState("dark"); // Light vs dark theme
   const [searchQuery, setSearchQuery] = useState({ path: "", params: {} }); // Search Field content
   const [isLoading, setIsloading] = useState(false); // Loading state 
-  const [cardData, setCardData] = useState(null); // Returned card data
+  const [cardData, setCardData] = useState([]); // Returned card data
   const [cardId, setCardId] = useState(null); // Returned card data
+  const [isCardDetails, setIsCardDetails] = useState(false); // Returned card data
 
   const isFirstPageLoad = useRef(true); // Initial page load
   
@@ -62,14 +65,11 @@ const App = () => {
     }
   }
 
-  // Call the card's details pop-up
-  const onCardClick = () => {
-
-    console.log("test");
-  };
-
   return (
-    <> 
+
+    <>
+      <div className="main-layer">
+
         <Header />
 
         <Input 
@@ -84,9 +84,30 @@ const App = () => {
 
        {cardData && (
           <>
-            <CardsList cardData={cardData} setCardId={setCardId} onCardClick={onCardClick} />
+            <CardsList 
+              cardData={cardData} 
+              setCardId={setCardId} 
+              setIsCardDetails={setIsCardDetails}
+            />
           </>
         )}
+
+      </div>
+
+      {isCardDetails ===true && (
+        
+        <div className="top-layer">
+
+          <Header />
+
+          <CardDetails 
+            cardData={cardData.filter( (f) => f.id === cardId)}
+            setIsCardDetails={setIsCardDetails}
+          />
+
+        </div>
+
+      )}
 
     </>
   );
