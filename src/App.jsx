@@ -38,16 +38,16 @@ const App = () => {
   // Load a random card on page load
   useEffect( () => {
 
-    handleSearch("cards/random", {format:"json"});
+    handleSubmit(event, "cards/random", {format:"json"});
     isFirstPageLoad.current = false
      
   }, [] );
 
-  // Handle search on call
-  const handleSearch  = async (event, path, params) => {
+  // Handle search on submit
+  const handleSubmit  = async (event, path, params) => {
 
     // Difference between first page load and subsequent ones
-    { isFirstPageLoad.current == false && event.preventDefault() }
+    isFirstPageLoad.current == false && event.preventDefault();
 
     setIsloading(true);
 
@@ -69,7 +69,7 @@ const App = () => {
           id="scryfall-named" 
           placeholder="Enter card name" 
           label="I'm looking for" 
-          onSubmit={ () => {handleSearch(event, "cards/search", searchQuery.params) } }
+          onSubmit={ () => {handleSubmit(event, "cards/search", searchQuery.params) } }
           isLoading={isLoading}
           searchQuery={searchQuery} 
           setSearchQuery={setSearchQuery}

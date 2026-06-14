@@ -3,7 +3,7 @@ import Card from "../Card/Card";
 import "./CardsList.css";
 
 const CardsList = ({ cardData }) => {
-  console.log(!cardData.length);
+  console.log(cardData.length);
   
   return (
 
@@ -13,11 +13,11 @@ const CardsList = ({ cardData }) => {
 
         ? <Card cardData={cardData} />
       
-        : cardData.map( (card, index) => (
+        : cardData.slice(0, 49).map( (card, index) => (
 
             <Card key={ card.id ?? index } cardData={ card } />
-
-          ))
+            
+        ))
         }  
 
     </div>

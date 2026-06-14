@@ -24,4 +24,5 @@
   border-radius: 1rem;
   max-width: 90vw;
   width: 330px;
+  box-shadow: var(--eerie-glow);
 }

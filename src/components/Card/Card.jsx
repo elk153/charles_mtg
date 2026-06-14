@@ -4,6 +4,8 @@ import "./Card.css";
 const Card = ({ cardData }) => {
   //console.log(cardData.id);
 
+  if(!cardData?.image_uris?.normal) {return null;}
+
   return (
 
   <>
