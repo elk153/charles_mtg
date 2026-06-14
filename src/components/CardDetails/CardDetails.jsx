@@ -2,6 +2,7 @@ import React from "react";
 import Card from "../Card/Card";
 import "./CardDetails.css";
 import close from "../../assets/close.svg";
+import IconClose from "../../assets/IconClose";
 
 const CardDetails = ({cardData, setIsCardDetails}) => {
   console.log(cardData);
@@ -11,8 +12,8 @@ const CardDetails = ({cardData, setIsCardDetails}) => {
 
     <div className="card-details">
 
-      <button className="button-close-top-layer" onClick={ () => setIsCardDetails(false)}>
-        <img src={close} alt="Close top layer" />
+      <button className="nav-icon" onClick={ () => setIsCardDetails(false)}>
+        <IconClose />
       </button>
 
       <img className="card" src={card.image_uris.normal} alt={card.name} />

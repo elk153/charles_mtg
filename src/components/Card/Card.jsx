@@ -2,9 +2,9 @@ import React from "react";
 import "./Card.css";
 
 const Card = ({ cardData, setCardId, setIsCardDetails }) => {
-  console.log(cardData.id);
+  console.log(cardData);
 
-  if(!cardData?.image_uris?.normal) {return null;}
+  if(!cardData?.image_uris?.normal) {return null};
 
   return (
 
@@ -25,3 +25,4 @@ const Card = ({ cardData, setCardId, setIsCardDetails }) => {
 };
 
 export default Card;
+

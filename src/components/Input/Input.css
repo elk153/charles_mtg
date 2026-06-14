@@ -30,7 +30,7 @@
     border-width: 0px;
     padding: 6px;
     background-color: var(--btn-gold);
-    color: var(--text-primary);
+    color: var(--bg-header);
     box-shadow: 0 6px 12px -6px rgba(255, 255, 255, 0.25),
               0 4px 6px -3px rgba(255, 255, 255, 0.30);
     transition: box-shadow 0.2s ease, transform 0.2s ease;
@@ -40,7 +40,7 @@
     cursor: pointer;
     /*transform: translate(-1px, -1px);*/
     background-color: var(--btn-gold-hover);
-    color: var(--text-primary);
+    color: var(--bg-header);
     box-shadow: 0 6px 12px -6px rgba(255, 255, 255, 0.50),
               0 4px 6px -3px rgba(255, 255, 255, 0.60);
 }

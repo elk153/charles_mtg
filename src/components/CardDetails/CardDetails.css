@@ -13,5 +13,8 @@
   background-color: var(--bg-card);
   color: var(--text-primary);
   border-radius: 1rem;
+  max-width: 90vw;
+  width: 330px;
 
 }
+

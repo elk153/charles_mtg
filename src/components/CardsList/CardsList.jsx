@@ -4,7 +4,7 @@ import "./CardsList.css";
 
 const CardsList = ({ cardData, setCardId, setIsCardDetails }) => {
   console.log(cardData.length);
-  
+    
   return (
 
     <div className="cards-list">
