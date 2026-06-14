@@ -15,6 +15,7 @@ const App = () => {
   const [searchQuery, setSearchQuery] = useState({ path: "", params: {} }); // Search Field content
   const [isLoading, setIsloading] = useState(false); // Loading state 
   const [cardData, setCardData] = useState(null); // Returned card data
+  const [cardId, setCardId] = useState(null); // Returned card data
 
   const isFirstPageLoad = useRef(true); // Initial page load
   
@@ -61,6 +62,12 @@ const App = () => {
     }
   }
 
+  // Call the card's details pop-up
+  const onCardClick = () => {
+
+    console.log("test");
+  };
+
   return (
     <> 
         <Header />
@@ -77,7 +84,7 @@ const App = () => {
 
        {cardData && (
           <>
-            <CardsList cardData={cardData} />
+            <CardsList cardData={cardData} setCardId={setCardId} onCardClick={onCardClick} />
           </>
         )}
 

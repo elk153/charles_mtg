@@ -25,7 +25,7 @@ const Input = ({
             ...previousState,
             params: {q: event.target.value},
           }))
-      )}
+        )}
       />
 
       <button type="submit" id="submitButton" disabled={isLoading}>

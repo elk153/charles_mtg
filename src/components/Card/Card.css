@@ -20,6 +20,13 @@
   box-shadow: 8px 8px 0px 0px var(--shadow-color);
 }
 
+button {
+  border: none;
+  outline: none;
+  background: none;
+  cursor: pointer;
+}
+
 .card{
   border-radius: 1rem;
   max-width: 90vw;

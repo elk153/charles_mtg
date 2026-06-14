@@ -2,7 +2,7 @@ import React from "react";
 import Card from "../Card/Card";
 import "./CardsList.css";
 
-const CardsList = ({ cardData }) => {
+const CardsList = ({ cardData, setCardId, onCardClick }) => {
   console.log(cardData.length);
   
   return (
@@ -11,11 +11,20 @@ const CardsList = ({ cardData }) => {
 
       { !cardData.length 
 
-        ? <Card cardData={cardData} />
+        ? <Card 
+            cardData={cardData}
+            setCardId={setCardId} 
+            onCardClick={onCardClick}
+          />
       
-        : cardData.slice(0, 49).map( (card, index) => (
+        : cardData.slice(cardData.length).map( (card, index) => (
 
-            <Card key={ card.id ?? index } cardData={ card } />
+            <Card 
+              key={ card.id ?? index } 
+              cardData={card} 
+              setCardId={setCardId} 
+              onCardClick={onCardClick}
+            />
             
         ))
         }  
