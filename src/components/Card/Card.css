@@ -32,4 +32,20 @@ button {
   max-width: 90vw;
   width: 330px;
   box-shadow: var(--eerie-glow);
+  display: block;
+  z-index: 0;
+}
+
+.card-wrapper{
+  position: relative;
+  display: block;  /* Or block, depending on your layout */
+}
+
+.turn-icon {
+  position: absolute;
+  top: 50%;           /* Middle vertically */
+  right: 0%;           /* Right edge */
+  transform: translate(40%, -15%);  /* Center on the point */
+  z-index: 1;         /* Ensure it's on top */
+
 }

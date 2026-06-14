@@ -1,7 +1,6 @@
 import React from "react";
 import Card from "../Card/Card";
 import "./CardDetails.css";
-import close from "../../assets/close.svg";
 import IconClose from "../../assets/IconClose";
 
 const CardDetails = ({cardData, setIsCardDetails}) => {
