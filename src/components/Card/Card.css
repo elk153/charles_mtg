@@ -69,8 +69,16 @@ button {
   backface-visibility: hidden;
 }
 
-.card-flip-outer:hover .card-flip-inner{
-  transform: rotateY(180deg);
+@media (hover: hover) and (pointer: fine) {
+  .card-flip-outer:hover .card-flip-inner{
+    transform: rotateY(180deg);
+  }
+}
+
+@media (hover: none) {
+  .card-flip-outer:active .card-flip-inner {
+    transform: rotateY(180deg);
+  }
 }
 
 .turn-icon {
