@@ -30,7 +30,8 @@ button {
 .card{
   border-radius: 1rem;
   max-width: 90vw;
-  width: 330px;
+  width: 330px; /* 488 */
+  height: 460px; /* 680 */
   box-shadow: var(--eerie-glow);
   display: block;
   z-index: 0;
@@ -38,16 +39,15 @@ button {
 
 .card-flip-outer{
   background-color: transparent;
-  width: 330px;
-  height: 100%;
+  width: 330px; /* 488 */
+  height: 460px; /* 680 */
   perspective: 1000px; /* Remove this if you don't want the 3D effect */
 }
 
 .card-flip-inner{
   position: relative;
-  width: 100%;
-  height: 100%;
-  text-align: center;
+  width: 330px; /* 488 */
+  height: 460px; /* 680 */
   transition: transform 0.8s;
   transform-style: preserve-3d;
 }
@@ -63,8 +63,8 @@ button {
 
 .card-flip-front, .card-flip-back{
   position: absolute;
-  width: 100%;
-  height: 100%;
+  width: 330px; /* 488 */
+  height: 460px; /* 680 */
   -webkit-backface-visibility: hidden; /* Safari */
   backface-visibility: hidden;
 }

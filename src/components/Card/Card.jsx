@@ -27,15 +27,15 @@ const Card = ({ cardData, setCardId, setIsCardDetails }) => {
 
           <div className="card-flip-front">
             <img className="card" src={cardData.card_faces[0].image_uris.normal} alt={cardData.name} />
-            <div className="nav-icon"><IconTurnAround /></div>
           </div>
       
           <div className="card-flip-back">
             <img className="card" src={cardData.card_faces[1].image_uris.normal} alt={cardData.name} />
-            <div className="nav-icon"><IconTurnAround /></div>
           </div>
 
         /</div>
+
+        <div className="card-icon"><IconTurnAround /></div>
 
       </div>
     }
