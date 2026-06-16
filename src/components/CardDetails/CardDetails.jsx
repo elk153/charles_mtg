@@ -2,9 +2,10 @@ import React from "react";
 import Card from "../Card/Card";
 import "./CardDetails.css";
 import IconClose from "../../assets/IconClose";
+import IconTurnAround from "../../assets/IconTurnAround";
 
 const CardDetails = ({cardData, setIsCardDetails}) => {
-  console.log(cardData);
+  console.log(cardData[0].layout);
   const card = cardData[0];
 
   return (
@@ -15,7 +16,20 @@ const CardDetails = ({cardData, setIsCardDetails}) => {
         <IconClose />
       </button>
 
-      <img className="card" src={card.image_uris.normal} alt={card.name} />
+      {(card.layout !== "transform" && card.layout !== "modal_dfc") 
+        ? 
+        <div>
+          <img className="card" src={card.image_uris.normal} alt={card.name} />
+        </div>
+        :
+        <div className="card-wrapper ">
+  
+          <div className="nav-icon turn-icon"><IconTurnAround /></div>
+            
+          <img className="card" src={card.card_faces[0].image_uris.normal} alt={card.name} />
+  
+        </div>
+      }
 
       <div className="card-info">
         <ul>
@@ -25,8 +39,8 @@ const CardDetails = ({cardData, setIsCardDetails}) => {
           <li>Illustrated by {card.artist}, framed in {card.frame}</li>
           <li>Legalities
             <ul>
-              {Object.entries(card.legalities).map( ([format, legality]) => (
-                <li>{format}: {legality}</li>
+              {Object.entries(card.legalities).map( ([format, legality], index) => (
+                <li key={index}>{format}: {legality}</li>
               ))}
             </ul>
           </li>

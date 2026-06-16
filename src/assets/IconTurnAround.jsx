@@ -5,8 +5,8 @@ export default function IconTurnAround(props) {
       xmlns:xlink="http://www.w3.org/1999/xlink" 
       aria-hidden="true" 
       role="img" 
-      width="64" 
-      height="64" 
+      width="32" 
+      height="32" 
       viewBox="0 0 48 48" 
     >
       <g 
