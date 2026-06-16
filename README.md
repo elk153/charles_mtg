@@ -1,4 +1,4 @@
-# MTG Collector
+# Charle's MTG Collector
 
 ## Objective
 
