@@ -15,12 +15,10 @@ body{
   height: 100vh;}
 
 .top-layer{
-  position:absolute;
+  position:fixed;
   z-index: 10;
-  top: 0px;
-  left: 0px;
-  width: 100vw;
-  height: 500%;
+  inset: 0;
+  overflow-y: auto;
 
   background: var(--bg-overlay);
   -webkit-backdrop-filter: blur(10px) saturate(1.5);  /* First for Safari */

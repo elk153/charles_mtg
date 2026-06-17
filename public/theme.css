@@ -3,7 +3,7 @@
   --bg-main: #162a2b;         /* Deep Spectral Aquamarine (Swampy Trench) */
   --bg-header: #11161a;       /* Abyssal Dark Slate */
   --bg-card: #1b2426;         /* Crypt Gray-Teal (Slightly lighter for contrast) */
-  --bg-overlay: rgba(22, 42, 43, 0.2);  /* 20% opacity of bg-main */
+  --bg-overlay: rgba(22, 42, 43, 0.5);  /* 20% opacity of bg-main */
 
   /* Interactive Elements */
   --btn-gold: #c5a059;        /* Antique Tarnished Gold */
@@ -25,7 +25,7 @@
   --bg-main: #e8edea;         /* Ashen Fog White (Slightly cold, washed-out green) */
   --bg-header: #202b30;       /* Dark Slate Header (Kept dark for stark, jarring contrast) */
   --bg-card: #ced9d4;         /* Cold Moss Gray (Darker than main bg so white glow registers) */
-  --bg-overlay: rgba(232, 237, 234, 0.15);  /* 15% opacity of bg-main */
+  --bg-overlay: rgba(232, 237, 234, 0.5);  /* 15% opacity of bg-main */
   
   /* Interactive Elements */
   --btn-gold: #a67c37;        /* Sunken Ochre Gold (Darker to read well on light backgrounds) */
