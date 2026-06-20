@@ -2,7 +2,7 @@ import "./CardDetails.css";
 import IconClose from "../../assets/IconClose";
 import IconTurnAround from "../../assets/IconTurnAround";
 
-const CardDetails = ({ card, onClose, cardPrices }) => {
+const CardDetails = ({ card, onClose, cardPrices, cardRulings }) => {
   if (!card) {
     return null;
   }
@@ -38,14 +38,21 @@ const CardDetails = ({ card, onClose, cardPrices }) => {
       <div className="card-info">
         <h2>Card Information</h2>
         <ul>
-          <li>
-            {card.name} ({card.mana_cost})
-          </li>
+          <li>{card.name} ({card.mana_cost})</li>
           <li>{card.type_line}</li>
+          <li>{card.rarity}</li>
           <li>{card.oracle_text}</li>
-          <li>
-            Illustrated by {card.artist}, framed in {card.frame}
+          {cardRulings.length > 0 &&
+          <li>Rulings
+            <ul>
+              {cardRulings.map(({ source, date, ruling }, index) => (
+                <li key={index}>
+                  `{ruling} <em>({source}, {date})</em>`
+                </li>
+              ))}
+            </ul>
           </li>
+          }
           <li>
             Legalities
             <ul>

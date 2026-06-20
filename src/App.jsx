@@ -5,6 +5,7 @@ import CardsList from "./components/CardsList/CardsList.jsx";
 import CardDetails from "./components/CardDetails/CardDetails.jsx";
 import createApiClient from "./services/createApiClient.js";
 import getCardPrices from "./services/getCardPrices.js";
+import getCardRulings from "./services/getCardRulings.js";
 import "./App.css";
 
 const scryfallClient = createApiClient("https://api.scryfall.com");
@@ -16,6 +17,7 @@ const App = () => {
   const [cardData, setCardData] = useState([]);
   const [selectedCardId, setSelectedCardId] = useState(null);
   const [cardPrices, setCardPrices] = useState([]);
+  const [cardRulings, setCardRulings] = useState([]);
 
   const activeCard = useMemo(
     () => cardData.find((card) => card.id === selectedCardId),
@@ -41,6 +43,7 @@ const App = () => {
   useEffect(() => {
     if (!activeCard?.prints_search_uri) {
       setCardPrices([]);
+      setCardRulings([]);
       return;
     }
 
@@ -48,9 +51,12 @@ const App = () => {
       try {
         const prices = await getCardPrices(activeCard.prints_search_uri);
         setCardPrices(prices);
+        const rulings = await getCardRulings(activeCard.rulings_uri);
+        setCardRulings(rulings);
       } catch (error) {
         console.error(error);
         setCardPrices([]);
+        setCardRulings([]);
       }
     };
 
@@ -110,7 +116,11 @@ const App = () => {
       {activeCard && (
         <div className="top-layer">
           <Header />
-          <CardDetails card={activeCard} onClose={handleCloseDetails} cardPrices={cardPrices} />
+          <CardDetails 
+            card={activeCard} 
+            onClose={handleCloseDetails} 
+            cardPrices={cardPrices} 
+            cardRulings={cardRulings} />
         </div>
       )}
     </>
