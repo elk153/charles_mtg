@@ -3,7 +3,7 @@ import Card from "../Card/Card";
 import "./CardsList.css";
 
 const CardsList = ({ cardData, setCardId, setIsCardDetails }) => {
-  console.log(cardData.length);
+  //console.log(cardData.length);
     
   return (
 

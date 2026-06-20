@@ -3,6 +3,7 @@ import "./Card.css";
 import IconTurnAround from "../../assets/IconTurnAround";
 
 const Card = ({ cardData, setCardId, setIsCardDetails }) => {
+  //console.log(cardData);
 
   return (
 

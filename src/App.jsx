@@ -4,6 +4,7 @@ import Input from "./components/Input/Input.jsx";
 import CardsList from "./components/CardsList/CardsList.jsx";
 import CardDetails from "./components/CardDetails/CardDetails.jsx";
 import createApiClient from "./services/createApiClient.js";
+import getCardPrices from "./services/getCardPrices.js";
 import "./App.css";
 
 
@@ -19,7 +20,7 @@ const App = () => {
   const [cardData, setCardData] = useState([]); // Returned card data
   const [cardId, setCardId] = useState(null); // Returned card data
   const [isCardDetails, setIsCardDetails] = useState(false); // Returned card data
-
+  const [cardPrices, setCardPrices] = useState([]);
   const isFirstPageLoad = useRef(true); // Initial page load
   
   // When theme changes, modify the data-theme attribute
@@ -46,6 +47,23 @@ const App = () => {
     isFirstPageLoad.current = false
      
   }, [] );
+
+  useEffect( () => {
+
+    if (!isCardDetails) return;
+
+    async function fetchPrints () {
+
+      const fetchedPrices = await getCardPrices(cardData[0].prints_search_uri);
+      setCardPrices(fetchedPrices);
+      console.log(fetchedPrices);
+
+    };
+
+    fetchPrints();
+    
+
+  }, [isCardDetails] );
 
   // Handle search on submit
   const handleSubmit  = async (event, path, params) => {
@@ -103,6 +121,7 @@ const App = () => {
           <CardDetails 
             cardData={cardData.filter( (f) => f.id === cardId)}
             setIsCardDetails={setIsCardDetails}
+            cardPrices={cardPrices}
           />
 
         </div>

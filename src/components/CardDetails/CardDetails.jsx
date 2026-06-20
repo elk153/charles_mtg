@@ -1,11 +1,15 @@
 import React from "react";
 import Card from "../Card/Card";
+import getCardPrints from "../../services/getCardPrices";
 import "./CardDetails.css";
 import IconClose from "../../assets/IconClose";
 import IconTurnAround from "../../assets/IconTurnAround";
+import getCardPrices from "../../services/getCardPrices";
 
-const CardDetails = ({cardData, setIsCardDetails}) => {
-  console.log(cardData[0].layout);
+const CardDetails = ({cardData, setIsCardDetails, cardPrices}) => {
+
+  console.log(cardPrices);
+  
   const card = cardData[0];
 
   return (
@@ -54,6 +58,33 @@ const CardDetails = ({cardData, setIsCardDetails}) => {
               ))}
             </ul>
           </li>
+          <li>Prices</li>
+              <table>
+                <thead>
+                  <tr>
+                    <td>Prints</td>
+                    <td>EUR</td>
+                    <td>EUR (foil)</td>
+                    <td>TIX</td>
+                    <td>USD</td>
+                    <td>USD (etched)</td>
+                    <td>USD (foil)</td>
+                  </tr>
+                </thead>
+                <tbody>
+                  {cardPrices.map( ( {id, set, image, prices}, index) => (
+                    <tr>
+                      <td>{set}</td>
+                      <td>EUR</td>
+                      <td>EUR (foil)</td>
+                      <td>TIX</td>
+                      <td>USD</td>
+                      <td>USD (etched)</td>
+                      <td>USD (foil)</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
         </ul>
       </div>
 
