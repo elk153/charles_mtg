@@ -1,52 +1,43 @@
 export default function createApiClient(baseUrl) {
+  const basePath = baseUrl.replace(/\/$/, "");
 
   function buildQueryUrl(path, params = {}) {
-
-    // Clean-up the params of null and undefined values. 1) Destructure, 2) Filter, 3) Restructure
     const filteredParams = Object.fromEntries(
-      Object.entries(params).filter(([, v]) => v != null)
+      Object.entries(params).filter(([, value]) => value != null)
     );
 
-    // Convert cleaned-up params into standard search param (after?)
     const query = new URLSearchParams(filteredParams).toString();
+    const normalizedPath = path.replace(/^\//, "");
 
-    // Concatenate the baseUrl, the path, and the parameters
-    return `${baseUrl}/${path}${query ? `?${query}` : ""}`;
-
+    return `${basePath}/${normalizedPath}${query ? `?${query}` : ""}`;
   }
 
-  async function fetchData (path, params = {}) {
-
-    // Call the build query function
+  async function fetchData(path, params = {}) {
     const url = buildQueryUrl(path, params);
-    
-    // Send the HTTP request and log the return code
     const response = await fetch(url);
-    console.log(`[HTTP Request] ${url} | [Return Code] ${response.status}`);
 
-    // Throw an error if the response code is negative
-    //if (!response.ok) {
-    //  throw new Error(`[API error] ${response.status} — ${response.statusText}`);
-    //}
-
-    // Extract the JSON part of the response and log the type of object
-    const json = await response.json();
-    console.log(`[API returned object] ${json}`);
-    
-    // Depending on the JSON object value, return the correct object
-    switch (json.object) {
-      case "card": return [json];
-      case "list": return json.data;
-      case "catalog": return json.data;
-      case "error": console.log(`[API error] ${json.code} — ${json.details} — ${json.warnings}`);
-      default: throw new Error(`[API Error] Unexpected answer`);
+    if (!response.ok) {
+      throw new Error(`[API error] ${response.status} — ${response.statusText}`);
     }
-    
-    return json;
-  };
+
+    const json = await response.json();
+
+    if (json.object === "error") {
+      throw new Error(`[API error] ${json.code} — ${json.details || json.message}`);
+    }
+
+    switch (json.object) {
+      case "card":
+        return [json];
+      case "list":
+      case "catalog":
+        return json.data;
+      default:
+        throw new Error(`[API Error] Unexpected response object: ${json.object}`);
+    }
+  }
 
   return { fetchData };
-  
 }
 
 //const scryfallClient = createApiClient('https://api.scryfall.com');
