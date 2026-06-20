@@ -1,23 +1,35 @@
-<!DOCTYPE html>
-<html lang=""en">
+<!doctype html>
+<html lang="en" data-theme="dark">
 
-<head>
-    <meta charset="UTF-8"> <!-- To ensure proper encoding (e.g., smilies, etc.), hence first -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- For responsive design -->
-    <title></title> <!-- Set dynamically from H1 -->
-    <link rel="stylesheet" href="style.css">
-</head>
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png">
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" sizes="any">
+    <link rel="icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/theme.css">
+    <link rel="stylesheet" href="index.css">
+    <title>Charles' MTG Collection</title>
+  </head>
 
-<body>
+  <body>
 
-    <h1 id="pageTitle">MTG Card Finder</h1>
+    <div class="splash-background" id="splash-background">
+      <img 
+        class="splash-logo"
+        id="splash-logo"
+        src="/favicon.svg"
+      >
+    </div>
+    <script type="module" src="index.js"></script>
 
-    <input type="text" id="request" placeholder="Enter card name">
-    <button id="searchButton">Search</button>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
 
-    <div id="result"></div>
-
-    <script src="script.js"></script>
-</body>
+  </body>
 
 </html>
+
