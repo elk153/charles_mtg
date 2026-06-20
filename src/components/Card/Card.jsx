@@ -4,8 +4,8 @@ import IconTurnAround from "../../assets/IconTurnAround";
 const Card = ({ card, onSelect }) => {
   const isDoubleFaced = card.layout === "transform" || card.layout === "modal_dfc";
 
-  return (
-    <button type="button" className="cardButton" onClick={onSelect}>
+  const cardContent = (
+    <>
       {isDoubleFaced ? (
         <div className="card-flip-outer">
           <div className="card-flip-inner">
@@ -25,7 +25,17 @@ const Card = ({ card, onSelect }) => {
           <img className="card" src={card.image_uris.normal} alt={card.name} />
         </div>
       )}
+    </>
+  );
+
+  return onSelect ? (
+    <button type="button" className="cardButton" onClick={onSelect}>
+      {cardContent}
     </button>
+  ) : (
+    <div className="cardButton">
+      {cardContent}
+    </div>
   );
 };
 

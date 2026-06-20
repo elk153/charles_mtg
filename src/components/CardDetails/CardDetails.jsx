@@ -36,6 +36,7 @@ const CardDetails = ({ card, onClose, cardPrices }) => {
       )}
 
       <div className="card-info">
+        <h2>Card Information</h2>
         <ul>
           <li>
             {card.name} ({card.mana_cost})
@@ -81,20 +82,38 @@ const CardDetails = ({ card, onClose, cardPrices }) => {
               </tbody>
             </table>
           </li>
-          <li>
-            Prints
-            <dl>
-              {cardPrices.map(({ id, set, image }) => (
-                <>
-                  <dt key={id}>{set}</dt>
-                  <dd>
-                    <img className="card" src={image} alt={`${set} print`} />
-                  </dd>
-                </>
-              ))}
-            </dl>
-          </li>
         </ul>
+      </div>
+
+      <div>
+        <h2 className="card-prints-title">Card Prints</h2>
+        <div className="card-prints">
+          {cardPrices.map(({ id, set, layout, images }) => {
+            const isDoubleFaced = layout === "transform" || layout === "modal_dfc";
+            return (
+              <div key={id}className="card-print">
+                <h3>{set}</h3>
+                {isDoubleFaced ? (
+                  <div className="card-flip-outer">
+                    <div className="card-flip-inner">
+                      <div className="card-flip-front">
+                        <img className="card" src={images[0]} alt={`${set} print front`} />
+                      </div>
+                      <div className="card-flip-back">
+                        <img className="card" src={images[1]} alt={`${set} print back`} />
+                      </div>
+                    </div>
+                    <div className="card-icon">
+                      <IconTurnAround />
+                    </div>
+                  </div>
+                ) : (
+                  <img className="card" src={images[0]} alt={`${set} print`} />
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
