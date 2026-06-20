@@ -1,10 +1,10 @@
 import React from "react";
 import Card from "../Card/Card";
 import getCardPrints from "../../services/getCardPrices";
-import "./CardDetails.css";
 import IconClose from "../../assets/IconClose";
 import IconTurnAround from "../../assets/IconTurnAround";
 import getCardPrices from "../../services/getCardPrices";
+import "./CardDetails.css";
 
 const CardDetails = ({cardData, setIsCardDetails, cardPrices}) => {
 
