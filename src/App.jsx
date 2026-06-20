@@ -63,7 +63,7 @@ const App = () => {
     } finally {
       setIsloading(false);
     }
-  }
+  };
 
   return (
 
