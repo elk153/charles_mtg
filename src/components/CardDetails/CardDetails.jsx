@@ -58,33 +58,45 @@ const CardDetails = ({cardData, setIsCardDetails, cardPrices}) => {
               ))}
             </ul>
           </li>
-          <li>Prices</li>
-              <table>
-                <thead>
-                  <tr>
-                    <td>Prints</td>
-                    <td>EUR</td>
-                    <td>EUR (foil)</td>
-                    <td>TIX</td>
-                    <td>USD</td>
-                    <td>USD (etched)</td>
-                    <td>USD (foil)</td>
+          <li>Prices (Scryfall)
+            <table>
+              <thead>
+                <tr>
+                  <td>Prints</td>
+                  <td>EUR</td>
+                  <td>EUR<br></br>(foil)</td>
+                  <td>TIX</td>
+                  <td>USD</td>
+                  <td>USD<br></br>(etched)</td>
+                  <td>USD<br></br>(foil)</td>
+                </tr>
+              </thead>
+              <tbody>
+                {cardPrices.map( ( {id, set, image, prices}, indexSet) => (
+                  <tr key={indexSet}>
+                    <td>{set}</td>
+                    {Object.entries(cardPrices[indexSet].prices).map( ([trace, price], indexCurr) => (
+                      <td key={indexCurr}>{price ? price : ""}</td>
+                    ))}
                   </tr>
-                </thead>
-                <tbody>
-                  {cardPrices.map( ( {id, set, image, prices}, index) => (
-                    <tr>
-                      <td>{set}</td>
-                      <td>EUR</td>
-                      <td>EUR (foil)</td>
-                      <td>TIX</td>
-                      <td>USD</td>
-                      <td>USD (etched)</td>
-                      <td>USD (foil)</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                ))}
+              </tbody>
+            </table>
+          </li>
+          <li>Prints
+            <dl>
+              {cardPrices.map( ( {id, set, image, prices}, index) => (
+                <>
+                  <dt key={index}>{set}</dt>
+                  <dd key={index}>
+                    <img className="card" src={image} />
+                  </dd>
+                </>
+              ))}
+                 
+            </dl>
+
+          </li>
         </ul>
       </div>
 
