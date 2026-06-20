@@ -47,7 +47,7 @@ const CardDetails = ({ card, onClose, cardPrices, cardRulings }) => {
             <ul>
               {cardRulings.map(({ source, date, ruling }, index) => (
                 <li key={index}>
-                  `{ruling} <em>({source}, {date})</em>`
+                  {ruling} <em>({source}, {date})</em>
                 </li>
               ))}
             </ul>
