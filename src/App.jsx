@@ -1,118 +1,130 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Header from "./components/Header/Header.jsx";
 import Input from "./components/Input/Input.jsx";
 import CardsList from "./components/CardsList/CardsList.jsx";
 import CardDetails from "./components/CardDetails/CardDetails.jsx";
 import createApiClient from "./services/createApiClient.js";
+import getCardPrices from "./services/getCardPrices.js";
+import getCardRulings from "./services/getCardRulings.js";
 import "./App.css";
 
-
-// Create a API Client to run Scryfall requests
 const scryfallClient = createApiClient("https://api.scryfall.com");
 
 const App = () => {
+  const [theme, setTheme] = useState("dark");
+  const [searchText, setSearchText] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [cardData, setCardData] = useState([]);
+  const [selectedCardId, setSelectedCardId] = useState(null);
+  const [cardPrices, setCardPrices] = useState([]);
+  const [cardRulings, setCardRulings] = useState([]);
 
-  // State variables
-  const [theme, setTheme] =useState("dark"); // Light vs dark theme
-  const [searchQuery, setSearchQuery] = useState({ path: "", params: {} }); // Search Field content
-  const [isLoading, setIsloading] = useState(false); // Loading state 
-  const [cardData, setCardData] = useState([]); // Returned card data
-  const [cardId, setCardId] = useState(null); // Returned card data
-  const [isCardDetails, setIsCardDetails] = useState(false); // Returned card data
+  const activeCard = useMemo(
+    () => cardData.find((card) => card.id === selectedCardId),
+    [cardData, selectedCardId]
+  );
 
-  const isFirstPageLoad = useRef(true); // Initial page load
-  
-  // When theme changes, modify the data-theme attribute
-  useEffect( () => {
-
+  useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
+  }, [theme]);
 
-  }, [theme] );
-
-  // Make the splashcreen clickable once react is loaded
-  useEffect( () => {
-
+  useEffect(() => {
     window.reactIsReady = true;
-
     const logoButton = document.getElementById("splash-logo");
-    if (logoButton) { logoButton.classList.add("ready")};
+    if (logoButton) {
+      logoButton.classList.add("ready");
+    }
+  }, []);
 
-  }, [] );
+  useEffect(() => {
+    fetchCards("cards/random", { format: "json" });
+  }, []);
 
-  // Load a random card on page load
-  useEffect( () => {
+  useEffect(() => {
+    if (!activeCard?.prints_search_uri) {
+      setCardPrices([]);
+      setCardRulings([]);
+      return;
+    }
 
-    handleSubmit(event, "cards/random", {format:"json"});
-    isFirstPageLoad.current = false
-     
-  }, [] );
+    const fetchPrints = async () => {
+      try {
+        const prices = await getCardPrices(activeCard.prints_search_uri);
+        setCardPrices(prices);
+        const rulings = await getCardRulings(activeCard.rulings_uri);
+        setCardRulings(rulings);
+      } catch (error) {
+        console.error(error);
+        setCardPrices([]);
+        setCardRulings([]);
+      }
+    };
 
-  // Handle search on submit
-  const handleSubmit  = async (event, path, params) => {
+    fetchPrints();
+  }, [activeCard]);
 
-    // Difference between first page load and subsequent ones
-    isFirstPageLoad.current == false && event.preventDefault();
-
-    setIsloading(true);
+  const fetchCards = async (path, params = {}) => {
+    setIsLoading(true);
 
     try {
       const data = await scryfallClient.fetchData(path, params);
       setCardData(data);
-    } catch (err) {
-      console.error(err);
+      setSelectedCardId(null);
+    } catch (error) {
+      console.error(error);
     } finally {
-      setIsloading(false);
+      setIsLoading(false);
     }
-  }
+  };
+
+  const handleSearchSubmit = (event) => {
+    event.preventDefault();
+    const query = searchText.trim();
+    if (!query) {
+      return;
+    }
+
+    fetchCards("cards/search", { q: query });
+  };
+
+  const handleCardSelect = (cardId) => {
+    setSelectedCardId(cardId);
+  };
+
+  const handleCloseDetails = () => {
+    setSelectedCardId(null);
+  };
 
   return (
-
     <>
       <div className="main-layer">
-
         <Header />
 
-        <Input 
-          id="scryfall-named" 
-          placeholder="Enter card name" 
-          label="I'm looking for" 
-          onSubmit={ () => {handleSubmit(event, "cards/search", searchQuery.params) } }
+        <Input
+          id="scryfall-named"
+          placeholder="Enter card name"
+          label="I'm looking for"
+          onSubmit={handleSearchSubmit}
           isLoading={isLoading}
-          searchQuery={searchQuery} 
-          setSearchQuery={setSearchQuery}
+          value={searchText}
+          onChange={setSearchText}
         />
 
-       {cardData && (
-          <>
-            <CardsList 
-              cardData={cardData} 
-              setCardId={setCardId} 
-              setIsCardDetails={setIsCardDetails}
-            />
-          </>
-        )}
-
+        {cardData.length > 0 && <CardsList cardData={cardData} onCardSelect={handleCardSelect} />}
       </div>
 
-      {isCardDetails ===true && (
-        
+      {activeCard && (
         <div className="top-layer">
-
           <Header />
-
           <CardDetails 
-            cardData={cardData.filter( (f) => f.id === cardId)}
-            setIsCardDetails={setIsCardDetails}
-          />
-
+            card={activeCard} 
+            onClose={handleCloseDetails} 
+            cardPrices={cardPrices} 
+            cardRulings={cardRulings} />
         </div>
-
       )}
-
     </>
   );
-
 };
 
 export default App;
-

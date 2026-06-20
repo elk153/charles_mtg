@@ -14,10 +14,3 @@ The objective is to have an app working on laptop and mobile where you can look 
 * Track price of collection
 * Track sales and money balance
 
-## Dev environment setup
-
-1. Check if all present
-2. node -v
-3. npm -v
-4. npm create vite@latest
-## Functionalities

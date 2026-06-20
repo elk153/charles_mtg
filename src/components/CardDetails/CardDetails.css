@@ -10,11 +10,26 @@
 }
 
 .card-info{
-  background-color: var(--bg-card);
+  /*background-color: var(--bg-card);*/
   color: var(--text-primary);
   border-radius: 1rem;
   max-width: 90vw;
-  width: 330px;
+  /*width: 330px; */
 
 }
 
+.card-prints{
+  display: flex;
+  flex-wrap: wrap;
+  width: 90%;
+  box-sizing: border-box;
+  padding: 1rem;
+  gap: 2rem;
+  justify-content: center;
+  align-items: flex-start;
+  color: var(--text-primary);
+}
+
+.card-prints-title{
+  color: var(--text-primary);
+}
