@@ -88,7 +88,7 @@ const CardDetails = ({cardData, setIsCardDetails, cardPrices}) => {
               {cardPrices.map( ( {id, set, image, prices}, index) => (
                 <>
                   <dt key={index}>{set}</dt>
-                  <dd key={index}>
+                  <dd>
                     <img className="card" src={image} />
                   </dd>
                 </>
