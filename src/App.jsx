@@ -113,7 +113,7 @@ const App = () => {
 
       {activeCard && (
         <div className="top-layer">
-          <Header />
+          {/*<Header />*/}
           <CardDetails 
             card={activeCard} 
             onClose={handleCloseDetails} 
