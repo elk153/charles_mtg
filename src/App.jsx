@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import FloatingNavBar from "./components/FloatingNavBar/FloatingNavBar.jsx";
 import Header from "./components/Header/Header.jsx";
-import Input from "./components/Input/Input.jsx";
 import CardsList from "./components/CardsList/CardsList.jsx";
 import CardDetails from "./components/CardDetails/CardDetails.jsx";
 import createApiClient from "./services/createApiClient.js";
@@ -99,18 +98,14 @@ const App = () => {
   return (
     <>
       <div className="main-layer">
-        <Header />
+        {/*<Header />*/}
         
-        <FloatingNavBar onNavigate={(id) => console.log("navigate to:", id)}/>
-
-        <Input
-          id="scryfall-named"
-          placeholder="Enter card name"
-          label="I'm looking for"
-          onSubmit={handleSearchSubmit}
+        <FloatingNavBar
+          onNavigate={(id) => console.log("navigate to:", id)}
+          handleSearchSubmit={handleSearchSubmit}
           isLoading={isLoading}
-          value={searchText}
-          onChange={setSearchText}
+          searchText={searchText}
+          setSearchText={setSearchText}
         />
 
         {cardData.length > 0 && <CardsList cardData={cardData} onCardSelect={handleCardSelect} />}
