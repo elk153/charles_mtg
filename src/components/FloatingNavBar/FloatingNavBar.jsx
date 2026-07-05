@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import Input from "../Input/Input";
 import useScrollDirection from "../../hooks/useScrollDirection";
-import "./floatingNavBar.css";
+import "./FloatingNavBar.css";
 //import IconSearch from "../../assets/IconSearch";
 //import IconCards from "../../assets/IconCards";
 
