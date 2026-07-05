@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import FloatingNavBar from "./components/FloatingNavBar/FloatingNavBar.jsx";
 import Header from "./components/Header/Header.jsx";
 import Input from "./components/Input/Input.jsx";
 import CardsList from "./components/CardsList/CardsList.jsx";
@@ -99,6 +100,8 @@ const App = () => {
     <>
       <div className="main-layer">
         <Header />
+        
+        <FloatingNavBar onNavigate={(id) => console.log("navigate to:", id)}/>
 
         <Input
           id="scryfall-named"

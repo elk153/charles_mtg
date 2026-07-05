@@ -1,4 +1,3 @@
-import React from "react";
 import "./Header.css";
 import IconSearch from "../../assets/IconSearch";
 import IconCards from "../../assets/IconCards";
