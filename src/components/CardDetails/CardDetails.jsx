@@ -2,7 +2,7 @@ import "./CardDetails.css";
 import IconClose from "../../assets/IconClose";
 import IconTurnAround from "../../assets/IconTurnAround";
 
-const CardDetails = ({ card, onClose, cardPrices, cardRulings }) => {
+const CardDetails = ({ card, cardPrices, cardRulings }) => {
   if (!card) {
     return null;
   }
@@ -11,9 +11,6 @@ const CardDetails = ({ card, onClose, cardPrices, cardRulings }) => {
 
   return (
     <div className="card-details">
-      <button className="nav-icon" onClick={onClose}>
-        <IconClose />
-      </button>
 
       {isDoubleFaced ? (
         <div className="card-flip-outer">

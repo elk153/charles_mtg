@@ -43,3 +43,9 @@ body{
 .nav-icon:hover{
   color: var(--btn-gold-hover);
 }
+
+.nav-close {
+  position: fixed;
+  inset: 10px 20px auto auto;
+  z-index: 100;
+}

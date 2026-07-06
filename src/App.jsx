@@ -6,6 +6,7 @@ import CardDetails from "./components/CardDetails/CardDetails.jsx";
 import createApiClient from "./services/createApiClient.js";
 import getCardPrices from "./services/getCardPrices.js";
 import getCardRulings from "./services/getCardRulings.js";
+import IconClose from "./assets/IconClose.jsx";
 import "./App.css";
 
 const scryfallClient = createApiClient("https://api.scryfall.com");
@@ -112,14 +113,19 @@ const App = () => {
       </div>
 
       {activeCard && (
-        <div className="top-layer">
-          {/*<Header />*/}
-          <CardDetails 
-            card={activeCard} 
-            onClose={handleCloseDetails} 
-            cardPrices={cardPrices} 
-            cardRulings={cardRulings} />
-        </div>
+        <>
+          <div className="nav-close">
+            <button className="nav-icon" onClick={handleCloseDetails}>
+              <IconClose />
+            </button>
+          </div>
+          <div className="top-layer">
+            <CardDetails 
+              card={activeCard} 
+              cardPrices={cardPrices} 
+              cardRulings={cardRulings} />
+          </div>
+        </>
       )}
     </>
   );
