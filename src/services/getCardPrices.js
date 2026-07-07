@@ -17,6 +17,7 @@ export default async function getCardPrices(url) {
       id: card.id,
       set: card.set,
       collector_number: card.collector_number,
+      released_at: card.released_at,
       set_name: card.set_name,
       layout: card.layout,
       images,
