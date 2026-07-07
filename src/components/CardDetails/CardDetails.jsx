@@ -12,7 +12,7 @@ const CardDetails = ({ card, cardPrices, cardRulings }) => {
   return (
     <div className="card-details">
 
-      <div className="card-info">
+      <div className="card-info oracle-panel-dark corner-got parchment-frame-metallic">
         
         <h2>{card.name}</h2>
         <p><em>{card.type_line}</em></p>
@@ -35,62 +35,62 @@ const CardDetails = ({ card, cardPrices, cardRulings }) => {
             </li>
           ))}
         </ul>
+      </div>
+      
+      <div className="card-prints">
+        {cardPrices.map(({ id, set, set_name, collector_number, layout, images }) => {
+          const isDoubleFaced = layout === "transform" || layout === "modal_dfc";
+          return (
+            <div key={id} className="card-print oracle-panel-dark corner-scroll">
+              <div className="">
+                <h3>{set_name}</h3>
+                <h4>{set.toUpperCase()+"/"+collector_number}</h4>
 
-        <div>
-          <div className="card-prints">
-            {cardPrices.map(({ id, set, set_name, collector_number, layout, images }) => {
-              const isDoubleFaced = layout === "transform" || layout === "modal_dfc";
-              return (
-                <div key={id}className="card-print">
-                  <h3>{set_name}</h3>
-                  <h4>{set.toUpperCase()+"/"+collector_number}</h4>
-
-                  <table>
-                    <thead>
-                      <tr>
-                        <td>EUR</td>
-                        <td>EUR<br></br>(foil)</td>
-                        <td>TIX</td>
-                        <td>USD</td>
-                        <td>USD<br></br>(etched)</td>
-                        <td>USD<br></br>(foil)</td>
+                <table>
+                  <thead>
+                    <tr>
+                      <td>EUR</td>
+                      <td>EUR<br></br>(foil)</td>
+                      <td>TIX</td>
+                      <td>USD</td>
+                      <td>USD<br></br>(etched)</td>
+                      <td>USD<br></br>(foil)</td>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {cardPrices
+                      .filter(card => card.id === id)
+                      .map(({ id, prices }) => (
+                      <tr key={id}>
+                        {Object.values(prices).map((price, index) => (
+                          <td key={index}>{price || ""}</td>
+                        ))}
                       </tr>
-                    </thead>
-                    <tbody>
-                      {cardPrices
-                        .filter(card => card.id === id)
-                        .map(({ id, prices }) => (
-                        <tr key={id}>
-                          {Object.values(prices).map((price, index) => (
-                            <td key={index}>{price || ""}</td>
-                          ))}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
 
-                  {isDoubleFaced ? (
-                    <div className="card-flip-outer">
-                      <div className="card-flip-inner">
-                        <div className="card-flip-front">
-                          <img className="card" src={images[0]} alt={`${set} print front`} />
-                        </div>
-                        <div className="card-flip-back">
-                          <img className="card" src={images[1]} alt={`${set} print back`} />
-                        </div>
-                      </div>
-                      <div className="card-icon">
-                        <IconTurnAround />
-                      </div>
+              {isDoubleFaced ? (
+                <div className="card-flip-outer">
+                  <div className="card-flip-inner">
+                    <div className="card-flip-front">
+                      <img className="card" src={images[0]} alt={`${set} print front`} />
                     </div>
-                  ) : (
-                    <img className="card" src={images[0]} alt={`${set} print`} />
-                  )}
+                    <div className="card-flip-back">
+                      <img className="card" src={images[1]} alt={`${set} print back`} />
+                    </div>
+                  </div>
+                  <div className="card-icon">
+                    <IconTurnAround />
+                  </div>
                 </div>
-              );
-            })}
-          </div>
-        </div>
+              ) : (
+                <img className="card" src={images[0]} alt={`${set} print`} />
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
