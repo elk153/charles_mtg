@@ -15,6 +15,8 @@ const CardDetails = ({ card, cardPrices, cardRulings }) => {
     }, {});
   console.log(cardLegalities);
 
+  console.log(card.color_identity[0]);
+
   const isDoubleFaced = card.layout === "transform" || card.layout === "modal_dfc";
 
   return (
@@ -23,8 +25,14 @@ const CardDetails = ({ card, cardPrices, cardRulings }) => {
       <div className="card-info oracle-panel-dark corner-got parchment-frame-metallic">
         
         <h2>{card.name}</h2>
-        <span><em>{card.type_line} &nbsp;</em></span><span className={`rarity-pill rarity__${card.rarity}`}>{card.rarity}</span>
-        
+        <span><em>{card.type_line}</em></span>
+        &nbsp;
+        <span className={`rarity-pill rarity__${card.rarity}`}>{card.rarity}</span>
+        &nbsp;
+        <span className={`color-pill color__${card.color_identity.length === 1 ? card.color_identity[0] : "M"}`}>
+          {card.power ? (card.power+"/"+card.toughness) : "N/A"}
+        </span>
+
         <h3>Oracle</h3>
         <ul className="oracle-list">
         <li>{card.oracle_text}</li>

@@ -406,3 +406,117 @@
   margin: 0;
   padding: 0.20rem;
 }
+
+.color-pill {
+    display: inline-flex;
+    align-items: center;
+
+    padding: 0.25rem 0.75rem;
+
+    border-radius: 999px;
+
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+
+    border: 1px solid currentColor;
+
+    box-shadow:
+        0 2px 8px rgba(0,0,0,0.18),
+        inset 0 1px 0 rgba(255,255,255,0.15);
+
+    backdrop-filter: blur(2px);
+}
+
+.color__W {
+    color: #fff8df;
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(245,235,205,0.40),
+            rgba(188,177,145,0.25)
+        );
+
+    border-color: rgba(255,245,210,0.60);
+}
+
+.color__U {
+    color: #cae8ff;
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(81,143,212,0.40),
+            rgba(32,80,138,0.25)
+        );
+
+    border-color: rgba(175,220,255,0.60);
+}
+
+.color__B {
+    color: #ddd4ee;
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(90,84,108,0.45),
+            rgba(36,34,46,0.30)
+        );
+
+    border-color: rgba(205,195,225,0.40);
+}
+
+.color__R {
+    color: #ffd0c5;
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(210,85,65,0.45),
+            rgba(130,38,25,0.30)
+        );
+
+    border-color: rgba(255,180,165,0.55);
+}
+
+.color__G {
+    color: #cff4c4;
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(72,143,77,0.45),
+            rgba(35,85,40,0.30)
+        );
+
+    border-color: rgba(180,240,175,0.55);
+}
+
+.color__C {
+    color: #e0e0e0;
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(150,150,160,0.35),
+            rgba(90,90,100,0.20)
+        );
+
+    border-color: rgba(220,220,230,0.50);
+}
+
+.color__M {
+    color: #ffe9af;
+
+    background:
+        linear-gradient(
+            180deg,
+            rgba(196,152,63,0.45),
+            rgba(121,85,24,0.30)
+        );
+
+    border-color: rgba(255,220,130,0.60);
+}
+
