@@ -25,7 +25,9 @@
   0 2px 8px rgba(0, 0, 0, 0.06);
 
   /* Scroll-hide animation */
-  transition: transform 0.38s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: 
+    transform 0.38s cubic-bezier(0.4, 0, 0.2, 1),
+    bottom    0.25s cubic-bezier(0.4, 0, 0.2, 1);
   /* Transform to the navbar element to promote it to its own GPU 
      compositing layer. Omitting it causes the backdrop-filter blur 
      to repaint on every scroll frame, which can drop below 60 fps 

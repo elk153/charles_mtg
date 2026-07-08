@@ -1,95 +1,102 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import Input from "../Input/Input";
 import useScrollDirection from "../../hooks/useScrollDirection";
 import "./FloatingNavBar.css";
-//import IconSearch from "../../assets/IconSearch";
-//import IconCards from "../../assets/IconCards";
 
-/*const NAV_ITEMS = [
-  { id: "home", label: "Home", icon: "house" },
-  { id: "explore", label: "Explore", icon: "compass" }
-];*/
+// How long (ms) to wait after a viewport resize before updating `bottom`.
+// iOS keyboard animation is ~250ms — we wait for it to finish so we don't
+// fight it with a JS style change mid-animation (causes the jolt).
+const KEYBOARD_SETTLE_MS = 0;
 
-// The component must accept `onNavigate` as a prop — it's not a global,
-// so it has to come from whoever renders <FloatingNavBar onNavigate={...} />
-const FloatingNavBar = ({ onNavigate, handleSearchSubmit, isLoading, searchText, setSearchText}) => {
-
+const FloatingNavBar = ({
+  onNavigate,
+  handleSearchSubmit,
+  isLoading,
+  searchText,
+  setSearchText,
+}) => {
   const [active, setActive] = useState("home");
+  const navRef         = useRef(null);
+  const keyboardRef    = useRef(false);   // sync flag for useScrollDirection
+  const settleTimer    = useRef(null);    // debounce timer ref
 
-  // navRef lets us directly read/write the <nav> DOM node's style
-  // (used below to shift the bar up when a mobile keyboard appears).
-  const navRef = useRef(null);
+  // Pass keyboardRef so the scroll handler can bail out synchronously,
+  // before React has had a chance to flush any setState calls.
+  const hidden = useScrollDirection(12, keyboardRef);
 
-  // true = user is scrolling down past 80px -> we should hide the bar
-  const hidden = useScrollDirection();
+  const updatePosition = useCallback(() => {
+    const vp = window.visualViewport;
+    if (!vp || !navRef.current) return;
+
+    const kbH      = window.innerHeight - vp.height - vp.offsetTop;
+    const isKbOpen = kbH > 80;
+
+    // Always update the ref immediately so scroll events are blocked
+    // from this point forward — even before the settle timer fires.
+    keyboardRef.current = isKbOpen;
+
+    // Clear any previous pending update.
+    clearTimeout(settleTimer.current);
+
+    if (isKbOpen) {
+      // Wait for the iOS keyboard animation to finish before moving the bar.
+      // Without this delay, we set `bottom` while the keyboard is still
+      // sliding up, which creates a jolt as the two animations fight.
+      settleTimer.current = setTimeout(() => {
+        if (navRef.current) {
+          // Remove the hidden class directly — state update would be too slow
+          // and might race with the scroll events iOS fires during keyboard open.
+          navRef.current.classList.remove("hidden");
+          //navRef.current.style.bottom = `${kbH + 8}px`;
+        }
+      }, KEYBOARD_SETTLE_MS);
+    } else {
+      // Keyboard is closing: reset bottom immediately so CSS takes over,
+      // but re-sync lastY in the hook by resetting the scroll position
+      // reference so the next real scroll isn't misread as a big jump.
+      settleTimer.current = setTimeout(() => {
+        if (navRef.current) {
+          //navRef.current.style.bottom = "";
+        }
+      }, KEYBOARD_SETTLE_MS);
+    }
+  }, []);
 
   useEffect(() => {
-
     const vp = window.visualViewport;
-    // Not all browsers support visualViewport — bail out safely if so.
     if (!vp) return;
-
-    const update = () => {
-      // When a mobile on-screen keyboard opens, the visual viewport
-      // shrinks. This calculates how much space the keyboard is taking
-      // up, so we can push the nav bar above it instead of letting the
-      // keyboard cover it.
-      const kbH = window.innerHeight - vp.height - vp.offsetTop;
-
-      // Guard in case navRef.current isn't attached yet (e.g. during
-      // fast unmounts) — avoids a "cannot set property of null" crash.
-      if (navRef.current) {
-        navRef.current.style.bottom = `${Math.max(24, kbH + 8)}px`;
-      }
+    vp.addEventListener("resize", updatePosition);
+    return () => {
+      vp.removeEventListener("resize", updatePosition);
+      clearTimeout(settleTimer.current);
     };
+  }, [updatePosition]);
 
-    vp.addEventListener("resize", update);
-
-    // Cleanup: remove the exact listener we added, mirroring it above.
-    return () => vp.removeEventListener("resize", update);
-
-  }, []); // Runs once on mount — no dependencies needed.
+  // Sync the hidden class from hook state, but only when keyboard is closed.
+  // When keyboard is open we manage the class directly above.
+  useEffect(() => {
+    if (!navRef.current || keyboardRef.current) return;
+    if (hidden) {
+      navRef.current.classList.add("hidden");
+    } else {
+      navRef.current.classList.remove("hidden");
+    }
+  }, [hidden]);
 
   const handleSelect = (id) => {
     setActive(id);
-    // Optional chaining protects against onNavigate being undefined
-    // (e.g. if the parent didn't pass one) — but only works because
-    // onNavigate is now a real, declared prop.
     onNavigate?.(id);
   };
 
   return (
     <nav
       ref={navRef}
-      // Building the class string:
-      // - always has "floating-navbar"
-      // - adds a modifier class "hidden" ONLY when
-      //   `hidden` is true. The leading space is required so the two
-      //   class names don't get glued together.
-      className={`floating-navbar${hidden ? " hidden" : ""}`}
+      // Don't derive className from `hidden` state here — we manage the
+      // class directly via ref to avoid React re-render lag racing with
+      // iOS scroll events.
+      className="floating-navbar"
       aria-label="Main navigation"
     >
-
-      {/* map's callback receives each item and destructures
-          id/label/icon straight out of it  */}
-      {/*{NAV_ITEMS.map(({ id, label, icon }) => (
-
-        <button
-          key={id}
-          className="floating-navbar__item"
-          aria-current={active === id ? "page" : undefined}
-          onClick={() => handleSelect(id)}
-        >
-
-          <span className="floating-navbar__icon" aria-hidden="true">
-            {icon === "house" && <IconCards />}
-            {icon === "compass" && <IconSearch />}
-          </span>
-          <span className="floating-navbar__label">{label}</span>
-        </button>
-
-      ))}*/}
-
       <Input
         className="floating-navbar__item"
         id="scryfall-named"
@@ -98,8 +105,7 @@ const FloatingNavBar = ({ onNavigate, handleSearchSubmit, isLoading, searchText,
         isLoading={isLoading}
         value={searchText}
         onChange={setSearchText}
-        />
-
+      />
     </nav>
   );
 };
