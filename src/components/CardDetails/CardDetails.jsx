@@ -2,7 +2,7 @@ import "./CardDetails.css";
 import IconClose from "../../assets/IconClose";
 import IconTurnAround from "../../assets/IconTurnAround";
 
-const CardDetails = ({ card, cardPrices, cardRulings }) => {
+const CardDetails = ({ card, cardPrices, cardSymbols, cardRulings }) => {
   if (!card) {
     return null;
   }
@@ -13,9 +13,45 @@ const CardDetails = ({ card, cardPrices, cardRulings }) => {
       acc[legality].push(format);
       return acc;
     }, {});
-  console.log(cardLegalities);
 
-  console.log(card.color_identity[0]);
+  const symbolMap = Object.fromEntries(
+    cardSymbols.map(s => [s.symbol, s])
+  );
+  
+  const symbolRegex = /\{[^}]+\}/g;
+
+  // when moving to component, look if possible to useMemo somewhere
+  function renderOracleText(text) {
+    const parts = text.split(symbolRegex);
+    const matches = text.match(symbolRegex) || [];
+
+    const result = [];
+
+    for (let i = 0; i < parts.length; i++) {
+      result.push(parts[i]);
+
+      if (matches[i]) {
+        const symbol = symbolMap[matches[i]];
+
+        if (symbol) {
+          result.push(
+            <img
+              key={`symbol-${i}`}
+              src={symbol.svg_uri}
+              alt={symbol.english}
+              style={{
+                width: "1em",
+                height: "1em",
+                verticalAlign: "text-bottom",
+              }}
+            />
+          );
+        }
+      }
+    }
+    
+    return result;
+  };
 
   const isDoubleFaced = card.layout === "transform" || card.layout === "modal_dfc";
 
@@ -35,7 +71,7 @@ const CardDetails = ({ card, cardPrices, cardRulings }) => {
 
         <h3>Oracle</h3>
         <ul className="oracle-list">
-        <li>{card.oracle_text}</li>
+        <li>{renderOracleText(card.oracle_text)}</li>
         <li><em>{card.flavor_text}</em></li>
         </ul>
 
@@ -55,8 +91,8 @@ const CardDetails = ({ card, cardPrices, cardRulings }) => {
 
         <h3>Legalities</h3>
         <div className="legalities-container">
-          {Object.entries(cardLegalities).map((legality) => (
-            <div>
+          {Object.entries(cardLegalities).map((legality, key) => (
+            <div key={key}>
               <span>{legality[0].replace("_"," ").toUpperCase()}</span>
               {legality[1].map((format) => (
                 <ul className="legalities-list">

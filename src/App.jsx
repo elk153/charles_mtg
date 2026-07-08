@@ -16,6 +16,7 @@ const App = () => {
   const [searchText, setSearchText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [cardData, setCardData] = useState([]);
+  const [cardSymbols, setCardSymbols] = useState([]);
   const [selectedCardId, setSelectedCardId] = useState(null);
   const [cardPrices, setCardPrices] = useState([]);
   const [cardRulings, setCardRulings] = useState([]);
@@ -39,6 +40,7 @@ const App = () => {
 
   useEffect(() => {
     fetchCards("cards/random", { format: "json" });
+    fetchCardSymbols("symbology");
   }, []);
 
   useEffect(() => {
@@ -75,6 +77,15 @@ const App = () => {
       console.error(error);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const fetchCardSymbols = async (path, params = {}) => {
+    try {
+      const data = await scryfallClient.fetchData(path, params);
+      setCardSymbols(data);
+    } catch (error) {
+      console.error(error);
     }
   };
 
@@ -123,6 +134,7 @@ const App = () => {
             <CardDetails 
               card={activeCard} 
               cardPrices={cardPrices} 
+              cardSymbols={cardSymbols}
               cardRulings={cardRulings} />
           </div>
         </>
