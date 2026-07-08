@@ -1,12 +1,7 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState } from "react";
 import Input from "../Input/Input";
 import useScrollDirection from "../../hooks/useScrollDirection";
 import "./FloatingNavBar.css";
-
-// How long (ms) to wait after a viewport resize before updating `bottom`.
-// iOS keyboard animation is ~250ms — we wait for it to finish so we don't
-// fight it with a JS style change mid-animation (causes the jolt).
-const KEYBOARD_SETTLE_MS = 0;
 
 const FloatingNavBar = ({
   onNavigate,
@@ -15,85 +10,75 @@ const FloatingNavBar = ({
   searchText,
   setSearchText,
 }) => {
-  const [active, setActive] = useState("home");
-  const navRef         = useRef(null);
-  const keyboardRef    = useRef(false);   // sync flag for useScrollDirection
-  const settleTimer    = useRef(null);    // debounce timer ref
+  const [active, setActive]   = useState("home");
+  const navRef                = useRef(null);
 
-  // Pass keyboardRef so the scroll handler can bail out synchronously,
-  // before React has had a chance to flush any setState calls.
+  // Set to true as soon as the input is focused — before iOS fires any
+  // scroll or resize events. This is the earliest possible signal that
+  // the keyboard is about to open, so useScrollDirection is blocked
+  // before the problematic events arrive.
+  const keyboardRef           = useRef(false);
+
   const hidden = useScrollDirection(12, keyboardRef);
 
-  const updatePosition = useCallback(() => {
+  const applyBottom = () => {
     const vp = window.visualViewport;
     if (!vp || !navRef.current) return;
-
-    const kbH      = window.innerHeight - vp.height - vp.offsetTop;
-    const isKbOpen = kbH > 80;
-
-    // Always update the ref immediately so scroll events are blocked
-    // from this point forward — even before the settle timer fires.
-    keyboardRef.current = isKbOpen;
-
-    // Clear any previous pending update.
-    clearTimeout(settleTimer.current);
-
-    if (isKbOpen) {
-      // Wait for the iOS keyboard animation to finish before moving the bar.
-      // Without this delay, we set `bottom` while the keyboard is still
-      // sliding up, which creates a jolt as the two animations fight.
-      settleTimer.current = setTimeout(() => {
-        if (navRef.current) {
-          // Remove the hidden class directly — state update would be too slow
-          // and might race with the scroll events iOS fires during keyboard open.
-          navRef.current.classList.remove("hidden");
-          //navRef.current.style.bottom = `${kbH + 8}px`;
-        }
-      }, KEYBOARD_SETTLE_MS);
-    } else {
-      // Keyboard is closing: reset bottom immediately so CSS takes over,
-      // but re-sync lastY in the hook by resetting the scroll position
-      // reference so the next real scroll isn't misread as a big jump.
-      settleTimer.current = setTimeout(() => {
-        if (navRef.current) {
-          //navRef.current.style.bottom = "";
-        }
-      }, KEYBOARD_SETTLE_MS);
-    }
-  }, []);
+    const kbH = window.innerHeight - vp.height - vp.offsetTop;
+    navRef.current.style.bottom = kbH > 0 ? `${kbH + 8}px` : "";
+  };
 
   useEffect(() => {
     const vp = window.visualViewport;
     if (!vp) return;
-    vp.addEventListener("resize", updatePosition);
-    return () => {
-      vp.removeEventListener("resize", updatePosition);
-      clearTimeout(settleTimer.current);
-    };
-  }, [updatePosition]);
 
-  // Sync the hidden class from hook state, but only when keyboard is closed.
-  // When keyboard is open we manage the class directly above.
+    // Re-measure on every resize tick — iOS fires several resize events
+    // as the keyboard animates up, each with a larger kbH. Listening to
+    // all of them means we track the keyboard smoothly rather than
+    // snapping to a single (possibly early, wrong) measurement.
+    vp.addEventListener("resize", applyBottom);
+    return () => vp.removeEventListener("resize", applyBottom);
+  }, []);
+
+  useEffect(() => {
+    // Use capture phase so these fire before scroll events bubble up.
+    const onFocus = () => {
+      keyboardRef.current = true;
+      // Immediately un-hide in case the bar was hidden from a prior scroll.
+      navRef.current?.classList.remove("hidden");
+    };
+
+    const onBlur = () => {
+      keyboardRef.current = false;
+      // Clear the inline bottom so CSS takes back control.
+      // Small delay so the keyboard has time to close before we
+      // reset — avoids a flicker where bottom briefly reads as 0.
+      setTimeout(() => {
+        if (!keyboardRef.current && navRef.current) {
+          navRef.current.style.bottom = "";
+        }
+      }, 300);
+    };
+
+    // Listen on the nav element so we catch focus on the Input inside it.
+    const nav = navRef.current;
+    nav?.addEventListener("focusin",  onFocus, true);
+    nav?.addEventListener("focusout", onBlur,  true);
+    return () => {
+      nav?.removeEventListener("focusin",  onFocus, true);
+      nav?.removeEventListener("focusout", onBlur,  true);
+    };
+  }, []);
+
+  // Sync hidden class from scroll hook — only when keyboard is closed.
   useEffect(() => {
     if (!navRef.current || keyboardRef.current) return;
-    if (hidden) {
-      navRef.current.classList.add("hidden");
-    } else {
-      navRef.current.classList.remove("hidden");
-    }
+    navRef.current.classList.toggle("hidden", hidden);
   }, [hidden]);
-
-  const handleSelect = (id) => {
-    setActive(id);
-    onNavigate?.(id);
-  };
 
   return (
     <nav
       ref={navRef}
-      // Don't derive className from `hidden` state here — we manage the
-      // class directly via ref to avoid React re-render lag racing with
-      // iOS scroll events.
       className="floating-navbar"
       aria-label="Main navigation"
     >
