@@ -23,5 +23,6 @@ export default async function getCardPrices(url) {
       images,
       prices: card.prices,
     };
+
   });
 }

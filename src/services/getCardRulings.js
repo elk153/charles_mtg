@@ -7,10 +7,14 @@ export default async function getCardRulings(url) {
 
   const json = await response.json();
 
-  return json.data.map((card) => ({
+  const CardRulings = json.data.map((card) => ({
     id: card.oracle_id,
     source: card.source,
     date: card.published_at,
     ruling: card.comment,
   }));
+
+  console.log("getCardRulings:")
+  console.log(CardRulings)
+  return CardRulings;
 }

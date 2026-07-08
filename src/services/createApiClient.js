@@ -26,6 +26,7 @@ export default function createApiClient(baseUrl) {
       throw new Error(`[API error] ${json.code} — ${json.details || json.message}`);
     }
 
+    console.log["fetchData:"]
     switch (json.object) {
       case "card":
         console.log(json);

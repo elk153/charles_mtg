@@ -6,8 +6,14 @@ const CardDetails = ({ card, cardPrices, cardRulings }) => {
   if (!card) {
     return null;
   }
-  console.log("cardPrices:");
-  console.log(cardPrices);
+
+  const cardLegalities = Object.entries(card.legalities).reduce(
+    (acc, [format, legality]) => {
+      if (!acc[legality]) acc[legality] = [];
+      acc[legality].push(format);
+      return acc;
+    }, {});
+  console.log(cardLegalities);
 
   const isDoubleFaced = card.layout === "transform" || card.layout === "modal_dfc";
 
@@ -18,7 +24,7 @@ const CardDetails = ({ card, cardPrices, cardRulings }) => {
         
         <h2>{card.name}</h2>
         <span><em>{card.type_line} &nbsp;</em></span><span className={`rarity-pill rarity__${card.rarity}`}>{card.rarity}</span>
-
+        
         <h3>Oracle</h3>
         <ul className="oracle-list">
         <li>{card.oracle_text}</li>
@@ -39,31 +45,19 @@ const CardDetails = ({ card, cardPrices, cardRulings }) => {
         }
         </ul>
 
-        <h3>Legality</h3>
-        <ul>
-          {Object.entries(card.legalities).map(([format, legality]) => (
-            <li key={format}>
-              {format}: {legality}
-            </li>
+        <h3>Legalities</h3>
+        <div className="legalities-container">
+          {Object.entries(cardLegalities).map((legality) => (
+            <div>
+              <span>{legality[0].replace("_"," ").toUpperCase()}</span>
+              {legality[1].map((format) => (
+                <ul className="legalities-list">
+                  <li className="rarity-pill rarity__common">{format}</li>
+                </ul>
+              ))}
+            </div>  
           ))}
-        </ul>
-
-        <table>
-          <thead>
-            <tr>
-              <td>
-
-              </td>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>
-
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        </div>
         
       </div>
       
