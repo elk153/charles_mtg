@@ -14,36 +14,70 @@ const CardDetails = ({ card, cardPrices, cardSymbols, cardRulings }) => {
       return acc;
     }, {});
 
-  const symbolMap = Object.fromEntries(
-    cardSymbols.map(s => [s.symbol, s])
-  );
-  
-  const symbolRegex = /\{[^}]+\}/g; // matches symbols between {}
-  const tokenRegex = /([()]|\n)/g; // matches (, ), \n but keep them
-
   // when moving to component, look if possible to useMemo somewhere
-  function renderOracleText(text) {
+  function renderOracleText(text, symbols) {
 
+    const oracleTextRegex = /(\{[^}]+\}|[()]|\n)/g; // matches symbols, (, ), and \n
+
+    const symbolMap = Object.fromEntries(
+      symbols.map(s => [s.symbol, s])
+    );
+    
     // Split the oracle_text at symbol (delete) and token (keep). Make an arrya with the symbols
-    const parts = text.split(symbolRegex).flatMap(part => part.split(tokenRegex));
-    const matches = text.match(symbolRegex) || [];
+    const oracleText = text.split(oracleTextRegex).filter(Boolean); // removes empty elements
 
-    const result = [];
+    const oracleTextRender = [];
+    let italicBuffer = [];
+    let isItalic = false;
 
-    for (let i = 0; i < parts.length; i++) {
+    for (let i = 0; i < oracleText.length; i++) {
 
-      if (parts[i] === "\n") {
-        result.push(<br />);
+      const symbol = symbolMap[oracleText[i]];
+
+      if (oracleText[i] === "\n") {
+        oracleTextRender.push(<br />);
         continue;
       };
       
-      result.push(parts[i]);
+      if (oracleText[i] === "(") {
+        isItalic = true;
+     }
 
-      if (matches[i]) {
-        const symbol = symbolMap[matches[i]];
+      if (oracleText[i] === ")") {
+        isItalic = false;
+        italicBuffer.push(")");
+        oracleTextRender.push(<em>{italicBuffer}</em>);        
+        italicBuffer = [];
+        continue;
+      };
+
+      if ( isItalic === false ) {
 
         if (symbol) {
-          result.push(
+          oracleTextRender.push(
+            <>
+              <img
+                key={`symbol-${i}`}
+                src={symbol.svg_uri}
+                alt={symbol.english}
+                style={{
+                  width: "1em",
+                  height: "1em",
+                  verticalAlign: "text-bottom",
+                }}
+              />
+            </>
+          );
+          continue;
+        };
+
+        oracleTextRender.push(oracleText[i])
+      };
+
+      if ( isItalic === true ) {
+
+        if (symbol) {
+          italicBuffer.push(
             <>
               <img
                 key={`symbol-${i}`}
@@ -58,41 +92,17 @@ const CardDetails = ({ card, cardPrices, cardSymbols, cardRulings }) => {
               &nbsp;
             </>
           );
-        }
-      }
-    }
+          continue;
+        };
 
-    const finalResult = [];
-    let italicBuffer = [];
-    let isItalic = false;
-
-    for (let i = 0; i < result.length; i++) {
-
-      if (result[i] === "(") {
-        isItalic = true;
-     }
-
-      if (result[i] === ")") {
-        isItalic = false;
-        italicBuffer.push(")");
-        finalResult.push(<em>{italicBuffer}</em>);        
-        italicBuffer = [];
-        continue;
+        italicBuffer.push(oracleText[i])
       };
 
-      if ( isItalic === false ) (
-        finalResult.push(result[i])
-      );
-
-      if ( isItalic === true ) (
-        italicBuffer.push(result[i])
-      );
-
-      console.log(result[i]);
+      console.log(oracleTextRender[i]);
 
     };
 
-    return finalResult;
+    return oracleTextRender;
   };
 
   const isDoubleFaced = card.layout === "transform" || card.layout === "modal_dfc";
@@ -113,7 +123,7 @@ const CardDetails = ({ card, cardPrices, cardSymbols, cardRulings }) => {
 
         <h3>Oracle</h3>
         <ul className="oracle-list">
-        <li>{renderOracleText(card.oracle_text)}</li>
+        <li>{renderOracleText(card.oracle_text, cardSymbols)}</li>
         <li><em>{card.flavor_text}</em></li>
         </ul>
 
