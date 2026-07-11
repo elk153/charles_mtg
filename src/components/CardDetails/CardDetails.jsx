@@ -33,15 +33,33 @@ const CardDetails = ({ card, cardPrices, cardSymbols, cardRulings }) => {
 
         <h3>Oracle</h3>
         <ul className="oracle-list">
-        { isDoubleFaced 
-          ?
+        { isDoubleFaced ? (
           <>
-            <li><strong>Side 1</strong><br />{renderOracleText(card.card_faces[0].oracle_text, cardSymbols)}</li>
-            <li><strong>Side 2</strong><br />{renderOracleText(card.card_faces[1].oracle_text, cardSymbols)}</li>
+            <li>
+              <strong>{renderOracleText(card.card_faces[0].type_line + card.card_faces[0].mana_cost, cardSymbols)}</strong>
+              <br />
+              {renderOracleText(card.card_faces[0].oracle_text, cardSymbols)}
+            </li>
+            <li>
+              <strong>{renderOracleText(card.card_faces[1].type_line + card.card_faces[1].mana_cost, cardSymbols)}</strong><br />
+              {renderOracleText(card.card_faces[1].oracle_text, cardSymbols)}
+            </li>
           </>
-          :
+        ) : card.all_parts ? (
+          <>
+            <li>
+              <strong>{renderOracleText(card.card_faces[0].type_line + card.card_faces[0].mana_cost, cardSymbols)}</strong>
+              <br />
+              {renderOracleText(card.card_faces[0].oracle_text, cardSymbols)}
+            </li>
+            <li>
+              <strong>{renderOracleText(card.card_faces[1].type_line + card.card_faces[1].mana_cost, cardSymbols)}</strong><br />
+              {renderOracleText(card.card_faces[1].oracle_text, cardSymbols)}
+            </li>
+          </>
+        ) : (
           <li>{renderOracleText(card.oracle_text, cardSymbols)}</li>
-        }
+        )}
         <li><em>{card.flavor_text}</em></li>
         </ul>
 
