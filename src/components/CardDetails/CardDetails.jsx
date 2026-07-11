@@ -23,6 +23,8 @@ const CardDetails = ({ card, cardPrices, cardSymbols, cardRulings }) => {
 
   // when moving to component, look if possible to useMemo somewhere
   function renderOracleText(text) {
+
+    // Split the oracle_text at symbol (delete) and token (keep). Make an arrya with the symbols
     const parts = text.split(symbolRegex).flatMap(part => part.split(tokenRegex));
     const matches = text.match(symbolRegex) || [];
 
@@ -59,8 +61,38 @@ const CardDetails = ({ card, cardPrices, cardSymbols, cardRulings }) => {
         }
       }
     }
-    
-    return result;
+
+    const finalResult = [];
+    let italicBuffer = [];
+    let isItalic = false;
+
+    for (let i = 0; i < result.length; i++) {
+
+      if (result[i] === "(") {
+        isItalic = true;
+     }
+
+      if (result[i] === ")") {
+        isItalic = false;
+        italicBuffer.push(")");
+        finalResult.push(<em>{italicBuffer}</em>);        
+        italicBuffer = [];
+        continue;
+      };
+
+      if ( isItalic === false ) (
+        finalResult.push(result[i])
+      );
+
+      if ( isItalic === true ) (
+        italicBuffer.push(result[i])
+      );
+
+      console.log(result[i]);
+
+    };
+
+    return finalResult;
   };
 
   const isDoubleFaced = card.layout === "transform" || card.layout === "modal_dfc";
