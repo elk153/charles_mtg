@@ -14,7 +14,7 @@ export default async function getCardRulings(url) {
     ruling: card.comment,
   }));
 
-  console.log("getCardRulings:")
-  console.log(CardRulings)
+  //console.log("getCardRulings:")
+  //console.log(CardRulings)
   return CardRulings;
 }

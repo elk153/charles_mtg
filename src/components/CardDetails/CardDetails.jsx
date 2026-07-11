@@ -18,16 +18,23 @@ const CardDetails = ({ card, cardPrices, cardSymbols, cardRulings }) => {
     cardSymbols.map(s => [s.symbol, s])
   );
   
-  const symbolRegex = /\{[^}]+\}/g;
+  const symbolRegex = /\{[^}]+\}/g; // matches symbols between {}
+  const tokenRegex = /([()]|\n)/g; // matches (, ), \n but keep them
 
   // when moving to component, look if possible to useMemo somewhere
   function renderOracleText(text) {
-    const parts = text.split(symbolRegex);
+    const parts = text.split(symbolRegex).flatMap(part => part.split(tokenRegex));
     const matches = text.match(symbolRegex) || [];
 
     const result = [];
 
     for (let i = 0; i < parts.length; i++) {
+
+      if (parts[i] === "\n") {
+        result.push(<br />);
+        continue;
+      };
+      
       result.push(parts[i]);
 
       if (matches[i]) {
@@ -35,16 +42,19 @@ const CardDetails = ({ card, cardPrices, cardSymbols, cardRulings }) => {
 
         if (symbol) {
           result.push(
-            <img
-              key={`symbol-${i}`}
-              src={symbol.svg_uri}
-              alt={symbol.english}
-              style={{
-                width: "1em",
-                height: "1em",
-                verticalAlign: "text-bottom",
-              }}
-            />
+            <>
+              <img
+                key={`symbol-${i}`}
+                src={symbol.svg_uri}
+                alt={symbol.english}
+                style={{
+                  width: "1em",
+                  height: "1em",
+                  verticalAlign: "text-bottom",
+                }}
+              />
+              &nbsp;
+            </>
           );
         }
       }
