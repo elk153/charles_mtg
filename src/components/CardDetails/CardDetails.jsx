@@ -1,3 +1,4 @@
+import renderOracleText from "../../services/renderOracleText";
 import "./CardDetails.css";
 import IconClose from "../../assets/IconClose";
 import IconTurnAround from "../../assets/IconTurnAround";
@@ -13,97 +14,6 @@ const CardDetails = ({ card, cardPrices, cardSymbols, cardRulings }) => {
       acc[legality].push(format);
       return acc;
     }, {});
-
-  // when moving to component, look if possible to useMemo somewhere
-  function renderOracleText(text, symbols) {
-
-    const oracleTextRegex = /(\{[^}]+\}|[()]|\n)/g; // matches symbols, (, ), and \n
-
-    const symbolMap = Object.fromEntries(
-      symbols.map(s => [s.symbol, s])
-    );
-    
-    // Split the oracle_text at symbol (delete) and token (keep). Make an arrya with the symbols
-    const oracleText = text.split(oracleTextRegex).filter(Boolean); // removes empty elements
-
-    const oracleTextRender = [];
-    let italicBuffer = [];
-    let isItalic = false;
-
-    for (let i = 0; i < oracleText.length; i++) {
-
-      const symbol = symbolMap[oracleText[i]];
-
-      if (oracleText[i] === "\n") {
-        oracleTextRender.push(<br />);
-        continue;
-      };
-      
-      if (oracleText[i] === "(") {
-        isItalic = true;
-     }
-
-      if (oracleText[i] === ")") {
-        isItalic = false;
-        italicBuffer.push(")");
-        oracleTextRender.push(<em>{italicBuffer}</em>);        
-        italicBuffer = [];
-        continue;
-      };
-
-      if ( isItalic === false ) {
-
-        if (symbol) {
-          oracleTextRender.push(
-            <>
-              <img
-                key={`symbol-${i}`}
-                src={symbol.svg_uri}
-                alt={symbol.english}
-                style={{
-                  width: "1em",
-                  height: "1em",
-                  verticalAlign: "text-bottom",
-                }}
-              />
-            </>
-          );
-          continue;
-        };
-
-        oracleTextRender.push(oracleText[i])
-      };
-
-      if ( isItalic === true ) {
-
-        if (symbol) {
-          italicBuffer.push(
-            <>
-              <img
-                key={`symbol-${i}`}
-                src={symbol.svg_uri}
-                alt={symbol.english}
-                style={{
-                  width: "1em",
-                  height: "1em",
-                  verticalAlign: "text-bottom",
-                }}
-              />
-              &nbsp;
-            </>
-          );
-          continue;
-        };
-
-        italicBuffer.push(oracleText[i])
-      };
-
-      console.log(oracleTextRender[i]);
-
-    };
-
-    return oracleTextRender;
-  };
 
   const isDoubleFaced = card.layout === "transform" || card.layout === "modal_dfc";
 
