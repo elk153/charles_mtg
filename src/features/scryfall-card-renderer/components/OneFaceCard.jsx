@@ -1,6 +1,6 @@
 import React from 'react';
 import CardFrame from './CardFrame.jsx';
-import CardExtras from './CardExtras.jsx';
+import CardExtras from './extras/CardExtras.jsx';
 
 /**
  * Covers: normal, leveler, class, case, saga, mutate, prototype, battle,

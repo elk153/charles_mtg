@@ -3,6 +3,7 @@ import FloatingNavBar from "../components/FloatingNavBar/FloatingNavBar.jsx";
 import Header from "../components/Header/Header.jsx";
 import CardsList from "../features/original-card-renderer/CardsList/CardsList.jsx"
 import CardDetails from "../features/original-card-renderer/CardDetails/CardDetails.jsx";
+import CarRenderer from "../features/scryfall-card-renderer/CardRenderer.jsx"
 import createApiClient from "../services/createApiClient.js";
 import getCardPrices from "../services/getCardPrices.js";
 import getCardRulings from "../services/getCardRulings.js";
@@ -131,11 +132,12 @@ const App = () => {
             </button>
           </div>
           <div className="top-layer">
-            <CardDetails 
+            {/**<CardDetails 
               card={activeCard} 
               cardPrices={cardPrices} 
               cardSymbols={cardSymbols}
-              cardRulings={cardRulings} />
+              cardRulings={cardRulings} />*/}
+            <CarRenderer card={activeCard} />
           </div>
         </>
       )}
