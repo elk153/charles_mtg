@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-import FloatingNavBar from "./components/FloatingNavBar/FloatingNavBar.jsx";
-import Header from "./components/Header/Header.jsx";
-import CardsList from "./components/CardsList/CardsList.jsx";
-import CardDetails from "./components/CardDetails/CardDetails.jsx";
-import createApiClient from "./services/createApiClient.js";
-import getCardPrices from "./services/getCardPrices.js";
-import getCardRulings from "./services/getCardRulings.js";
-import IconClose from "./assets/IconClose.jsx";
+import FloatingNavBar from "../components/FloatingNavBar/FloatingNavBar.jsx";
+import Header from "../components/Header/Header.jsx";
+import CardsList from "../features/original-card-renderer/CardsList/CardsList.jsx"
+import CardDetails from "../features/original-card-renderer/CardDetails/CardDetails.jsx";
+import createApiClient from "../services/createApiClient.js";
+import getCardPrices from "../services/getCardPrices.js";
+import getCardRulings from "../services/getCardRulings.js";
+import IconClose from "../assets/IconClose.jsx";
 import "./App.css";
 
 const scryfallClient = createApiClient("https://api.scryfall.com");

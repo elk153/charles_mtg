@@ -1,5 +1,5 @@
 import "./Card.css";
-import IconTurnAround from "../../assets/IconTurnAround";
+import IconTurnAround from "../../../assets/IconTurnAround";
 
 const Card = ({ card, onSelect }) => {
   const isDoubleFaced = card.layout === "transform" || card.layout === "modal_dfc";
