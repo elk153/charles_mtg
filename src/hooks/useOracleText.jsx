@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 
-export default function renderOracleText(text, symbols) {
+export default function useOracleText(text, symbols) {
 
   const symbolMap = useMemo( () => 
       Object.fromEntries(symbols.map(s => [s.symbol, s])),
@@ -86,7 +86,7 @@ export default function renderOracleText(text, symbols) {
     };
 
   };
-
+  console.log("oracleTextRender", oracleTextRender);
   return oracleTextRender;
   
 };

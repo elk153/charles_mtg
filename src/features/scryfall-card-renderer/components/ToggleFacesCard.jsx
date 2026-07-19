@@ -6,7 +6,7 @@ import CardFrame from './CardFrame.jsx';
  * reversible_card. Two independent-or-related faces, one visible at a
  * time, toggled by the person.
  */
-export default function ToggleFacesCard({ card }) {
+export default function ToggleFacesCard({ card, cardSymbols }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const face = card.faces[activeIndex];
   const canToggle = card.faces.length > 1;
@@ -16,16 +16,18 @@ export default function ToggleFacesCard({ card }) {
 
   return (
     <div className="scryfall-card scryfall-card--toggle-faces">
-      <CardFrame face={face} image={face.image} />
+      <CardFrame face={face} image={face.image} cardSymbols={cardSymbols} />
       {canToggle && (
-        <button
-          type="button"
-          className="scryfall-card__flip-button"
-          onClick={() => setActiveIndex((i) => (i + 1) % card.faces.length)}
-          aria-label={`Show ${nextFace.name}`}
-        >
-          ⟲ Flip to {nextFace.name}
-        </button>
+        <div className="input">
+          <button
+            type="button"
+            className="scryfall-card__flip-button"
+            onClick={() => setActiveIndex((i) => (i + 1) % card.faces.length)}
+            aria-label={`Show ${nextFace.name}`}
+          >
+            ⟲ Flip to {nextFace.name}
+          </button>
+        </div>
       )}
     </div>
   );

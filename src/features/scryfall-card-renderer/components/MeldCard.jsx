@@ -9,7 +9,7 @@ import CardFrame from './CardFrame.jsx';
  * doesn't hard-code a data-fetching strategy (SWR, React Query, plain
  * fetch, a cached client, etc.) — pass whatever the app already uses.
  */
-export default function MeldCard({ card, fetchCardByUri }) {
+export default function MeldCard({ card, fetchCardByUri, cardSymbols }) {
   const face = card.faces[0];
   const meldPart = card.allParts?.find((part) => part.component === 'meld_result');
   const [meldResult, setMeldResult] = useState(null);
@@ -29,7 +29,7 @@ export default function MeldCard({ card, fetchCardByUri }) {
 
   return (
     <div className="scryfall-card scryfall-card--meld">
-      <CardFrame face={face} image={card.rootImage} />
+      <CardFrame face={face} image={card.rootImage} cardSymbols={cardSymbols} />
       {meldPart && (
         <div className="scryfall-card__meld-hint">
           Melds into <strong>{meldResult?.name ?? meldPart.name}</strong>

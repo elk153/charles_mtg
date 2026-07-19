@@ -5,7 +5,7 @@ import CardFrame from './CardFrame.jsx';
  * Covers: split, adventure. Both faces are legal casting options on the
  * same piece of card stock, shown at once rather than toggled.
  */
-export default function SplitFacesCard({ card }) {
+export default function SplitFacesCard({ card, cardSymbols }) {
   return (
     <div className="scryfall-card scryfall-card--split-faces">
       {card.faces.map((face, index) => (
@@ -13,6 +13,7 @@ export default function SplitFacesCard({ card }) {
           key={face.name ?? index}
           face={face}
           image={face.image ?? card.rootImage}
+          cardSymbols={cardSymbols}
         />
       ))}
     </div>

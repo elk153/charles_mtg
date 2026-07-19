@@ -5,7 +5,7 @@ import React, { useState } from 'react';
  * upside-down relative to each other; "flipping" rotates 180deg rather
  * than swapping to a different image.
  */
-export default function FlipVerticalCard({ card }) {
+export default function FlipVerticalCard({ card, cardSymbols }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const face = card.faces[activeIndex];
   const image = face.image ?? card.rootImage;
@@ -35,13 +35,15 @@ export default function FlipVerticalCard({ card }) {
       </figure>
 
       {card.faces.length > 1 && (
-        <button
-          type="button"
-          className="scryfall-card__flip-button"
-          onClick={() => setActiveIndex((i) => (i === 0 ? 1 : 0))}
-        >
-          ⇅ Flip
-        </button>
+        <div className="input">
+          <button
+            type="button"
+            className="scryfall-card__flip-button"
+            onClick={() => setActiveIndex((i) => (i === 0 ? 1 : 0))}
+          >
+            ⇅ Flip
+          </button>
+        </div>
       )}
     </div>
   );

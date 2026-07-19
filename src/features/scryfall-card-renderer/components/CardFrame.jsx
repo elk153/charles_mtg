@@ -1,57 +1,61 @@
 import React from 'react';
+import useOracleText from "../../../hooks/useOracleText";
 
 /**
  * The visual frame shared by every layout: image, name, mana cost, type
  * line, oracle text, and stats. Every shape component composes this rather
  * than re-implementing it, so the 99%-common case (a face) is written once.
  */
-export default function CardFrame({ face, image }) {
+export default function CardFrame({ face, image, cardSymbols }) {
   const resolvedImage = image ?? face.image;
 
   return (
-    <figure className="scryfall-card__frame">
+    <div className="scryfall-card__frame card-frame">
       {resolvedImage && (
         <img
-          className="scryfall-card__image"
+          className="scryfall-card__image card"
           src={resolvedImage}
           alt={face.name}
           loading="lazy"
         />
       )}
-      <figcaption className="scryfall-card__text">
+      <div className="scryfall-card__text card-description">
         <div className="scryfall-card__header">
-          <span className="scryfall-card__name">{face.name}</span>
-          {face.manaCost && (
-            <span className="scryfall-card__mana-cost">{face.manaCost}</span>
-          )}
+          <h3 className="scryfall-card__name">{face.name}</h3>
         </div>
 
         {face.typeLine && (
-          <div className="scryfall-card__type-line">{face.typeLine}</div>
+          <em><span className="scryfall-card__type-line">{face.typeLine}</span></em>
+        )}
+        {face.manaCost && (
+          <span className="scryfall-card__mana-cost">{useOracleText(face.manaCost, cardSymbols)}</span>
+        )}
+        &nbsp;
+        {face.power&& (
+          <span className={"color-pill color__M"}>
+            {face.power ? (face.power+"/"+face.toughness) : "N/A"}
+          </span>
+        )}
+        {face.loyalty&& (
+          <span className={"color-pill color__M"}>
+            {face.loyalty}
+          </span>
+        )}
+        {face.defense&& (
+          <span className={"color-pill color__M"}>
+            {face.defense}
+          </span>
         )}
 
         {face.oracleText && (
-          <p className="scryfall-card__oracle-text">{face.oracleText}</p>
+          <p className="scryfall-card__oracle-text">{useOracleText(face.oracleText, cardSymbols)}</p>
         )}
 
         {face.flavorText && (
-          <p className="scryfall-card__flavor-text">{face.flavorText}</p>
+          <p className="scryfall-card__flavor-text"><em>{face.flavorText}</em></p>
         )}
 
-        {(face.power != null || face.toughness != null) && (
-          <div className="scryfall-card__pt">
-            {face.power}/{face.toughness}
-          </div>
-        )}
-
-        {face.loyalty != null && (
-          <div className="scryfall-card__loyalty">Loyalty: {face.loyalty}</div>
-        )}
-
-        {face.defense != null && (
-          <div className="scryfall-card__defense">Defense: {face.defense}</div>
-        )}
-      </figcaption>
-    </figure>
+      </div>
+    </div>
   );
 }

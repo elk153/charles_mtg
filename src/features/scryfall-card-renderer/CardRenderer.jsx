@@ -32,13 +32,13 @@ function CardFallback() {
  * Usage: <CardRenderer card={scryfallCard} />
  * Meld cards accept an extra `fetchCardByUri` prop for resolving all_parts.
  */
-const CardRenderer = React.memo(function CardRenderer({ card, ...rest }) {
+const CardRenderer = React.memo(function CardRenderer({ card, cardSymbols, ...rest }) {
   const normalized = useMemo(() => normalizeCard(card), [card]);
   const Component = SHAPE_COMPONENTS[normalized.shape] ?? OneFaceCard;
 
   return (
     <Suspense fallback={<CardFallback />}>
-      <Component card={normalized} {...rest} />
+      <Component card={normalized} cardSymbols={cardSymbols} {...rest} />
     </Suspense>
   );
 });
