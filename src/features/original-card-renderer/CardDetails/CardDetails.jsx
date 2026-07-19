@@ -1,7 +1,7 @@
-import renderOracleText from "../../services/renderOracleText";
+import useOracleText from "../../../hooks/useOracleText";
 import "./CardDetails.css";
-import IconClose from "../../assets/IconClose";
-import IconTurnAround from "../../assets/IconTurnAround";
+import IconClose from "../../../assets/IconClose";
+import IconTurnAround from "../../../assets/IconTurnAround";
 
 const CardDetails = ({ card, cardPrices, cardSymbols, cardRulings }) => {
   if (!card) {
@@ -36,29 +36,29 @@ const CardDetails = ({ card, cardPrices, cardSymbols, cardRulings }) => {
         { isDoubleFaced ? (
           <>
             <li>
-              <strong>{renderOracleText(card.card_faces[0].type_line + card.card_faces[0].mana_cost, cardSymbols)}</strong>
+              <strong>{useOracleText(card.card_faces[0].type_line + card.card_faces[0].mana_cost, cardSymbols)}</strong>
               <br />
-              {renderOracleText(card.card_faces[0].oracle_text, cardSymbols)}
+              {useOracleText(card.card_faces[0].oracle_text, cardSymbols)}
             </li>
             <li>
-              <strong>{renderOracleText(card.card_faces[1].type_line + card.card_faces[1].mana_cost, cardSymbols)}</strong><br />
-              {renderOracleText(card.card_faces[1].oracle_text, cardSymbols)}
+              <strong>{useOracleText(card.card_faces[1].type_line + card.card_faces[1].mana_cost, cardSymbols)}</strong><br />
+              {useOracleText(card.card_faces[1].oracle_text, cardSymbols)}
             </li>
           </>
         ) : card.all_parts ? (
           <>
             <li>
-              <strong>{renderOracleText(card.card_faces[0].type_line + card.card_faces[0].mana_cost, cardSymbols)}</strong>
+              <strong>{useOracleText(card.card_faces[0].type_line + card.card_faces[0].mana_cost, cardSymbols)}</strong>
               <br />
-              {renderOracleText(card.card_faces[0].oracle_text, cardSymbols)}
+              {useOracleText(card.card_faces[0].oracle_text, cardSymbols)}
             </li>
             <li>
-              <strong>{renderOracleText(card.card_faces[1].type_line + card.card_faces[1].mana_cost, cardSymbols)}</strong><br />
-              {renderOracleText(card.card_faces[1].oracle_text, cardSymbols)}
+              <strong>{useOracleText(card.card_faces[1].type_line + card.card_faces[1].mana_cost, cardSymbols)}</strong><br />
+              {useOracleText(card.card_faces[1].oracle_text, cardSymbols)}
             </li>
           </>
         ) : (
-          <li>{renderOracleText(card.oracle_text, cardSymbols)}</li>
+          <li>{useOracleText(card.oracle_text, cardSymbols)}</li>
         )}
         <li><em>{card.flavor_text}</em></li>
         </ul>

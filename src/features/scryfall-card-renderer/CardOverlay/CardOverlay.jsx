@@ -1,0 +1,107 @@
+import useOracleText from "../../../hooks/useOracleText";
+import CardRenderer from "../CardRenderer";
+import "./CardOverlay.css";
+import IconTurnAround from "../../../assets/IconTurnAround";
+
+const CardOverlay = ({ card, cardPrices, cardSymbols, cardRulings, onSelect }) => {
+  if (!card) {
+    return null;
+  }
+
+  const cardLegalities = Object.entries(card.legalities).reduce(
+    (acc, [format, legality]) => {
+      if (!acc[legality]) acc[legality] = [];
+      acc[legality].push(format);
+      return acc;
+    }, {});
+
+  const isDoubleFaced = card.layout === "transform" || card.layout === "modal_dfc";
+
+  return (
+    <div className="card-details">
+
+      <div className="card-overlay-info oracle-panel-dark corner-got parchment-frame-metallic">
+
+        <CardRenderer card={card} cardSymbols={cardSymbols} />
+        
+        <h3>Rulings</h3>
+        <ul className="rulings">
+          {cardRulings.length !== 0
+          ?
+          cardRulings.map(({ source, date, ruling }, index) => (
+            <li key={index}>
+              {ruling} <em>({source}, {date})</em>
+            </li>
+          ))
+          :
+          <li><em>None</em></li>
+        }
+        </ul>
+
+        <h3>Legalities</h3>
+        <div className="legalities-container">
+          {Object.entries(cardLegalities).map((legality, key) => (
+            <div key={key}>
+              <span>{legality[0].replace("_"," ").toUpperCase()}</span>
+              {legality[1].map((format) => (
+                <ul className="legalities-list">
+                  <li className="rarity-pill rarity__common">{format}</li>
+                </ul>
+              ))}
+            </div>  
+          ))}
+        </div>
+        
+      </div>
+      
+      <div className="card-prints">
+        {cardPrices.map(({ id, set, set_name, released_at, collector_number, layout, images }) => {
+          const isDoubleFaced = layout === "transform" || layout === "modal_dfc";
+          return (
+            <div key={id} className="card-print oracle-panel-dark corner-scroll">
+              <div className="">
+                <h3>{set_name}</h3>
+                <p>{set.toUpperCase()+"/"+collector_number+" ("+released_at+")"}</p>
+                {cardPrices.filter(card => card.id === id)[0].prices.eur &&
+                  <span className="rarity-pill rarity__common">
+                    {cardPrices.filter(card => card.id === id)[0].prices.eur} €
+                  </span>
+                }
+                &nbsp;
+                {cardPrices.filter(card => card.id === id)[0].prices.eur_foil &&
+                  <span className="rarity-pill rarity-pill--foil rarity__common">
+                    Foil {cardPrices.filter(card => card.id === id)[0].prices.eur_foil} €
+                  </span>
+                }
+              </div>
+              &nbsp;
+
+              <button type="button" className="cardButton" onClick={onSelect}>
+                {isDoubleFaced ? (
+                  <div className="card-flip-outer">
+                    <div className="card-flip-inner">
+                      <div className="card-flip-front">
+                        <img className="card" src={images[0]} alt={`${set} print front`} />
+                      </div>
+                      <div className="card-flip-back">
+                        <img className="card" src={images[1]} alt={`${set} print back`} />
+                      </div>
+                    </div>
+                    <div className="card-icon">
+                      <IconTurnAround />
+                    </div>
+                  </div>
+                ) : (
+                  <img className="card" src={images[0]} alt={`${set} print`} />
+                )}
+              </button>
+              &nbsp;
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+export default CardOverlay;
