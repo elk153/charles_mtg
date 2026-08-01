@@ -6,13 +6,14 @@ import CardFrame from './CardFrame.jsx';
  * same piece of card stock, shown at once rather than toggled.
  */
 export default function SplitFacesCard({ card, cardSymbols }) {
+
   return (
     <div className="scryfall-card scryfall-card--split-faces">
       {card.faces.map((face, index) => (
         <CardFrame
           key={face.name ?? index}
           face={face}
-          image={face.image ?? card.rootImage}
+          image={index === 0 ? (face.image ?? card.rootImage) : undefined}
           cardSymbols={cardSymbols}
         />
       ))}
