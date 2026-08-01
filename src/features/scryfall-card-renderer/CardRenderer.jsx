@@ -36,7 +36,7 @@ const CardRenderer = React.memo(function CardRenderer({ card, cardSymbols, ...re
   const normalized = useMemo(() => normalizeCard(card), [card]);
   const Component = SHAPE_COMPONENTS[normalized.shape] ?? OneFaceCard;
 
-  console.log(`Card Layout: ${normalized.layout} // Normalized Shape: ${normalized.shape}`);
+  console.log(`Card Layout: ${normalized.layout}, Normalized Shape: ${normalized.shape}, Name: ${normalized.name}`);
 
   return (
     <Suspense fallback={<CardFallback />}>

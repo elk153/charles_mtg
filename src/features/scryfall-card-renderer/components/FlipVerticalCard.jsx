@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import CardFrame from './CardFrame.jsx';
 
 /**
  * Covers: flip. A single physical image with two text halves printed
@@ -11,28 +12,17 @@ export default function FlipVerticalCard({ card, cardSymbols }) {
   const image = face.image ?? card.rootImage;
   const isFlipped = activeIndex === 1;
 
+  console.log(face)
+
   return (
     <div className="scryfall-card scryfall-card--flip-vertical">
-      <figure className="scryfall-card__frame">
-        {image && (
-          <img
-            className="scryfall-card__image"
-            style={isFlipped ? { transform: 'rotate(180deg)' } : undefined}
-            src={image}
-            alt={face.name}
-            loading="lazy"
-          />
-        )}
-        <figcaption className="scryfall-card__text">
-          <div className="scryfall-card__name">{face.name}</div>
-          {face.typeLine && (
-            <div className="scryfall-card__type-line">{face.typeLine}</div>
-          )}
-          {face.oracleText && (
-            <p className="scryfall-card__oracle-text">{face.oracleText}</p>
-          )}
-        </figcaption>
-      </figure>
+      
+      <CardFrame 
+        face={face} 
+        image={image} 
+        cardSymbols={cardSymbols} 
+        style={isFlipped ? { transform: 'rotate(180deg)' } : undefined}
+      />
 
       {card.faces.length > 1 && (
         <div className="input">

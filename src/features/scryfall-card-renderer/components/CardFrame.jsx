@@ -6,7 +6,7 @@ import useOracleText from "../../../hooks/useOracleText";
  * line, oracle text, and stats. Every shape component composes this rather
  * than re-implementing it, so the 99%-common case (a face) is written once.
  */
-export default function CardFrame({ face, image, cardSymbols }) {
+export default function CardFrame({ face, image, cardSymbols, style={undefined} }) {
   const resolvedImage = image ?? face.image;
  
   return (
@@ -16,6 +16,7 @@ export default function CardFrame({ face, image, cardSymbols }) {
           className="scryfall-card__image card"
           src={resolvedImage}
           alt={face.name}
+          style={style}
           loading="lazy"
         />
       )}
