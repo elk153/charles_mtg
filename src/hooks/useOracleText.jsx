@@ -86,7 +86,7 @@ export default function useOracleText(text, symbols) {
     };
 
   };
-  console.log("oracleTextRender", oracleTextRender);
+  //console.log("oracleTextRender", oracleTextRender);
   return oracleTextRender;
   
 };

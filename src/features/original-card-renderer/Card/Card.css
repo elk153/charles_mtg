@@ -37,6 +37,17 @@ button {
   z-index: 0;
 }
 
+.rotated-card {
+  transform: rotate(90deg);
+  transform-origin: center;
+}
+
+@media (max-width: 600px) {
+  .rotated-card {
+    transform: rotate(90deg) scale(0.72);
+  }
+}
+
 .card-flip-outer{
   background-color: transparent;
   width: 330px; /* 488 */

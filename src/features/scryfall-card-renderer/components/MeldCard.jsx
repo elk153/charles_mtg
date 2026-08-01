@@ -31,9 +31,12 @@ export default function MeldCard({ card, fetchCardByUri, cardSymbols }) {
     <div className="scryfall-card scryfall-card--meld">
       <CardFrame face={face} image={card.rootImage} cardSymbols={cardSymbols} />
       {meldPart && (
-        <div className="scryfall-card__meld-hint">
-          Melds into <strong>{meldResult?.name ?? meldPart.name}</strong>
-        </div>
+        <>
+          <div>&nbsp;</div>
+          <ul className="rulings">   
+            <li>Melds into <strong>{meldResult?.name ?? meldPart.name}</strong></li>
+          </ul>
+        </>
       )}
     </div>
   );

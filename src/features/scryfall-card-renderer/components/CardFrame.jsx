@@ -6,9 +6,9 @@ import useOracleText from "../../../hooks/useOracleText";
  * line, oracle text, and stats. Every shape component composes this rather
  * than re-implementing it, so the 99%-common case (a face) is written once.
  */
-export default function CardFrame({ face, image, cardSymbols }) {
+export default function CardFrame({ face, image, cardSymbols, style={undefined} }) {
   const resolvedImage = image ?? face.image;
-
+ 
   return (
     <div className="scryfall-card__frame card-frame">
       {resolvedImage && (
@@ -16,6 +16,7 @@ export default function CardFrame({ face, image, cardSymbols }) {
           className="scryfall-card__image card"
           src={resolvedImage}
           alt={face.name}
+          style={style}
           loading="lazy"
         />
       )}
@@ -27,9 +28,15 @@ export default function CardFrame({ face, image, cardSymbols }) {
         {face.typeLine && (
           <em><span className="scryfall-card__type-line">{face.typeLine}</span></em>
         )}
-        {face.manaCost && (
-          <span className="scryfall-card__mana-cost">{useOracleText(face.manaCost, cardSymbols)}</span>
-        )}
+        {face.manaCost 
+          ? (
+            <span className="scryfall-card__mana-cost">{useOracleText(face.manaCost, cardSymbols)}</span>
+          )
+          : (
+            // Need to keep the same count of renders when cards do not have mana on the other side. Avoid having useOracleText as hook to resolve.
+            <span className="scryfall-card__mana-cost">{useOracleText("   ", cardSymbols)}</span>  
+          )
+        }
         &nbsp;
         {face.power&& (
           <span className={"color-pill color__M"}>
@@ -48,11 +55,17 @@ export default function CardFrame({ face, image, cardSymbols }) {
         )}
 
         {face.oracleText && (
-          <p className="scryfall-card__oracle-text">{useOracleText(face.oracleText, cardSymbols)}</p>
+          <>
+            <hr style={{ border: "none", height: "1px", backgroundColor: "#805e24" }} />
+            <p className="scryfall-card__oracle-text">{useOracleText(face.oracleText, cardSymbols)}</p>
+          </>
         )}
 
         {face.flavorText && (
-          <p className="scryfall-card__flavor-text"><em>{face.flavorText}</em></p>
+          <>
+            <hr style={{ border: "none", height: "1px", backgroundColor: "#805e24" }} />
+            <p className="scryfall-card__flavor-text"><em>{face.flavorText}</em></p>
+          </>
         )}
 
       </div>
