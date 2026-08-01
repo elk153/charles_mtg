@@ -36,7 +36,7 @@ export default function CardFrame({ face, image, cardSymbols, style={undefined} 
             // Need to keep the same count of renders when cards do not have mana on the other side. Avoid having useOracleText as hook to resolve.
             <span className="scryfall-card__mana-cost">{useOracleText("   ", cardSymbols)}</span>  
           )
-      }
+        }
         &nbsp;
         {face.power&& (
           <span className={"color-pill color__M"}>
