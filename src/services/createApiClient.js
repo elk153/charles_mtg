@@ -28,11 +28,11 @@ export default function createApiClient(baseUrl) {
 
      switch (json.object) {
       case "card":
-        console.log(json);
+        //console.log(json);
         return [json];
       case "list":
       case "catalog":
-        console.log(json.data);
+        //console.log(json.data);
         return json.data;
       default:
         throw new Error(`[API Error] Unexpected response object: ${json.object}`);

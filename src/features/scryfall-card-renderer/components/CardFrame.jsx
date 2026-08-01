@@ -8,7 +8,7 @@ import useOracleText from "../../../hooks/useOracleText";
  */
 export default function CardFrame({ face, image, cardSymbols }) {
   const resolvedImage = image ?? face.image;
-
+ 
   return (
     <div className="scryfall-card__frame card-frame">
       {resolvedImage && (
@@ -27,9 +27,15 @@ export default function CardFrame({ face, image, cardSymbols }) {
         {face.typeLine && (
           <em><span className="scryfall-card__type-line">{face.typeLine}</span></em>
         )}
-        {face.manaCost && (
-          <span className="scryfall-card__mana-cost">{useOracleText(face.manaCost, cardSymbols)}</span>
-        )}
+        {face.manaCost 
+          ? (
+            <span className="scryfall-card__mana-cost">{useOracleText(face.manaCost, cardSymbols)}</span>
+          )
+          : (
+            // Need to keep the same count of renders when cards do not have mana on the other side. Avoid having useOracleText as hook to resolve.
+            <span className="scryfall-card__mana-cost">{useOracleText("   ", cardSymbols)}</span>  
+          )
+      }
         &nbsp;
         {face.power&& (
           <span className={"color-pill color__M"}>
