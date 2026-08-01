@@ -48,11 +48,17 @@ export default function CardFrame({ face, image, cardSymbols }) {
         )}
 
         {face.oracleText && (
-          <p className="scryfall-card__oracle-text">{useOracleText(face.oracleText, cardSymbols)}</p>
+          <>
+            <hr style={{ border: "none", height: "1px", backgroundColor: "#805e24" }} />
+            <p className="scryfall-card__oracle-text">{useOracleText(face.oracleText, cardSymbols)}</p>
+          </>
         )}
 
         {face.flavorText && (
-          <p className="scryfall-card__flavor-text"><em>{face.flavorText}</em></p>
+          <>
+            <hr style={{ border: "none", height: "1px", backgroundColor: "#805e24" }} />
+            <p className="scryfall-card__flavor-text"><em>{face.flavorText}</em></p>
+          </>
         )}
 
       </div>
