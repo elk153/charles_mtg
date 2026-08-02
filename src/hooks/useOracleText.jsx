@@ -82,9 +82,7 @@ const useOracleText = (text, symbols) => {
     oracleTextRender.push(<p key={"p-last"}>{paragraphBuffer}</p>);
   }
   
-  console.log("oracleTextRender:");
-  console.log(oracleTextRender);
-  return oracleTextRender;
+   return oracleTextRender;
   
 };
 

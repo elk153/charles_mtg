@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import CardFrame from './CardFrame.jsx';
 import useOracleText from "../../../hooks/useOracleText";
 
@@ -7,16 +7,18 @@ import useOracleText from "../../../hooks/useOracleText";
  * same piece of card stock, shown at once rather than toggled.
  */
 export default function SplitFacesCard({ card, cardSymbols }) {
-  const resolvedRotation = card.rotation ?? card.faces[0].rotation ?? 0;
-  console.log(resolvedRotation);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const resolvedRotation = card.rotation ?? card.faces[activeIndex].rotation ?? 0;
+  const nextFace = activeIndex === 0 ? 1 : 0;
+  console.log(card)
 
   return (
     <>
       <div className="card-frame">
         <img
           className={`scryfall-card__image card rotated-card-${resolvedRotation}`}
-          src={card.faces[0].image ?? card.rootImage}
-          alt={card.faces[0].name}
+          src={card.faces[activeIndex].image ?? card.rootImage}
+          alt={card.faces[activeIndex].name}
         />
       </div>
 
@@ -39,8 +41,7 @@ export default function SplitFacesCard({ card, cardSymbols }) {
                 <span className="scryfall-card__mana-cost">{useOracleText("   ", cardSymbols)}</span>  
               )
             }
-            &nbsp;
-            {face.power&& (
+             {face.power&& (
               <span className={"color-pill color__M"}>
                 {face.power ? (face.power+"/"+face.toughness) : "N/A"}
               </span>
@@ -73,6 +74,18 @@ export default function SplitFacesCard({ card, cardSymbols }) {
           </div>
         ))}
       </div>
+
+      {card.faces[0].rotation !== card.faces[1].rotation && (
+        <div className="input">
+          <button
+            type="button"
+            onClick={() => setActiveIndex((i) => (i === 0 ? 1 : 0))}
+          >
+            ↺ Rotate to {card.faces[nextFace].name}
+          </button>
+        </div>
+      )}
+
     </>
   );
 }

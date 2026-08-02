@@ -393,7 +393,7 @@ const ROTATION_BY_LAYOUT = {
   // NOTE: the exact sign (which half is +90 vs -90/270) depends on how
   // Scryfall orders card_faces and how your image assets are cropped —
   // verify against a real render and flip the pair below if it looks wrong.
-  split: [90, 270],
+  split: [90, 90],
 
   // Flip (e.g. "Budoka Gardener // Dokai, Weaver of Life"): one physical
   // image, second face's text is printed upside-down relative to the first.
@@ -410,7 +410,7 @@ const ROTATION_BY_LAYOUT = {
 // Scryfall doesn't expose this as a separate layout, only as a keyword, so
 // it has to be special-cased at normalization time rather than in this
 // static table — see normalizeCard.js.
-export const AFTERMATH_ROTATION_OVERRIDE = [0, 90];
+export const AFTERMATH_ROTATION_OVERRIDE = [0, 270];
 
 // Attach `shape` and `faceRotations` onto each layout's config so they're a
 // single source of truth (renderConfig.shape / .faceRotations) instead of
