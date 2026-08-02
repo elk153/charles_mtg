@@ -5,10 +5,17 @@ import useOracleText from "../../../hooks/useOracleText";
  * The visual frame shared by every layout: image, name, mana cost, type
  * line, oracle text, and stats. Every shape component composes this rather
  * than re-implementing it, so the 99%-common case (a face) is written once.
+ *
+ * `rotation` (degrees: 0/90/180/270) rotates the whole block — image and
+ * text together — since that's how split/flip cards are physically
+ * printed: the image and its text are one rotated unit, not independent
+ * pieces. Defaults to `face.rotation` (set by normalizeCard) but can be
+ * overridden explicitly by a caller that manages rotation itself.
  */
-export default function CardFrame({ face, image, cardSymbols, style={undefined} }) {
+export default function CardFrame({ face, image, rotation, cardSymbols, style={undefined} }) {
   const resolvedImage = image ?? face.image;
- 
+  const resolvedRotation = rotation ?? face.rotation ?? 0;
+
   return (
     <div className="scryfall-card__frame card-frame">
       {resolvedImage && (
@@ -34,10 +41,9 @@ export default function CardFrame({ face, image, cardSymbols, style={undefined} 
           )
           : (
             // Need to keep the same count of renders when cards do not have mana on the other side. Avoid having useOracleText as hook to resolve.
-            <span className="scryfall-card__mana-cost">{useOracleText("   ", cardSymbols)}</span>  
+            <span className="scryfall-card__mana-cost">{useOracleText("", cardSymbols)}</span>  
           )
         }
-        &nbsp;
         {face.power&& (
           <span className={"color-pill color__M"}>
             {face.power ? (face.power+"/"+face.toughness) : "N/A"}

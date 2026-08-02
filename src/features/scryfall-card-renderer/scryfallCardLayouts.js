@@ -17,6 +17,8 @@
  * - layoutDirection   'stacked' | 'sideBySide' | 'flipVertical' | 'frontBack'
  * - needsAllParts     Whether `all_parts` must be fetched/resolved to render fully (meld, some tokens/emblems)
  * - notes             Implementation notes
+ * - shape             Attached below: one of CARD_SHAPES, used for component dispatch
+ * - faceRotations      Attached below: degrees[] to rotate each face's block to read it as printed (see ROTATION_BY_LAYOUT)
  */
 
 export const SCRYFALL_CARD_LAYOUTS = [
@@ -150,6 +152,18 @@ export const SCRYFALL_CARD_LAYOUTS = [
     layoutDirection: 'sideBySide',
     needsAllParts: false,
     notes: 'One creature/permanent face + one instant/sorcery "adventure" face on the same card image; both in card_faces.',
+  }],
+
+  ['prepare', {
+    label: 'Prepare',
+    hasCardFaces: true,
+    faceCount: 2,
+    faceRelation: 'split',
+    interaction: 'cast-half',
+    component: 'SplitCard',
+    layoutDirection: 'horizontal',
+    needsAllParts: false,
+    notes: 'Split card with two spell halves stored in card_faces. Only the Prepare half may be cast from hand; the Fight half has aftermath and is cast from the graveyard.',
   }],
 
   ['mutate', {
@@ -350,16 +364,60 @@ const SHAPE_BY_LAYOUT = {
 
   split: CARD_SHAPES.SPLIT_FACES,
   adventure: CARD_SHAPES.SPLIT_FACES,
+  prepare: CARD_SHAPES.SPLIT_FACES,
 
   flip: CARD_SHAPES.FLIP_VERTICAL,
 
   meld: CARD_SHAPES.MELD,
 };
 
-// Attach `shape` onto each layout's config so it's a single source of truth
-// (renderConfig.shape) instead of a second lookup table callers need to know about.
+/**
+ * Per-face reading rotation, in degrees, indexed the same way as
+ * `card_faces` (faceRotations[0] -> faces[0], etc). This is orthogonal to
+ * `shape`: shape says how faces are *arranged* on screen (stacked,
+ * side-by-side, toggled...), rotation says how much a given face's block
+ * (image + text together) must be turned to be read as printed.
+ *
+ * This is why `adventure` and `split` are NOT treated the same here even
+ * though they share the SPLIT_FACES shape above: adventure's two parts are
+ * both printed upright on one face (no rotation), while split cards are
+ * physically printed sideways and require turning the card to read either
+ * half — same visual arrangement, different physical printing.
+ *
+ * Layouts not listed default to [0] (no rotation) via the fallback below.
+ */
+const ROTATION_BY_LAYOUT = {
+  // Classic split (e.g. "Fire // Ice"): each half is printed rotated a
+  // quarter turn, in opposite directions, so turning the whole card one
+  // way reads the left half and the other way reads the right half.
+  // NOTE: the exact sign (which half is +90 vs -90/270) depends on how
+  // Scryfall orders card_faces and how your image assets are cropped —
+  // verify against a real render and flip the pair below if it looks wrong.
+  split: [90, 270],
+
+  // Flip (e.g. "Budoka Gardener // Dokai, Weaver of Life"): one physical
+  // image, second face's text is printed upside-down relative to the first.
+  flip: [0, 180],
+
+  // Adventure (e.g. "Bonecrusher Giant // Stomp"): both parts printed
+  // upright on the same face — no rotation, despite sharing a shape with split.
+  adventure: [0, 0],
+};
+
+// Aftermath split cards (e.g. "Destined // Lead by Example") only rotate
+// their *second* half — the first half reads normally like any other card,
+// since it's cast from hand before the aftermath half is ever relevant.
+// Scryfall doesn't expose this as a separate layout, only as a keyword, so
+// it has to be special-cased at normalization time rather than in this
+// static table — see normalizeCard.js.
+export const AFTERMATH_ROTATION_OVERRIDE = [0, 90];
+
+// Attach `shape` and `faceRotations` onto each layout's config so they're a
+// single source of truth (renderConfig.shape / .faceRotations) instead of
+// extra lookup tables callers need to know about.
 for (const [layout, config] of SCRYFALL_CARD_LAYOUTS) {
   config.shape = SHAPE_BY_LAYOUT[layout] ?? CARD_SHAPES.ONE_FACE;
+  config.faceRotations = ROTATION_BY_LAYOUT[layout] ?? [0];
 }
 
 /** Convenience Map for O(1) lookup by layout key. */

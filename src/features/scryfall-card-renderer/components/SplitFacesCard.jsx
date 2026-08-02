@@ -7,12 +7,14 @@ import useOracleText from "../../../hooks/useOracleText";
  * same piece of card stock, shown at once rather than toggled.
  */
 export default function SplitFacesCard({ card, cardSymbols }) {
+  const resolvedRotation = card.rotation ?? card.faces[0].rotation ?? 0;
+  console.log(resolvedRotation);
 
   return (
     <>
       <div className="card-frame">
         <img
-          className="scryfall-card__image card rotated-card"
+          className={`scryfall-card__image card rotated-card-${resolvedRotation}`}
           src={card.faces[0].image ?? card.rootImage}
           alt={card.faces[0].name}
         />
