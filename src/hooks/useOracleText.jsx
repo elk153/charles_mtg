@@ -1,92 +1,89 @@
 import { useMemo } from "react";
 
-export default function useOracleText(text, symbols) {
+const useOracleText = (text, symbols) => {
 
   const symbolMap = useMemo( () => 
       Object.fromEntries(symbols.map(s => [s.symbol, s])),
       [symbols]
   );
 
-  const oracleTextRegex = /(\{[^}]+\}|[()]|\n)/g; // matches symbols, (, ), and \n
+  const oracleTextRegex = /(\{[^}]+\}|[()]|\n)/g; // matches {01 char}, (, ), and \n
 
-  // Split the oracle_text at symbol (delete) and token (keep). Make an arrya with the symbols
+  // Split the oracle_text at symbols, parenthesis and return line.
   const oracleText = text.split(oracleTextRegex).filter(Boolean); // removes empty elements
 
   const oracleTextRender = [];
+  let paragraphBuffer = [];
   let italicBuffer = [];
+  let symbolBuffer = []
   let isItalic = false;
 
+  const renderSymbol = (i, symbol) => {
+    return(
+    <>
+      &nbsp;
+      <img
+      key={`symbol-${i}`}
+      src={symbol.svg_uri}
+      alt={symbol.english}
+      style={{
+        width: "1em",
+        height: "1em",
+        verticalAlign: "text-bottom",
+      }}
+      />
+    </>
+    );
+  };
+ 
   for (let i = 0; i < oracleText.length; i++) {
+    const token = oracleText[i]
+    const symbol = symbolMap[token];
 
-    const symbol = symbolMap[oracleText[i]];
-
-    if (oracleText[i] === "\n") {
-    oracleTextRender.push(<br />);
-    continue;
-    };
-    
-    if (oracleText[i] === "(") {
-    isItalic = true;
+    if (token === "(") {
+      isItalic = true;
+      italicBuffer.push(token);
+      continue;
     }
 
-    if (oracleText[i] === ")") {
-    isItalic = false;
-    italicBuffer.push(")");
-    oracleTextRender.push(<em>{italicBuffer}</em>);        
-    italicBuffer = [];
-    continue;
-    };
-
-    if ( isItalic === false ) {
-
-    if (symbol) {
-      oracleTextRender.push(
-      <>
-        &nbsp;
-        <img
-        key={`symbol-${i}`}
-        src={symbol.svg_uri}
-        alt={symbol.english}
-        style={{
-          width: "1em",
-          height: "1em",
-          verticalAlign: "text-bottom",
-        }}
-        />
-      </>
-      );
+    if (token === ")") {
+      isItalic = false;
+      italicBuffer.push(token);
+      paragraphBuffer.push(<em key={`em-${i}`}>{italicBuffer}</em>);        
+      italicBuffer = [];
       continue;
     };
-
-    oracleTextRender.push(oracleText[i])
-    };
-
-    if ( isItalic === true ) {
-
-    if (symbol) {
-      italicBuffer.push(
-      <>
-        &nbsp;
-        <img
-        key={`symbol-${i}`}
-        src={symbol.svg_uri}
-        alt={symbol.english}
-        style={{
-            width: "1em",
-            height: "1em",
-            verticalAlign: "text-bottom",
-        }}
-        />
-      </>
-      );
+  
+    if (token === "\n") {
+      oracleTextRender.push(<p key={`p-${i}`}>{paragraphBuffer}</p>);
+      paragraphBuffer = [];
       continue;
     };
+    
+    if (isItalic === false) {
+      if (symbol) {
+        paragraphBuffer.push(renderSymbol(i, symbol));
+        continue;
+      };
+      paragraphBuffer.push(token);
+     };
 
-    italicBuffer.push(oracleText[i])
+    if (isItalic === true) {
+      if (symbol) {
+        italicBuffer.push(renderSymbol(i, symbol));
+        continue;
+      };
+      italicBuffer.push(token);
     };
 
   };
-  //console.log("oracleTextRender", oracleTextRender);
-  return oracleTextRender;
+
+  if(paragraphBuffer.length) /* if paragraphBuffer not empty */ {
+    oracleTextRender.push(<p key={"p-last"}>{paragraphBuffer}</p>);
+  }
+  
+   return oracleTextRender;
   
 };
+
+export default useOracleText;

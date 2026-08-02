@@ -1,11 +1,19 @@
-import { SCRYFALL_CARD_LAYOUT_MAP } from './scryfallCardLayouts.js';
+import {
+  SCRYFALL_CARD_LAYOUT_MAP,
+  AFTERMATH_ROTATION_OVERRIDE,
+} from './scryfallCardLayouts.js';
 
 /**
  * Normalize a single Scryfall face (or a single-faced root card) into a
  * flat, consistently-named object. Every renderer downstream consumes this
  * shape only — never the raw Scryfall field names directly.
+ *
+ * @param {object} face - Raw face object (or the root card, for single-faced cards)
+ * @param {number} rotation - Degrees (0/90/180/270) to rotate this face's
+ *   block (image + text together) to read it as printed. See
+ *   ROTATION_BY_LAYOUT in scryfallCardLayouts.js for how this is derived.
  */
-function toNormalizedFace(face) {
+function toNormalizedFace(face, rotation) {
   return {
     name: face.name,
     manaCost: face.mana_cost ?? null,
@@ -23,6 +31,7 @@ function toNormalizedFace(face) {
     // reversible_card face directly should re-run it through this same
     // normalization using this value.
     layout: face.layout ?? null,
+    rotation,
   };
 }
 
@@ -40,9 +49,16 @@ export function normalizeCard(card) {
     SCRYFALL_CARD_LAYOUT_MAP.get(card.layout) ??
     SCRYFALL_CARD_LAYOUT_MAP.get('normal');
 
+  // Aftermath split cards (e.g. "Destined // Lead by Example") only rotate
+  // their second half — Scryfall exposes this as a keyword, not a distinct
+  // layout, so it can't live in the static ROTATION_BY_LAYOUT table and has
+  // to be checked here, per card.
+  const isAftermath = card.layout === 'split' && card.keywords?.includes('Aftermath');
+  const faceRotations = isAftermath ? AFTERMATH_ROTATION_OVERRIDE : config.faceRotations;
+
   const faces = card.card_faces?.length
-    ? card.card_faces.map(toNormalizedFace)
-    : [toNormalizedFace(card)];
+    ? card.card_faces.map((face, index) => toNormalizedFace(face, faceRotations[index] ?? 0))
+    : [toNormalizedFace(card, faceRotations[0] ?? 0)];
 
   return {
     id: card.id,
@@ -54,5 +70,8 @@ export function normalizeCard(card) {
     // Fallback image for single-faced cards (card.image_uris lives on the
     // root object when there's no card_faces array).
     rootImage: card.image_uris?.normal ?? card.image_uris?.large ?? null,
+    // Convenience flag for UI treatment (e.g. a "rotate your device" hint
+    // on mobile) without every consumer having to scan card.faces itself.
+    hasRotatedFaces: faces.some((face) => face.rotation !== 0),
   };
 }

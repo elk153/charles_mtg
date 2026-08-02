@@ -8,9 +8,10 @@ import React from 'react';
 export default function LevelerStats({ face }) {
   return (
     <div className="scryfall-card__extra scryfall-card__extra--leveler">
-      <span className="scryfall-card__extra-label">Level thresholds</span>
+      {/*<div>&nbsp;</div>
+      {/*<h3 className="scryfall-card__extra-label">Level thresholds</h3>*/}
       {/* TODO: parse "LEVEL n-m" brackets out of face.oracleText into a table */}
-      <p className="scryfall-card__extra-raw">{face.oracleText}</p>
+      {/*<p className="scryfall-card__extra-raw">Add level thresholds visualization</p>*/}
     </div>
   );
 }

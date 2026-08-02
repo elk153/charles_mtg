@@ -9,9 +9,9 @@ import React from 'react';
 export default function SagaTracker({ face }) {
   return (
     <div className="scryfall-card__extra scryfall-card__extra--saga">
-      <span className="scryfall-card__extra-label">Chapters</span>
+      {/*<span className="scryfall-card__extra-label">Chapters</span>*/}
       {/* TODO: parse face.oracleText into { numerals, effect }[] and render a tracker */}
-      <p className="scryfall-card__extra-raw">{face.oracleText}</p>
+      {/*<p className="scryfall-card__extra-raw">{face.oracleText}</p>*/}
     </div>
   );
 }

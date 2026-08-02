@@ -8,9 +8,9 @@ import React from 'react';
 export default function ClassLevels({ face }) {
   return (
     <div className="scryfall-card__extra scryfall-card__extra--class">
-      <span className="scryfall-card__extra-label">Levels</span>
+      {/*<span className="scryfall-card__extra-label">Levels</span>*/}
       {/* TODO: split face.oracleText on /Level \d+/ and render each tier */}
-      <p className="scryfall-card__extra-raw">{face.oracleText}</p>
+      {/*<p className="scryfall-card__extra-raw">{face.oracleText}</p>*/}
     </div>
   );
 }

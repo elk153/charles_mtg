@@ -8,9 +8,9 @@ import React from 'react';
 export default function MutateBanner({ face }) {
   return (
     <div className="scryfall-card__extra scryfall-card__extra--mutate">
-      <span className="scryfall-card__extra-label">Mutate</span>
+      {/*<span className="scryfall-card__extra-label">Mutate</span>*/}
       {/* TODO: split face.oracleText on the blank-line divider */}
-      <p className="scryfall-card__extra-raw">{face.oracleText}</p>
+      {/*<p className="scryfall-card__extra-raw">{face.oracleText}</p>*/}
     </div>
   );
 }
