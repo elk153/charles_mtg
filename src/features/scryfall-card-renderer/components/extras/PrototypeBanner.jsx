@@ -9,9 +9,9 @@ import React from 'react';
 export default function PrototypeBanner({ face }) {
   return (
     <div className="scryfall-card__extra scryfall-card__extra--prototype">
-      <span className="scryfall-card__extra-label">Prototype</span>
+      {/*<span className="scryfall-card__extra-label">Prototype</span>*/}
       {/* TODO: pass card.prototype through normalizeCard and render it here */}
-      <p className="scryfall-card__extra-raw">{face.oracleText}</p>
+      {/*<p className="scryfall-card__extra-raw">{face.oracleText}</p>*/}
     </div>
   );
 }
