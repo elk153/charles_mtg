@@ -11,7 +11,6 @@ const useOracleText = (text, symbols) => {
 
   // Split the oracle_text at symbols, parenthesis and return line.
   const oracleText = text.split(oracleTextRegex).filter(Boolean); // removes empty elements
-  console.log(oracleText)
 
   const oracleTextRender = [];
   let paragraphBuffer = [];
@@ -55,34 +54,33 @@ const useOracleText = (text, symbols) => {
       continue;
     };
   
-    if (isItalic === false && token !== "\n") {
+    if (token === "\n") {
+      oracleTextRender.push(<p key={`p-${i}`}>{paragraphBuffer}</p>);
+      paragraphBuffer = [];
+      continue;
+    };
+    
+    if (isItalic === false) {
       if (symbol) {
         paragraphBuffer.push(renderSymbol(i, symbol));
-        console.log("not italic - symbol");
         continue;
       };
       paragraphBuffer.push(token);
-      console.log("not italic - text");
      };
 
-    if (isItalic === true && token !== "\n") {
+    if (isItalic === true) {
       if (symbol) {
         italicBuffer.push(renderSymbol(i, symbol));
-        console.log("italic - symbol");
         continue;
       };
       italicBuffer.push(token);
-      console.log("italic - text");
-    };
-
-    if (token === "\n" || i === oracleText.length - 1) {
-      oracleTextRender.push(<p key={`p-${i}`}>{paragraphBuffer}</p>);
-      paragraphBuffer = [];
-      console.log("return or end");
-      continue;
     };
 
   };
+
+  if(paragraphBuffer.length) /* if paragraphBuffer not empty */ {
+    oracleTextRender.push(<p key={"p-last"}>{paragraphBuffer}</p>);
+  }
   
   console.log("oracleTextRender:");
   console.log(oracleTextRender);
