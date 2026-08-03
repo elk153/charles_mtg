@@ -37,25 +37,45 @@ button {
   z-index: 0;
 }
 
-.rotated-card-90 {
+.card-frame-0, .card-frame-180{
+  border-radius: 1rem;
+  max-width: 90vw;
+  width: 330px; /* 488 */
+  height: 460px; /* 680 */
+  box-shadow: var(--eerie-glow);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.card-frame-90, .card-frame-270{
+  border-radius: 1rem;
+  max-width: 90vw;
+  width: 460px; /* 488 */
+  height: 330px; /* 680 */
+  box-shadow: var(--eerie-glow);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.card-frame-90 img{
   transform: rotate(90deg);
+}
+
+.card-frame-180 img{
+  transform: rotate(180deg);
   transform-origin: center;
 }
 
-@media (max-width: 600px) {
-  .rotated-card-90 {
-    transform: rotate(90deg) scale(0.72);
-  }
-}
-
-.rotated-card-270 {
+.card-frame-270 img{
   transform: rotate(270deg);
   transform-origin: center;
 }
 
 @media (max-width: 600px) {
-  .rotated-card-270 {
-    transform: rotate(270deg) scale(0.72);
+  .card-frame-90, .card-frame-270{
+    transform: scale(0.72);
   }
 }
 

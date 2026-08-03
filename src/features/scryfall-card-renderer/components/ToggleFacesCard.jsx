@@ -16,7 +16,11 @@ export default function ToggleFacesCard({ card, cardSymbols }) {
 
   return (
     <div className="scryfall-card scryfall-card--toggle-faces">
-      <CardFrame face={face} image={face.image} cardSymbols={cardSymbols} />
+      <CardFrame 
+        face={face} 
+        image={face.image} 
+        cardSymbols={cardSymbols} 
+      />
       {canToggle && (
         <div className="input">
           <button

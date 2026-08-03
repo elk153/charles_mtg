@@ -12,20 +12,22 @@ import useOracleText from "../../../hooks/useOracleText";
  * pieces. Defaults to `face.rotation` (set by normalizeCard) but can be
  * overridden explicitly by a caller that manages rotation itself.
  */
-export default function CardFrame({ face, image, rotation, cardSymbols, style={undefined} }) {
+export default function CardFrame({ face, image, rotation, cardSymbols}) {
   const resolvedImage = image ?? face.image;
   const resolvedRotation = rotation ?? face.rotation ?? 0;
+  console.log(resolvedRotation);
 
   return (
-    <div className="scryfall-card__frame card-frame">
+    <div className="card-frame">
       {resolvedImage && (
-        <img
-          className="scryfall-card__image card"
-          src={resolvedImage}
-          alt={face.name}
-          style={style}
-          loading="lazy"
-        />
+        <div class={`card-frame-${resolvedRotation}`} >
+          <img
+            className={`card rotated-card-${resolvedRotation}`}
+            src={resolvedImage}
+            alt={face.name}
+            loading="lazy"
+          />
+        </div>
       )}
       <div className="scryfall-card__text card-description">
         <div className="scryfall-card__header">

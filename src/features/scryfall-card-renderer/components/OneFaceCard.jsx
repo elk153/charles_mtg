@@ -14,8 +14,16 @@ export default function OneFaceCard({ card, cardSymbols }) {
 
   return (
     <div className="scryfall-card scryfall-card--one-face">
-      <CardFrame face={face} image={face.image ?? card.rootImage} cardSymbols={cardSymbols} />
-      <CardExtras layout={card.layout} face={face} cardSymbols={cardSymbols} />
+      <CardFrame 
+        face={face} 
+        image={face.image ?? card.rootImage} 
+        cardSymbols={cardSymbols}
+      />
+      <CardExtras 
+        layout={card.layout} 
+        face={face} 
+        cardSymbols={cardSymbols} 
+      />
     </div>
   );
 }
