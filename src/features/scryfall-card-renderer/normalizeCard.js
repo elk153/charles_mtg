@@ -1,6 +1,7 @@
 import {
   SCRYFALL_CARD_LAYOUT_MAP,
   AFTERMATH_ROTATION_OVERRIDE,
+  BATTLE_ROTATION_OVERRIDE,
 } from './scryfallCardLayouts.js';
 
 /**
@@ -54,7 +55,11 @@ export function normalizeCard(card) {
   // layout, so it can't live in the static ROTATION_BY_LAYOUT table and has
   // to be checked here, per card.
   const isAftermath = card.layout === 'split' && card.keywords?.includes('Aftermath');
-  const faceRotations = isAftermath ? AFTERMATH_ROTATION_OVERRIDE : config.faceRotations;
+  const isBattle = card.layout === 'transform' && card.card_faces[0]?.type_line.startsWith("Battle");
+  const faceRotations = 
+    isAftermath ? AFTERMATH_ROTATION_OVERRIDE
+    : isBattle ? BATTLE_ROTATION_OVERRIDE
+    : config.faceRotations;
 
   const faces = card.card_faces?.length
     ? card.card_faces.map((face, index) => toNormalizedFace(face, faceRotations[index] ?? 0))

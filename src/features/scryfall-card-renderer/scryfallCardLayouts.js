@@ -412,6 +412,10 @@ const ROTATION_BY_LAYOUT = {
 // static table — see normalizeCard.js.
 export const AFTERMATH_ROTATION_OVERRIDE = [0, 270];
 
+// Tansform Battle  card override
+// Front face is in landscape, back face is normal.
+export const BATTLE_ROTATION_OVERRIDE = [90, 0];
+
 // Attach `shape` and `faceRotations` onto each layout's config so they're a
 // single source of truth (renderConfig.shape / .faceRotations) instead of
 // extra lookup tables callers need to know about.
