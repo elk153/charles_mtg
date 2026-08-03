@@ -30,7 +30,7 @@ const CardOverlay = ({ card, cardPrices, cardSymbols, cardRulings, onSelect }) =
           ?
           cardRulings.map(({ source, date, ruling }, index) => (
             <li key={index}>
-              {ruling} <em>({source}, {date})</em>
+              {useOracleText(ruling,cardSymbols)} <em>({source}, {date})</em>
             </li>
           ))
           :
@@ -43,8 +43,8 @@ const CardOverlay = ({ card, cardPrices, cardSymbols, cardRulings, onSelect }) =
           {Object.entries(cardLegalities).map((legality, key) => (
             <div key={key}>
               <span>{legality[0].replace("_"," ").toUpperCase()}</span>
-              {legality[1].map((format) => (
-                <ul className="legalities-list">
+              {legality[1].map((format, key) => (
+                <ul key={`ul-${key}`} className="legalities-list">
                   <li className="rarity-pill rarity__common">{format}</li>
                 </ul>
               ))}

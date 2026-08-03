@@ -20,19 +20,18 @@ const useOracleText = (text, symbols) => {
 
   const renderSymbol = (i, symbol) => {
     return(
-    <>
+    <span key={`symbol-${i}`}>
       &nbsp;
       <img
-      key={`symbol-${i}`}
-      src={symbol.svg_uri}
-      alt={symbol.english}
-      style={{
-        width: "1em",
-        height: "1em",
-        verticalAlign: "text-bottom",
-      }}
+        src={symbol.svg_uri}
+        alt={symbol.english}
+        style={{
+          width: "1em",
+          height: "1em",
+          verticalAlign: "text-bottom",
+        }}
       />
-    </>
+    </span>
     );
   };
  

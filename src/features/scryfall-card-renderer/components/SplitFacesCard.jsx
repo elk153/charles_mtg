@@ -63,7 +63,7 @@ export default function SplitFacesCard({ card, cardSymbols }) {
             {face.oracleText && (
               <>
                 <hr style={{ border: "none", height: "1px", backgroundColor: "#805e24" }} />
-                <p className="scryfall-card__oracle-text">{useOracleText(face.oracleText, cardSymbols)}</p>
+                <div className="scryfall-card__oracle-text">{useOracleText(face.oracleText, cardSymbols)}</div>
               </>
             )}
     
