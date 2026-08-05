@@ -34,10 +34,29 @@ const App = () => {
 
   useEffect(() => {
     window.reactIsReady = true;
-    const logoButton = document.getElementById("splash-logo");
-    if (logoButton) {
-      logoButton.classList.add("ready");
+
+    const splashLogo = document.getElementById("splash-logo");
+    const splashBackground = document.getElementById("splash-background");
+    const root = document.getElementById("root");
+
+    if (!splashLogo || !splashBackground || !root) {
+      return;
     }
+
+    splashLogo.classList.add("ready");
+    splashBackground.classList.add("ready");
+
+    const handleTransitionEnd = (event) => {
+      if (event.propertyName !== "opacity") return;
+      root.classList.add("visible");
+      splashBackground.classList.add("hidden");
+    };
+
+    splashLogo.addEventListener("transitionend", handleTransitionEnd, { once: true });
+
+    return () => {
+      splashLogo.removeEventListener("transitionend", handleTransitionEnd);
+    };
   }, []);
 
   useEffect(() => {
