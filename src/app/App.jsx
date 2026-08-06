@@ -8,6 +8,8 @@ import getCardRulings from "../services/getCardRulings.js";
 import IconClose from "../assets/IconClose.jsx";
 import "./App.css";
 import { Outlet } from "react-router";
+import { useQuery } from "@tanstack/react-query";
+import useCardsSearch from "../hooks/useCardsSearch.jsx";
 
 const scryfallClient = createApiClient("https://api.scryfall.com");
 
@@ -136,6 +138,9 @@ const App = () => {
     setSelectedCardId(null);
   };
 
+  const { data: randomCard } = useCardsSearch();
+  console.log(randomCard && cardData.length);
+
   return (
     <>
       <div className="main-layer">
@@ -149,6 +154,7 @@ const App = () => {
           setSearchText={setSearchText}
         />
 
+        {randomCard && <CardsList cardData={randomCard} onCardSelect={handleCardSelect} />}
         {cardData.length > 0 && <CardsList cardData={cardData} onCardSelect={handleCardSelect} />}
         {/*<Outlet />*/}
       </div>
