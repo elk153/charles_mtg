@@ -1,15 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import FloatingNavBar from "../components/FloatingNavBar/FloatingNavBar.jsx";
-import Header from "../components/Header/Header.jsx";
 import CardsList from "../features/original-card-renderer/CardsList/CardsList.jsx"
-import CardDetails from "../features/original-card-renderer/CardDetails/CardDetails.jsx";
 import CardOverlay from "../features/scryfall-card-renderer/CardOverlay/CardOverlay.jsx";
-import CarRenderer from "../features/scryfall-card-renderer/CardRenderer.jsx"
 import createApiClient from "../services/createApiClient.js";
 import getCardPrices from "../services/getCardPrices.js";
 import getCardRulings from "../services/getCardRulings.js";
 import IconClose from "../assets/IconClose.jsx";
 import "./App.css";
+import { Outlet } from "react-router";
 
 const scryfallClient = createApiClient("https://api.scryfall.com");
 
@@ -43,20 +41,30 @@ const App = () => {
       return;
     }
 
-    splashLogo.classList.add("ready");
+    // Trigger the visual transition: both splash background and logo
+    // will transition their opacity to the same level to keep a uniform color.
     splashBackground.classList.add("ready");
+    splashLogo.classList.add("ready");
 
     const handleTransitionEnd = (event) => {
+      // Wait specifically for the opacity transition on the splash background
       if (event.propertyName !== "opacity") return;
+
+      // Reveal the app root and move the splash behind the app content
       root.classList.add("visible");
-      splashBackground.classList.add("hidden");
+      splashBackground.classList.add("background");
+
+      // Clean up listener
+      splashBackground.removeEventListener("transitionend", handleTransitionEnd);
     };
 
-    splashLogo.addEventListener("transitionend", handleTransitionEnd, { once: true });
+    // Attach to splashBackground so we observe the container opacity end
+    splashBackground.addEventListener("transitionend", handleTransitionEnd);
 
     return () => {
-      splashLogo.removeEventListener("transitionend", handleTransitionEnd);
+      splashBackground.removeEventListener("transitionend", handleTransitionEnd);
     };
+
   }, []);
 
   useEffect(() => {
@@ -133,7 +141,7 @@ const App = () => {
       <div className="main-layer">
         {/*<Header />*/}
         
-        <FloatingNavBar
+        <FloatingNavBar // use navbar for Aria
           onNavigate={(id) => console.log("navigate to:", id)}
           handleSearchSubmit={handleSearchSubmit}
           isLoading={isLoading}
@@ -142,7 +150,10 @@ const App = () => {
         />
 
         {cardData.length > 0 && <CardsList cardData={cardData} onCardSelect={handleCardSelect} />}
+        {/*<Outlet />*/}
       </div>
+      
+
 
       {activeCard && (
         <>

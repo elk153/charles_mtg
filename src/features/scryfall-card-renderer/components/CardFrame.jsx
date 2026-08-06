@@ -20,7 +20,7 @@ export default function CardFrame({ face, image, rotation, cardSymbols}) {
   return (
     <div className="card-frame">
       {resolvedImage && (
-        <div class={`card-frame-${resolvedRotation}`} >
+        <div className={`card-frame-${resolvedRotation}`} >
           <img
             className={`card rotated-card-${resolvedRotation}`}
             src={resolvedImage}

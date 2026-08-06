@@ -5,10 +5,14 @@ body {
   width: 100vw;
   height: 100vh;
 
+  /* Page background uses theme main color. The splash overlay will handle the
+     black sublayer and theme tint during the loading transition. */
   background-color: var(--bg-main);
 }
 
 #root {
+  position: relative;
+  z-index: 10;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.3s ease;
@@ -23,7 +27,8 @@ body {
   position: fixed; /* Fixes it to the browser window */
   top: 0;
   left: 0;
-  z-index: 9999;   /* Forces it to sit ON TOP of #root and React */
+  z-index: 9999;   /* Initially sits on top of #root while loading */
+  transition: opacity 0.45s ease;
 
   display: flex;
   justify-content: center;
@@ -31,16 +36,22 @@ body {
   width: 100vw;
   height: 100vh;
 
-  background-color: var(--bg-main);
+  /* Base black sublayer while app is loading */
+  background-color: var(--sublayer-bg, #000000);
+  position: fixed;
+  overflow: hidden;
+
 }
 
 .splash-background.ready {
   pointer-events: none;
+  /* Lower visual intensity by using uniform opacity on the whole splash */
+  opacity: 0.3;
 }
 
-.splash-background.hidden {
-  opacity: 0;
-  visibility: hidden;
+.splash-background.background {
+  /* After transition, the splash stays in the DOM but sits behind app content */
+  z-index: 0;
   pointer-events: none;
 }
 
@@ -52,26 +63,58 @@ body {
   height: 50vmin;
   border-radius: 24px;
 
-  background-color: #000000;
+  /* Ensure a consistent solid background behind the SVG while loading */
+  background-color: var(--sublayer-bg, #000000);
 
   /* box-shadow: [X-offset] [Y-offset] [Blur] [Spread] [Color]; */
   box-shadow: 0 20px 35px -5px rgba(255, 255, 255, 0.25), /* Ambient Layer */
               0 10px 15px -8px rgba(255, 255, 255, 0.3); /* Core Edge Layer */
   
-  animation: pulse 3s ease-in-out infinite; /* Name | Duration | Timing Function | Loop Iteration */
+  animation: pulse 3s ease-in-out infinite;
 
   cursor: not-allowed;
   opacity: 1; /* Full opaque while React loads */
-  transition: opacity 0.8s ease, width 0.8s ease, height 0.8s ease, border-radius 0.8s ease;
+  transition: opacity 0.45s ease, width 0.8s ease, height 0.8s ease, border-radius 0.8s ease;
 }
 
 .splash-logo.ready{
+  /* Match earlier behavior: expand to full viewport while fading to a lower opacity */
   opacity: 0.3;
   width: 100vw;
   height: 100vh;
   border-radius: 0;
   animation: none;
   box-shadow: none;
+}
+
+.splash-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+/* semi-transparent theme overlay placed above splash background and logo */
+.splash-background::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--bg-main);
+  opacity: 0; /* becomes visible when .ready is added */
+  pointer-events: none;
+  transition: opacity 0.45s ease;
+  z-index: 2;
+}
+
+.splash-background.ready::after {
+  opacity: 0.12; /* gentle theme tint over the black sublayer */
+}
+
+/* The splash logo is the SVG image itself. Display it normally. */
+.splash-logo img {
+  opacity: 1;
+  pointer-events: auto;
+  display: block;
 }
 
 @keyframes pulse {

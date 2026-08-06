@@ -1,6 +1,9 @@
 :root[data-theme="dark"] {
   /* Backgrounds */
   --bg-main: #162a2b;         /* Deep Spectral Aquamarine (Swampy Trench) */
+  --bg-color: var(--bg-main);
+  /* Sublayer (base) color behind the theme overlay - defaults to black */
+  --sublayer-bg: #000000;
   --bg-header: #11161a;       /* Abyssal Dark Slate */
   --bg-card: #1b2426;         /* Crypt Gray-Teal (Slightly lighter for contrast) */
   --bg-overlay: rgba(22, 42, 43, 0.5);  /* 20% opacity of bg-main */
@@ -23,6 +26,9 @@
 :root[data-theme="light"] {
   /* Backgrounds */
   --bg-main: #e8edea;         /* Ashen Fog White (Slightly cold, washed-out green) */
+  --bg-color: var(--bg-main);
+  /* Sublayer (base) color behind the theme overlay - defaults to black */
+  --sublayer-bg: #000000;
   --bg-header: #202b30;       /* Dark Slate Header (Kept dark for stark, jarring contrast) */
   --bg-card: #ced9d4;         /* Cold Moss Gray (Darker than main bg so white glow registers) */
   --bg-overlay: rgba(232, 237, 234, 0.5);  /* 15% opacity of bg-main */
