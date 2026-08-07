@@ -9,7 +9,7 @@ import IconClose from "../assets/IconClose.jsx";
 import "./App.css";
 import { Outlet } from "react-router";
 import { useQuery } from "@tanstack/react-query";
-import useCardsSearch from "../hooks/useCardsSearch.jsx";
+import useScryfallCardsSearch from "../hooks/useScryfallCardsSearch.jsx";
 
 const scryfallClient = createApiClient("https://api.scryfall.com");
 
@@ -22,6 +22,11 @@ const App = () => {
   const [selectedCardId, setSelectedCardId] = useState(null);
   const [cardPrices, setCardPrices] = useState([]);
   const [cardRulings, setCardRulings] = useState([]);
+  const [searchRequest, setSearchRequest] = useState({
+    routeParam: "cards/random",
+    queryParam: { format: "json" },
+    seedParam: 0,
+  });
 
   const activeCard = useMemo(
     () => cardData.find((card) => card.id === selectedCardId),
@@ -70,8 +75,8 @@ const App = () => {
   }, []);
 
   useEffect(() => {
-    fetchCards("cards/random", { format: "json" });
-    fetchCardSymbols("symbology");
+    /*fetchCards("cards/random", { format: "json" });*/
+    /*fetchCardSymbols("symbology");*/
   }, []);
 
   useEffect(() => {
@@ -123,11 +128,11 @@ const App = () => {
   const handleSearchSubmit = (event) => {
     event.preventDefault();
     const query = searchText.trim();
-    if (!query) {
-      fetchCards("cards/random", { format: "json" });
-    }
-
-    fetchCards("cards/search", { q: query });
+    setSearchRequest(
+    (query === "" || !query)
+      ? { routeParam: "cards/random", queryParam: { format: "json" }, seedParam: Math.random() }
+      : { routeParam: "cards/search", queryParam: { q: query }, seedParam: 0 }
+    );
   };
 
   const handleCardSelect = (cardId) => {
@@ -138,8 +143,10 @@ const App = () => {
     setSelectedCardId(null);
   };
 
-  const { data: randomCard } = useCardsSearch();
-  console.log(randomCard && cardData.length);
+  const { data: scryfallCards } = useScryfallCardsSearch(searchRequest.routeParam, searchRequest.queryParam, searchRequest.seedParam);
+  const { data: scryfallSymbols } = useScryfallCardsSearch("symbology", { format: "json" }, 0);
+  console.log(scryfallSymbols);
+  
 
   return (
     <>
@@ -154,8 +161,8 @@ const App = () => {
           setSearchText={setSearchText}
         />
 
-        {randomCard && <CardsList cardData={randomCard} onCardSelect={handleCardSelect} />}
-        {cardData.length > 0 && <CardsList cardData={cardData} onCardSelect={handleCardSelect} />}
+        {scryfallCards && <CardsList cardData={scryfallCards} onCardSelect={handleCardSelect} />}
+        {/*cardData.length > 0 && <CardsList cardData={cardData} onCardSelect={handleCardSelect} />*/}
         {/*<Outlet />*/}
       </div>
       
