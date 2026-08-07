@@ -3,7 +3,7 @@ import App from "./App";
 import CardsList from "../features/original-card-renderer/CardsList/CardsList";
 import CardOverlay from "../features/scryfall-card-renderer/CardOverlay/CardOverlay";
 
-const router = createBrowserRouter([
+const router = createBrowserRouter([ // be aware of the capitals
   {
     path: "/",
     element: <App />, // Top level States + NavigationBar + Outlet
