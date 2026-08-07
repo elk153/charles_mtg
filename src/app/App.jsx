@@ -28,9 +28,13 @@ const App = () => {
     seedParam: 0,
   });
 
+  const { data: scryfallCards } = useScryfallCardsSearch(searchRequest.routeParam, searchRequest.queryParam, searchRequest.seedParam);
+  const { data: scryfallSymbols } = useScryfallCardsSearch("symbology", { format: "json" }, 0); // need to add duration
+  console.log(scryfallSymbols);
+
   const activeCard = useMemo(
-    () => cardData.find((card) => card.id === selectedCardId),
-    [cardData, selectedCardId]
+    () => scryfallCards?.find((card) => card.id === selectedCardId),
+    [scryfallCards, selectedCardId]
   );
 
   useEffect(() => {
@@ -143,11 +147,8 @@ const App = () => {
     setSelectedCardId(null);
   };
 
-  const { data: scryfallCards } = useScryfallCardsSearch(searchRequest.routeParam, searchRequest.queryParam, searchRequest.seedParam);
-  const { data: scryfallSymbols } = useScryfallCardsSearch("symbology", { format: "json" }, 0);
-  console.log(scryfallSymbols);
-  
 
+  
   return (
     <>
       <div className="main-layer">
