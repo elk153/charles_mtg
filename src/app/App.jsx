@@ -8,7 +8,6 @@ import getCardRulings from "../services/getCardRulings.js";
 import IconClose from "../assets/IconClose.jsx";
 import "./App.css";
 import { Outlet } from "react-router";
-import { useQuery } from "@tanstack/react-query";
 import useScryfallCardsSearch from "../hooks/useScryfallCardsSearch.jsx";
 
 const scryfallClient = createApiClient("https://api.scryfall.com");
@@ -16,9 +15,7 @@ const scryfallClient = createApiClient("https://api.scryfall.com");
 const App = () => {
   const [theme, setTheme] = useState("dark");
   const [searchText, setSearchText] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [cardData, setCardData] = useState([]);
-  const [cardSymbols, setCardSymbols] = useState([]);
+  const [isLoading, setIsLoading] = useState(false); // to be replaced by tanstack isLoading/isPending
   const [selectedCardId, setSelectedCardId] = useState(null);
   const [cardPrices, setCardPrices] = useState([]);
   const [cardRulings, setCardRulings] = useState([]);
@@ -79,11 +76,6 @@ const App = () => {
   }, []);
 
   useEffect(() => {
-    /*fetchCards("cards/random", { format: "json" });*/
-    /*fetchCardSymbols("symbology");*/
-  }, []);
-
-  useEffect(() => {
     if (!activeCard?.prints_search_uri) {
       setCardPrices([]);
       setCardRulings([]);
@@ -105,29 +97,6 @@ const App = () => {
 
     fetchPrints();
   }, [activeCard]);
-
-  const fetchCards = async (path, params = {}) => {
-    setIsLoading(true);
-
-    try {
-      const data = await scryfallClient.fetchData(path, params);
-      setCardData(data);
-      setSelectedCardId(null);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const fetchCardSymbols = async (path, params = {}) => {
-    try {
-      const data = await scryfallClient.fetchData(path, params);
-      setCardSymbols(data);
-    } catch (error) {
-      console.error(error);
-    }
-  };
 
   const handleSearchSubmit = (event) => {
     event.preventDefault();
@@ -180,7 +149,7 @@ const App = () => {
             <CardOverlay 
               card={activeCard} 
               cardPrices={cardPrices} 
-              cardSymbols={cardSymbols}
+              cardSymbols={scryfallSymbols}
               cardRulings={cardRulings} 
               onCardSelect={handleCardSelect}
             />
