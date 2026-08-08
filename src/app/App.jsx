@@ -91,8 +91,6 @@ const App = () => {
     setSelectedCardId(null);
   };
 
-
-  
   return (
     <>
       <div className="main-layer">
@@ -122,7 +120,11 @@ const App = () => {
           <div className="top-layer">
             {isLoadingPrints || isLoadingRulings
               ?
-              <p>Loading</p>
+              <div className="card-details">
+                <div className="card-overlay-info oracle-panel-dark corner-got parchment-frame-metallic">
+                  <h3 style={{textAlign: "center"}}>Summoning...</h3>
+                </div>
+              </div>
               :
               <CardOverlay 
                 card={activeCard} 
