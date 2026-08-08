@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from "react";
 import FloatingNavBar from "../components/FloatingNavBar/FloatingNavBar.jsx";
 import CardsList from "../features/original-card-renderer/CardsList/CardsList.jsx"
 import CardOverlay from "../features/scryfall-card-renderer/CardOverlay/CardOverlay.jsx";
-import getCardPrices from "../services/getCardPrices.js";
 import IconClose from "../assets/IconClose.jsx";
 import "./App.css";
 import { Outlet } from "react-router";
@@ -13,14 +12,13 @@ const App = () => {
   const [theme, setTheme] = useState("dark");
   const [searchText, setSearchText] = useState("");
   const [selectedCardId, setSelectedCardId] = useState(null);
-  const [cardPrices, setCardPrices] = useState([]);
   const [searchRequest, setSearchRequest] = useState({
     routeParam: "cards/random",
     queryParam: { format: "json" },
     seedParam: 0,
   });
 
-  const { data: scryfallCards, isLoading } = useScryfallCardsSearch(searchRequest.routeParam, searchRequest.queryParam, searchRequest.seedParam);
+  const { data: scryfallCards, isLoading: isLoadingCards } = useScryfallCardsSearch(searchRequest.routeParam, searchRequest.queryParam, searchRequest.seedParam);
   const { data: scryfallSymbols } = useScryfallCardsSearch("symbology", { format: "json" }, 0); // need to add duration
   
  
@@ -30,8 +28,9 @@ const App = () => {
     [scryfallCards, selectedCardId]
   );
 
-  const { data: scryfallRulings } = useFetchUrl("cardRulings", activeCard?.rulings_uri)
-  console.log(scryfallRulings)
+  const { data: scryfallRulings, isLoading: isLoadingRulings } = useFetchUrl("cardRulings", activeCard?.rulings_uri)
+  const { data: scryfallPrints, isLoading: isLoadingPrints } = useFetchUrl("cardPrints", activeCard?.prints_search_uri)
+  console.log(scryfallPrints)
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
@@ -74,26 +73,6 @@ const App = () => {
 
   }, []);
 
-  useEffect(() => {
-
-    if (!activeCard?.prints_search_uri) {
-      setCardPrices([]);
-      return;
-    }
-
-    const fetchPrints = async () => {
-      try {
-        const prices = await getCardPrices(activeCard.prints_search_uri);
-        setCardPrices(prices);
-       } catch (error) {
-        console.error(error);
-        setCardPrices([]);
-      }
-    };
-
-    fetchPrints();
-  }, [activeCard]);
-
   const handleSearchSubmit = (event) => {
     event.preventDefault();
     const query = searchText.trim();
@@ -122,7 +101,7 @@ const App = () => {
         <FloatingNavBar // use navbar for Aria
           onNavigate={(id) => console.log("navigate to:", id)}
           handleSearchSubmit={handleSearchSubmit}
-          isLoading={isLoading}
+          isLoading={isLoadingCards}
           searchText={searchText}
           setSearchText={setSearchText}
         />
@@ -141,14 +120,19 @@ const App = () => {
             </button>
           </div>
           <div className="top-layer">
-            <CardOverlay 
-              card={activeCard} 
-              cardPrices={cardPrices} 
-              cardSymbols={scryfallSymbols}
-              cardRulings={scryfallRulings} 
-              onCardSelect={handleCardSelect}
-            />
-            {/**<CarRenderer card={activeCard} />*/}
+            {isLoadingPrints || isLoadingRulings
+              ?
+              <p>Loading</p>
+              :
+              <CardOverlay 
+                card={activeCard} 
+                cardPrints={scryfallPrints} 
+                cardSymbols={scryfallSymbols}
+                cardRulings={scryfallRulings} 
+                onCardSelect={handleCardSelect}
+              />
+              /**<CarRenderer card={activeCard} />*/
+            }
           </div>
         </>
       )}

@@ -3,7 +3,7 @@ import CardRenderer from "../CardRenderer";
 import "./CardOverlay.css";
 import IconTurnAround from "../../../assets/IconTurnAround";
 
-const CardOverlay = ({ card, cardPrices, cardSymbols, cardRulings, onSelect }) => {
+const CardOverlay = ({ card, cardPrints, cardSymbols, cardRulings, onSelect }) => {
   if (!card) {
     return null;
   }
@@ -14,8 +14,6 @@ const CardOverlay = ({ card, cardPrices, cardSymbols, cardRulings, onSelect }) =
       acc[legality].push(format);
       return acc;
     }, {});
-
-  const isDoubleFaced = card.layout === "transform" || card.layout === "modal_dfc";
 
   return (
     <div className="card-details">
@@ -55,22 +53,23 @@ const CardOverlay = ({ card, cardPrices, cardSymbols, cardRulings, onSelect }) =
       </div>
       
       <div className="card-prints">
-        {cardPrices.map(({ id, set, set_name, released_at, collector_number, layout, images }) => {
-          const isDoubleFaced = layout === "transform" || layout === "modal_dfc";
+        {cardPrints?.map((cardPrint) => {
+          //const isDoubleFaced = (cardPrint.card_faces ? true : false);
+          const isDoubleFaced = cardPrint.layout === "transform" || cardPrint.layout === "modal_dfc";
           return (
-            <div key={id} className="card-print oracle-panel-dark corner-scroll">
+            <div key={cardPrint.id} className="card-print oracle-panel-dark corner-scroll">
               <div className="">
-                <h3>{set_name}</h3>
-                <p>{set.toUpperCase()+"/"+collector_number+" ("+released_at+")"}</p>
-                {cardPrices.filter(card => card.id === id)[0].prices.eur &&
+                <h3>{cardPrint.set_name}</h3>
+                <p>{cardPrint.set.toUpperCase()+"/"+cardPrint.collector_number+" ("+cardPrint.released_at+")"}</p>
+                {cardPrints.filter(card => card.id === cardPrint.id)[0].prices.eur &&
                   <span className="rarity-pill rarity__common">
-                    {cardPrices.filter(card => card.id === id)[0].prices.eur} €
+                    {cardPrints.filter(card => card.id === cardPrint.id)[0].prices.eur} €
                   </span>
                 }
                 &nbsp;
-                {cardPrices.filter(card => card.id === id)[0].prices.eur_foil &&
+                {cardPrints.filter(card => card.id === cardPrint.id)[0].prices.eur_foil &&
                   <span className="rarity-pill rarity-pill--foil rarity__common">
-                    Foil {cardPrices.filter(card => card.id === id)[0].prices.eur_foil} €
+                    Foil {cardPrints.filter(card => card.id === cardPrint.id)[0].prices.eur_foil} €
                   </span>
                 }
               </div>
@@ -81,10 +80,10 @@ const CardOverlay = ({ card, cardPrices, cardSymbols, cardRulings, onSelect }) =
                   <div className="card-flip-outer">
                     <div className="card-flip-inner">
                       <div className="card-flip-front">
-                        <img className="card" src={images[0]} alt={`${set} print front`} />
+                        <img className="card" src={cardPrint.card_faces[0].image_uris.normal} alt={`${cardPrint.set} print front`} />
                       </div>
                       <div className="card-flip-back">
-                        <img className="card" src={images[1]} alt={`${set} print back`} />
+                        <img className="card" src={cardPrint.card_faces[1].image_uris.normal} alt={`${cardPrint.set} print back`} />
                       </div>
                     </div>
                     <div className="card-icon">
@@ -92,7 +91,7 @@ const CardOverlay = ({ card, cardPrices, cardSymbols, cardRulings, onSelect }) =
                     </div>
                   </div>
                 ) : (
-                  <img className="card" src={images[0]} alt={`${set} print`} />
+                  <img className="card" src={cardPrint.image_uris.normal} alt={`${cardPrint.set} print`} />
                 )}
               </button>
               &nbsp;
