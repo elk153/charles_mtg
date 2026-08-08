@@ -2,8 +2,15 @@ import useOracleText from "../../../hooks/useOracleText";
 import CardRenderer from "../CardRenderer";
 import "./CardOverlay.css";
 import IconTurnAround from "../../../assets/IconTurnAround";
+import useFetchUrl from "../../../hooks/useFetchUrl";
+import useScryfallCardsSearch from "../../../hooks/useScryfallCardsSearch";
 
 const CardOverlay = ({ card, cardPrints, cardSymbols, cardRulings, onSelect }) => {
+  
+  const { data: scryfallRulings,} = useFetchUrl(cardRulings, card?.rulings_uri)
+  const { data: scryfallPrints,} = useFetchUrl(cardPrints, card?.prints_search_uri)
+  const { data: scryfallSymbols } = useScryfallCardsSearch(cardSymbols[0], cardSymbols[1], cardSymbols[2]); // need to add duration
+
   if (!card) {
     return null;
   }
@@ -20,15 +27,15 @@ const CardOverlay = ({ card, cardPrints, cardSymbols, cardRulings, onSelect }) =
 
       <div className="card-overlay-info oracle-panel-dark corner-got parchment-frame-metallic">
 
-        <CardRenderer card={card} cardSymbols={cardSymbols} />
+        <CardRenderer card={card} cardSymbols={scryfallSymbols} />
         
         <h3>Rulings</h3>
         <ul className="rulings">
-          {cardRulings?.length > 0
+          {scryfallRulings?.length > 0
           ?
-          cardRulings.map(({ source, published_at, comment }, index) => (
+          scryfallRulings.map(({ source, published_at, comment }, index) => (
             <li key={index}>
-              {useOracleText(comment,cardSymbols)} <em>({source}, {published_at})</em>
+              {useOracleText(comment,scryfallSymbols)} <em>({source}, {published_at})</em>
             </li>
           ))
           :
@@ -53,7 +60,7 @@ const CardOverlay = ({ card, cardPrints, cardSymbols, cardRulings, onSelect }) =
       </div>
       
       <div className="card-prints">
-        {cardPrints?.map((cardPrint) => {
+        {scryfallPrints?.map((cardPrint) => {
           //const isDoubleFaced = (cardPrint.card_faces ? true : false);
           const isDoubleFaced = cardPrint.layout === "transform" || cardPrint.layout === "modal_dfc";
           return (
@@ -61,15 +68,15 @@ const CardOverlay = ({ card, cardPrints, cardSymbols, cardRulings, onSelect }) =
               <div className="">
                 <h3>{cardPrint.set_name}</h3>
                 <p>{cardPrint.set.toUpperCase()+"/"+cardPrint.collector_number+" ("+cardPrint.released_at+")"}</p>
-                {cardPrints.filter(card => card.id === cardPrint.id)[0].prices.eur &&
+                {scryfallPrints.filter(card => card.id === cardPrint.id)[0].prices.eur &&
                   <span className="rarity-pill rarity__common">
-                    {cardPrints.filter(card => card.id === cardPrint.id)[0].prices.eur} €
+                    {scryfallPrints.filter(card => card.id === cardPrint.id)[0].prices.eur} €
                   </span>
                 }
                 &nbsp;
-                {cardPrints.filter(card => card.id === cardPrint.id)[0].prices.eur_foil &&
+                {scryfallPrints.filter(card => card.id === cardPrint.id)[0].prices.eur_foil &&
                   <span className="rarity-pill rarity-pill--foil rarity__common">
-                    Foil {cardPrints.filter(card => card.id === cardPrint.id)[0].prices.eur_foil} €
+                    Foil {scryfallPrints.filter(card => card.id === cardPrint.id)[0].prices.eur_foil} €
                   </span>
                 }
               </div>

@@ -28,9 +28,8 @@ const App = () => {
     [scryfallCards, selectedCardId]
   );
 
-  const { data: scryfallRulings, isLoading: isLoadingRulings } = useFetchUrl("cardRulings", activeCard?.rulings_uri)
-  const { data: scryfallPrints, isLoading: isLoadingPrints } = useFetchUrl("cardPrints", activeCard?.prints_search_uri)
-  console.log(scryfallPrints)
+  const { isLoading: isLoadingRulings } = useFetchUrl("cardRulings", activeCard?.rulings_uri)
+  const { isLoading: isLoadingPrints } = useFetchUrl("cardPrints", activeCard?.prints_search_uri)
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
@@ -128,9 +127,9 @@ const App = () => {
               :
               <CardOverlay 
                 card={activeCard} 
-                cardPrints={scryfallPrints} 
-                cardSymbols={scryfallSymbols}
-                cardRulings={scryfallRulings} 
+                cardPrints={"cardPrints"} 
+                cardSymbols={["symbology", { format: "json" }, 0]}
+                cardRulings={"cardRulings"} 
                 onCardSelect={handleCardSelect}
               />
               /**<CarRenderer card={activeCard} />*/
