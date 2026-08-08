@@ -26,11 +26,11 @@ const CardOverlay = ({ card, cardPrices, cardSymbols, cardRulings, onSelect }) =
         
         <h3>Rulings</h3>
         <ul className="rulings">
-          {cardRulings.length !== 0
+          {cardRulings?.length > 0
           ?
-          cardRulings.map(({ source, date, ruling }, index) => (
+          cardRulings.map(({ source, published_at, comment }, index) => (
             <li key={index}>
-              {useOracleText(ruling,cardSymbols)} <em>({source}, {date})</em>
+              {useOracleText(comment,cardSymbols)} <em>({source}, {published_at})</em>
             </li>
           ))
           :

@@ -2,37 +2,36 @@ import { useEffect, useMemo, useState } from "react";
 import FloatingNavBar from "../components/FloatingNavBar/FloatingNavBar.jsx";
 import CardsList from "../features/original-card-renderer/CardsList/CardsList.jsx"
 import CardOverlay from "../features/scryfall-card-renderer/CardOverlay/CardOverlay.jsx";
-import createApiClient from "../services/createApiClient.js";
 import getCardPrices from "../services/getCardPrices.js";
-import getCardRulings from "../services/getCardRulings.js";
 import IconClose from "../assets/IconClose.jsx";
 import "./App.css";
 import { Outlet } from "react-router";
 import useScryfallCardsSearch from "../hooks/useScryfallCardsSearch.jsx";
-
-const scryfallClient = createApiClient("https://api.scryfall.com");
+import useFetchUrl from "../hooks/useFetchUrl.jsx";
 
 const App = () => {
   const [theme, setTheme] = useState("dark");
   const [searchText, setSearchText] = useState("");
-  const [isLoading, setIsLoading] = useState(false); // to be replaced by tanstack isLoading/isPending
   const [selectedCardId, setSelectedCardId] = useState(null);
   const [cardPrices, setCardPrices] = useState([]);
-  const [cardRulings, setCardRulings] = useState([]);
   const [searchRequest, setSearchRequest] = useState({
     routeParam: "cards/random",
     queryParam: { format: "json" },
     seedParam: 0,
   });
 
-  const { data: scryfallCards } = useScryfallCardsSearch(searchRequest.routeParam, searchRequest.queryParam, searchRequest.seedParam);
+  const { data: scryfallCards, isLoading } = useScryfallCardsSearch(searchRequest.routeParam, searchRequest.queryParam, searchRequest.seedParam);
   const { data: scryfallSymbols } = useScryfallCardsSearch("symbology", { format: "json" }, 0); // need to add duration
-  console.log(scryfallSymbols);
+  
+ 
 
   const activeCard = useMemo(
     () => scryfallCards?.find((card) => card.id === selectedCardId),
     [scryfallCards, selectedCardId]
   );
+
+  const { data: scryfallRulings } = useFetchUrl("cardRulings", activeCard?.rulings_uri)
+  console.log(scryfallRulings)
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
@@ -76,9 +75,9 @@ const App = () => {
   }, []);
 
   useEffect(() => {
+
     if (!activeCard?.prints_search_uri) {
       setCardPrices([]);
-      setCardRulings([]);
       return;
     }
 
@@ -86,12 +85,9 @@ const App = () => {
       try {
         const prices = await getCardPrices(activeCard.prints_search_uri);
         setCardPrices(prices);
-        const rulings = await getCardRulings(activeCard.rulings_uri);
-        setCardRulings(rulings);
-      } catch (error) {
+       } catch (error) {
         console.error(error);
         setCardPrices([]);
-        setCardRulings([]);
       }
     };
 
@@ -132,7 +128,6 @@ const App = () => {
         />
 
         {scryfallCards && <CardsList cardData={scryfallCards} onCardSelect={handleCardSelect} />}
-        {/*cardData.length > 0 && <CardsList cardData={cardData} onCardSelect={handleCardSelect} />*/}
         {/*<Outlet />*/}
       </div>
       
@@ -150,7 +145,7 @@ const App = () => {
               card={activeCard} 
               cardPrices={cardPrices} 
               cardSymbols={scryfallSymbols}
-              cardRulings={cardRulings} 
+              cardRulings={scryfallRulings} 
               onCardSelect={handleCardSelect}
             />
             {/**<CarRenderer card={activeCard} />*/}
