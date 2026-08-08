@@ -3,13 +3,12 @@ import CardRenderer from "../CardRenderer";
 import "./CardOverlay.css";
 import IconTurnAround from "../../../assets/IconTurnAround";
 import useFetchUrl from "../../../hooks/useFetchUrl";
-import useScryfallCardsSearch from "../../../hooks/useScryfallCardsSearch";
 
 const CardOverlay = ({ card, cardPrints, cardSymbols, cardRulings, onSelect }) => {
   
   const { data: scryfallRulings,} = useFetchUrl(cardRulings, card?.rulings_uri)
   const { data: scryfallPrints,} = useFetchUrl(cardPrints, card?.prints_search_uri)
-  const { data: scryfallSymbols } = useScryfallCardsSearch(cardSymbols[0], cardSymbols[1], cardSymbols[2]); // need to add duration
+  const { data: scryfallSymbols } = useFetchUrl("cardSymbols", "https://api.scryfall.com/symbology");
 
   if (!card) {
     return null;

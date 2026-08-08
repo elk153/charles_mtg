@@ -7,6 +7,7 @@ import "./App.css";
 import { Outlet } from "react-router";
 import useScryfallCardsSearch from "../hooks/useScryfallCardsSearch.jsx";
 import useFetchUrl from "../hooks/useFetchUrl.jsx";
+import usePreFetchUrl from "../hooks/usePreFetchUrl.jsx";
 
 const App = () => {
   const [theme, setTheme] = useState("dark");
@@ -20,7 +21,7 @@ const App = () => {
 
   const { data: scryfallCards, isLoading: isLoadingCards } = useScryfallCardsSearch(searchRequest.routeParam, searchRequest.queryParam, searchRequest.seedParam);
   const { data: scryfallSymbols } = useScryfallCardsSearch("symbology", { format: "json" }, 0); // need to add duration
-  
+  usePreFetchUrl("cardSymbols", "https://api.scryfall.com/symbology");
  
 
   const activeCard = useMemo(
