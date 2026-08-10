@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
-import CardFrame from './CardFrame.jsx';
-import useOracleText from "../../../hooks/useOracleText";
+import { useState } from 'react';
+import OracleText from "./OracleText";
 
 /**
  * Covers: split, adventure. Both faces are legal casting options on the
@@ -35,15 +34,9 @@ export default function SplitFacesCard({ card }) {
             {face.typeLine && (
               <em><span className="scryfall-card__type-line">{face.typeLine}</span></em>
             )}
-            {face.manaCost 
-              ? (
-                <span className="scryfall-card__mana-cost">{useOracleText(face.manaCost)}</span>
-              )
-              : (
-                // Need to keep the same count of renders when cards do not have mana on the other side. Avoid having useOracleText as hook to resolve.
-                <span className="scryfall-card__mana-cost">{useOracleText("   ")}</span>  
-              )
-            }
+            {face.manaCost &&(
+              <span className="scryfall-card__mana-cost"><OracleText text={face.manaCost} Component="span" /></span>
+            )}
              {face.power&& (
               <span className={"color-pill color__M"}>
                 {face.power ? (face.power+"/"+face.toughness) : "N/A"}
@@ -63,7 +56,7 @@ export default function SplitFacesCard({ card }) {
             {face.oracleText && (
               <>
                 <hr style={{ border: "none", height: "1px", backgroundColor: "#805e24" }} />
-                <div className="scryfall-card__oracle-text">{useOracleText(face.oracleText)}</div>
+                <div className="scryfall-card__oracle-text"><OracleText text={face.oracleText} Component="p" /></div>
               </>
             )}
     
@@ -101,15 +94,9 @@ export default function SplitFacesCard({ card }) {
               {activeFace.typeLine && (
                 <em><span className="scryfall-card__type-line">{activeFace.typeLine}</span></em>
               )}
-              {activeFace.manaCost 
-                ? (
-                  <span className="scryfall-card__mana-cost">{useOracleText(activeFace.manaCost)}</span>
-                )
-                : (
-                  // Need to keep the same count of renders when cards do not have mana on the other side. Avoid having useOracleText as hook to resolve.
-                  <span className="scryfall-card__mana-cost">{useOracleText("")}</span>  
-                )
-              }
+              {activeFace.manaCost &&(
+                  <span className="scryfall-card__mana-cost"><OracleText text={activeFace.manaCost} Component="span" /></span>
+              )}
               {activeFace.power&& (
                 <span className={"color-pill color__M"}>
                   {activeFace.power ? (activeFace.power+"/"+activeFace.toughness) : "N/A"}
@@ -129,7 +116,7 @@ export default function SplitFacesCard({ card }) {
               {activeFace.oracleText && (
                 <>
                   <hr style={{ border: "none", height: "1px", backgroundColor: "#805e24" }} />
-                  <p className="scryfall-card__oracle-text">{useOracleText(activeFace.oracleText)}</p>
+                  <p className="scryfall-card__oracle-text"><OracleText text={activeFace.oracleText} Component="p" /></p>
                 </>
               )}
       

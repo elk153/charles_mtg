@@ -1,4 +1,3 @@
-import React from 'react';
 import CardFrame from './CardFrame.jsx';
 import CardExtras from './extras/CardExtras.jsx';
 

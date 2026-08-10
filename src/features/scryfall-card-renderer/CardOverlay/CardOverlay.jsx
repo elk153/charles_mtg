@@ -1,8 +1,8 @@
-import useOracleText from "../../../hooks/useOracleText";
 import CardRenderer from "../CardRenderer";
 import "./CardOverlay.css";
 import IconTurnAround from "../../../assets/IconTurnAround";
 import useFetchUrl from "../../../hooks/useFetchUrl";
+import OracleText from "../components/OracleText";
 
 const CardOverlay = ({ card, cardPrints, cardRulings, onSelect }) => {
   
@@ -33,7 +33,7 @@ const CardOverlay = ({ card, cardPrints, cardRulings, onSelect }) => {
           ?
           scryfallRulings.map(({ source, published_at, comment }, index) => (
             <li key={index}>
-              {useOracleText(comment)} <em>({source}, {published_at})</em>
+              <OracleText text={comment} Component="span" /> <em>({source}, {published_at})</em>
             </li>
           ))
           :

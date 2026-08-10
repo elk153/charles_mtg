@@ -1,15 +1,18 @@
 import { useMemo } from "react";
 import useFetchUrl from "./useFetchUrl.jsx";
 
-const useOracleText = (text) => {
+const useOracleText = (text, Component = "p") => {
 
+  // Fetch the card symbols from Scryfall API and cache them for 1 day (86400 seconds)
   const { data: symbols } = useFetchUrl("cardSymbols", "https://api.scryfall.com/symbology", 86400);
 
+  // Create a map of symbols for quick lookup
   const symbolMap = useMemo( () => 
-      Object.fromEntries(symbols.map(s => [s.symbol, s])),
+      Object.fromEntries((symbols || []).map(s => [s.symbol, s])),
       [symbols]
   );
 
+  // Regular expression to match symbols, parentheses, and newlines
   const oracleTextRegex = /(\{[^}]+\}|[()]|\n)/g; // matches {01 char}, (, ), and \n
 
   // Split the oracle_text at symbols, parenthesis and return line.
@@ -18,9 +21,9 @@ const useOracleText = (text) => {
   const oracleTextRender = [];
   let paragraphBuffer = [];
   let italicBuffer = [];
-  let symbolBuffer = []
   let isItalic = false;
 
+  // render symbol
   const renderSymbol = (i, symbol) => {
     return(
     <span key={`symbol-${i}`}>
@@ -38,16 +41,20 @@ const useOracleText = (text) => {
     );
   };
  
+  // Iterate through the oracleText array and build the rendered output
   for (let i = 0; i < oracleText.length; i++) {
     const token = oracleText[i]
     const symbol = symbolMap[token];
 
+    // ( marks the starts of an italic section. Activate the isItalic System State and push the token to the italicBuffer.)
     if (token === "(") {
       isItalic = true;
       italicBuffer.push(token);
       continue;
     }
 
+    // ) marks the end of an italic section. Deactivate the isItalic System State, push the token to the italicBuffer,
+    // and then push the entire italicBuffer to the paragraphBuffer.
     if (token === ")") {
       isItalic = false;
       italicBuffer.push(token);
@@ -56,12 +63,14 @@ const useOracleText = (text) => {
       continue;
     };
   
+    // \n marks the end of a paragraph. Push the current paragraphBuffer to the oracleTextRender array and reset the paragraphBuffer.
     if (token === "\n") {
-      oracleTextRender.push(<p key={`p-${i}`}>{paragraphBuffer}</p>);
+      oracleTextRender.push(<Component key={`p-${i}`}>{paragraphBuffer}</Component>);
       paragraphBuffer = [];
       continue;
     };
     
+    // If the token is a symbol, render it and push it to the appropriate buffer based on the isItalic System State.
     if (isItalic === false) {
       if (symbol) {
         paragraphBuffer.push(renderSymbol(i, symbol));
@@ -80,11 +89,13 @@ const useOracleText = (text) => {
 
   };
 
-  if(paragraphBuffer.length) /* if paragraphBuffer not empty */ {
-    oracleTextRender.push(<p key={"p-last"}>{paragraphBuffer}</p>);
+  // After the loop, if there are any remaining tokens in the paragraphBuffer, 
+  // push them to the oracleTextRender array as a final paragraph.
+  if(paragraphBuffer.length) {
+    oracleTextRender.push(<Component key={"p-last"}>{paragraphBuffer}</Component>);
   }
   
-   return oracleTextRender;
+  return oracleTextRender;
   
 };
 
