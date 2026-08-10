@@ -3,7 +3,7 @@ import createApiClient from "../services/createApiClient";
 
 const scryfallClient = createApiClient("https://api.scryfall.com");
 
-const useScryfallCardsSearch = (routeParam="cards/random", queryParam={ format: "json" }, seedParam=0) => {
+const useScryfallCardsSearch = (routeParam="cards/random", queryParam={ format: "json" }, seedParam=0, staleTime=86400) => {
 
   return useQuery({
 
@@ -22,7 +22,9 @@ const useScryfallCardsSearch = (routeParam="cards/random", queryParam={ format: 
           const json = await res.json();
           return json; */
         /* () => fetch("https://api.scryfall.com/cards/random").then((res) => res.json()) */
-      }
+      },
+    
+      staleTime: 1000 * staleTime,
   });
 };
 

@@ -4,7 +4,7 @@ import useFetchUrl from "./useFetchUrl.jsx";
 const useOracleText = (text, Component = "p") => {
 
   // Fetch the card symbols from Scryfall API and cache them for 1 day (86400 seconds)
-  const { data: symbols } = useFetchUrl("cardSymbols", "https://api.scryfall.com/symbology", 86400);
+  const { data: symbols } = useFetchUrl("cardSymbols", "https://api.scryfall.com/symbology", "Infinity");
 
   // Create a map of symbols for quick lookup
   const symbolMap = useMemo( () => 

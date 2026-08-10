@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 
-const useFetchUrl = (dataPurpose, urlParam, staleTime=0) => {
+const useFetchUrl = (dataPurpose, urlParam, staleTime=86400) => {
 
   return useQuery({
 
@@ -19,7 +19,7 @@ const useFetchUrl = (dataPurpose, urlParam, staleTime=0) => {
       
       },
 
-    staleTime: 1000 * staleTime, // 1 day
+    staleTime: 1000 * staleTime,
     
   });
 };
