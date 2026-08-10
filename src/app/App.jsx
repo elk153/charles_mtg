@@ -19,7 +19,7 @@ const App = () => {
   });
 
   const { data: scryfallCards, isLoading: isLoadingCards } = useScryfallCardsSearch(searchRequest.routeParam, searchRequest.queryParam, searchRequest.seedParam);
-  usePreFetchUrl("cardSymbols", "https://api.scryfall.com/symbology", 86400);
+  usePreFetchUrl("cardSymbols", "https://api.scryfall.com/symbology", Infinity);
  
 
   const activeCard = useMemo(

@@ -8,7 +8,7 @@ const CardOverlay = ({ card, onSelect }) => {
   
   const { data: scryfallRulings,} = useFetchUrl("cardRulings", card?.rulings_uri)
   const { data: scryfallPrints,} = useFetchUrl("cardPrints", card?.prints_search_uri)
-
+  
   if (!card) {
     return null;
   }
