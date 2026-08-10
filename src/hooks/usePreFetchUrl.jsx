@@ -1,11 +1,13 @@
 import { useEffect } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQueryClient, useIsRestoring } from "@tanstack/react-query";
 
 const usePreFetchUrl = (dataPurpose, urlParam, staleTimeInSeconds=86400) => {
 
   const queryClient = useQueryClient();
+  const isRestoring = useIsRestoring();
 
   useEffect( () => {
+    if (isRestoring) return; // Avoid prefetching during restoration to prevent overwriting restored cache
 
     queryClient.prefetchQuery({
       queryKey:
