@@ -22,7 +22,7 @@ const usePreFetchUrl = (dataPurpose, urlParam, staleTime=86400) => {
           return json.data;
         },
 
-      staleTime: 1000 * staleTime,
+      staleTime: (staleTime === "Infinity" ? Infinity : 1000 * staleTime),
     });
   }, [queryClient, dataPurpose, urlParam, staleTime]);
 };

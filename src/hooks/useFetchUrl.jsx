@@ -19,7 +19,7 @@ const useFetchUrl = (dataPurpose, urlParam, staleTime=86400) => {
       
       },
 
-    staleTime: 1000 * staleTime,
+    staleTime: (staleTime === "Infinity" ? Infinity : 1000 * staleTime),
     
   });
 };
