@@ -1,12 +1,12 @@
 import useOracleText from "../../../hooks/useOracleText";
 
-const OracleText = ({ text, Component = "p" }) => {
-  const oracleText = useOracleText(text, Component);
+const OracleText = ({ text, container = "p" }) => {
+  const oracleText = useOracleText(text, container);
 
   return (
-    <Component>
+    <div >
       {oracleText}
-    </Component>
+    </div>
   )
 };
 
