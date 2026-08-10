@@ -20,8 +20,7 @@ const App = () => {
   });
 
   const { data: scryfallCards, isLoading: isLoadingCards } = useScryfallCardsSearch(searchRequest.routeParam, searchRequest.queryParam, searchRequest.seedParam);
-  const { data: scryfallSymbols } = useScryfallCardsSearch("symbology", { format: "json" }, 0); // need to add duration
-  usePreFetchUrl("cardSymbols", "https://api.scryfall.com/symbology");
+  usePreFetchUrl("cardSymbols", "https://api.scryfall.com/symbology", 86400);
  
 
   const activeCard = useMemo(
@@ -129,7 +128,6 @@ const App = () => {
               <CardOverlay 
                 card={activeCard} 
                 cardPrints={"cardPrints"} 
-                cardSymbols={["symbology", { format: "json" }, 0]}
                 cardRulings={"cardRulings"} 
                 onCardSelect={handleCardSelect}
               />

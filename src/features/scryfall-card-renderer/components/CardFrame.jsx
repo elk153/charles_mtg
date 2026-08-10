@@ -12,7 +12,7 @@ import useOracleText from "../../../hooks/useOracleText";
  * pieces. Defaults to `face.rotation` (set by normalizeCard) but can be
  * overridden explicitly by a caller that manages rotation itself.
  */
-export default function CardFrame({ face, image, rotation, cardSymbols}) {
+export default function CardFrame({ face, image, rotation}) {
   const resolvedImage = image ?? face.image;
   const resolvedRotation = rotation ?? face.rotation ?? 0;
   console.log(resolvedRotation);
@@ -39,11 +39,11 @@ export default function CardFrame({ face, image, rotation, cardSymbols}) {
         )}
         {face.manaCost 
           ? (
-            <span className="scryfall-card__mana-cost">{useOracleText(face.manaCost, cardSymbols)}</span>
+            <span className="scryfall-card__mana-cost">{useOracleText(face.manaCost)}</span>
           )
           : (
             // Need to keep the same count of renders when cards do not have mana on the other side. Avoid having useOracleText as hook to resolve.
-            <span className="scryfall-card__mana-cost">{useOracleText("", cardSymbols)}</span>  
+            <span className="scryfall-card__mana-cost">{useOracleText("")}</span>  
           )
         }
         {face.power&& (
@@ -65,7 +65,7 @@ export default function CardFrame({ face, image, rotation, cardSymbols}) {
         {face.oracleText && (
           <>
             <hr style={{ border: "none", height: "1px", backgroundColor: "#805e24" }} />
-            <div className="scryfall-card__oracle-text">{useOracleText(face.oracleText, cardSymbols)}</div>
+            <div className="scryfall-card__oracle-text">{useOracleText(face.oracleText)}</div>
           </>
         )}
 

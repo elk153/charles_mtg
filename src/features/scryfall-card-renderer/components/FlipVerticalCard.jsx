@@ -14,7 +14,7 @@ import CardFrame from './CardFrame.jsx';
  * cards print the *entire* second face (art + text) upside-down, not just
  * the art.
  */
-export default function FlipVerticalCard({ card, cardSymbols }) {
+export default function FlipVerticalCard({ card }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const face = card.faces[activeIndex];
   const image = face.image ?? card.rootImage;
@@ -27,7 +27,6 @@ export default function FlipVerticalCard({ card, cardSymbols }) {
       <CardFrame 
         face={face} 
         image={image} 
-        cardSymbols={cardSymbols} 
       />
 
       {card.faces.length > 1 && (

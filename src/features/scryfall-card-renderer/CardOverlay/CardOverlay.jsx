@@ -4,11 +4,10 @@ import "./CardOverlay.css";
 import IconTurnAround from "../../../assets/IconTurnAround";
 import useFetchUrl from "../../../hooks/useFetchUrl";
 
-const CardOverlay = ({ card, cardPrints, cardSymbols, cardRulings, onSelect }) => {
+const CardOverlay = ({ card, cardPrints, cardRulings, onSelect }) => {
   
   const { data: scryfallRulings,} = useFetchUrl(cardRulings, card?.rulings_uri)
   const { data: scryfallPrints,} = useFetchUrl(cardPrints, card?.prints_search_uri)
-  const { data: scryfallSymbols } = useFetchUrl("cardSymbols", "https://api.scryfall.com/symbology");
 
   if (!card) {
     return null;
@@ -26,7 +25,7 @@ const CardOverlay = ({ card, cardPrints, cardSymbols, cardRulings, onSelect }) =
 
       <div className="card-overlay-info oracle-panel-dark corner-got parchment-frame-metallic">
 
-        <CardRenderer card={card} cardSymbols={scryfallSymbols} />
+        <CardRenderer card={card} />
         
         <h3>Rulings</h3>
         <ul className="rulings">
@@ -34,7 +33,7 @@ const CardOverlay = ({ card, cardPrints, cardSymbols, cardRulings, onSelect }) =
           ?
           scryfallRulings.map(({ source, published_at, comment }, index) => (
             <li key={index}>
-              {useOracleText(comment,scryfallSymbols)} <em>({source}, {published_at})</em>
+              {useOracleText(comment)} <em>({source}, {published_at})</em>
             </li>
           ))
           :

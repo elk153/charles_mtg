@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 
-const usePreFetchUrl = (dataPurpose, urlParam) => {
+const usePreFetchUrl = (dataPurpose, urlParam, staleTime) => {
 
   const queryClient = useQueryClient();
 
@@ -20,10 +20,11 @@ const usePreFetchUrl = (dataPurpose, urlParam) => {
 
           console.log(json.data);
           return json.data;
-        
-        }
+        },
+
+      staleTime: 1000 * staleTime, // 1 day
     });
-  }, [queryClient, dataPurpose, urlParam]);
+  }, [queryClient, dataPurpose, urlParam, staleTime]);
 };
 
 export default usePreFetchUrl;

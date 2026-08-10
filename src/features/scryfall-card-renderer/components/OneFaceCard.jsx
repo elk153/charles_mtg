@@ -9,7 +9,7 @@ import CardExtras from './extras/CardExtras.jsx';
  * This is the overwhelming majority of any real card pool, so it's the one
  * shape component imported eagerly in CardRenderer rather than lazy-loaded.
  */
-export default function OneFaceCard({ card, cardSymbols }) {
+export default function OneFaceCard({ card }) {
   const face = card.faces[0];
 
   return (
@@ -17,12 +17,10 @@ export default function OneFaceCard({ card, cardSymbols }) {
       <CardFrame 
         face={face} 
         image={face.image ?? card.rootImage} 
-        cardSymbols={cardSymbols}
       />
       <CardExtras 
         layout={card.layout} 
         face={face} 
-        cardSymbols={cardSymbols} 
       />
     </div>
   );

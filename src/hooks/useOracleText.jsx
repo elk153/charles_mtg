@@ -1,6 +1,9 @@
 import { useMemo } from "react";
+import useFetchUrl from "./useFetchUrl.jsx";
 
-const useOracleText = (text, symbols) => {
+const useOracleText = (text) => {
+
+  const { data: symbols } = useFetchUrl("cardSymbols", "https://api.scryfall.com/symbology", 86400);
 
   const symbolMap = useMemo( () => 
       Object.fromEntries(symbols.map(s => [s.symbol, s])),
