@@ -6,7 +6,6 @@ import IconClose from "../assets/IconClose.jsx";
 import "./App.css";
 import { Outlet } from "react-router";
 import useScryfallCardsSearch from "../hooks/useScryfallCardsSearch.jsx";
-import useFetchUrl from "../hooks/useFetchUrl.jsx";
 import usePreFetchUrl from "../hooks/usePreFetchUrl.jsx";
 
 const App = () => {
@@ -27,9 +26,6 @@ const App = () => {
     () => scryfallCards?.find((card) => card.id === selectedCardId),
     [scryfallCards, selectedCardId]
   );
-
-  const { isLoading: isLoadingRulings } = useFetchUrl("cardRulings", activeCard?.rulings_uri)
-  const { isLoading: isLoadingPrints } = useFetchUrl("cardPrints", activeCard?.prints_search_uri)
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
@@ -117,7 +113,7 @@ const App = () => {
             </button>
           </div>
           <div className="top-layer">
-            {isLoadingPrints || isLoadingRulings
+            {!activeCard
               ?
               <div className="card-details">
                 <div className="card-overlay-info oracle-panel-dark corner-got parchment-frame-metallic">
@@ -127,8 +123,6 @@ const App = () => {
               :
               <CardOverlay 
                 card={activeCard} 
-                cardPrints={"cardPrints"} 
-                cardRulings={"cardRulings"} 
                 onCardSelect={handleCardSelect}
               />
               /**<CarRenderer card={activeCard} />*/

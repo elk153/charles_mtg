@@ -4,10 +4,10 @@ import IconTurnAround from "../../../assets/IconTurnAround";
 import useFetchUrl from "../../../hooks/useFetchUrl";
 import OracleText from "../components/OracleText";
 
-const CardOverlay = ({ card, cardPrints, cardRulings, onSelect }) => {
+const CardOverlay = ({ card, onSelect }) => {
   
-  const { data: scryfallRulings,} = useFetchUrl(cardRulings, card?.rulings_uri)
-  const { data: scryfallPrints,} = useFetchUrl(cardPrints, card?.prints_search_uri)
+  const { data: scryfallRulings,} = useFetchUrl("cardRulings", card?.rulings_uri)
+  const { data: scryfallPrints,} = useFetchUrl("cardPrints", card?.prints_search_uri)
 
   if (!card) {
     return null;
