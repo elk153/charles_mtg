@@ -3,8 +3,9 @@ import createApiClient from "../services/createApiClient";
 
 const scryfallClient = createApiClient("https://api.scryfall.com");
 
-const useScryfallCardsSearch = (routeParam="cards/random", queryParam={ format: "json" }, seedParam=0, staleTime=86400) => {
+const useScryfallCardsSearch = (routeParam, queryParam={ format: "json" }, seedParam=0, staleTime=86400) => {
 
+  console.log(`useScryfallCardsSearch: ${queryParam}`)
   return useQuery({
 
     queryKey:

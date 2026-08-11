@@ -1,16 +1,15 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import Input from "../Input/Input";
 import useScrollDirection from "../../hooks/useScrollDirection";
 import "./FloatingNavBar.css";
 
 const FloatingNavBar = ({
-  onNavigate,
   handleSearchSubmit,
   isLoading,
   searchText,
   setSearchText,
 }) => {
-  const [active, setActive]   = useState("home");
+ 
   const navRef                = useRef(null);
 
   // Set to true as soon as the input is focused — before iOS fires any
@@ -78,7 +77,6 @@ const FloatingNavBar = ({
 
   return (
     <nav
-      ref={navRef}
       className="floating-navbar"
       aria-label="Main navigation"
     >

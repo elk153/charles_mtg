@@ -5,7 +5,7 @@ export default function createApiClient(baseUrl) {
     const filteredParams = Object.fromEntries(
       Object.entries(params).filter(([, value]) => value != null)
     );
-
+    console.log(filteredParams);
     const query = new URLSearchParams(filteredParams).toString();
     const normalizedPath = path.replace(/^\//, "");
 

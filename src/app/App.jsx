@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import FloatingNavBar from "../components/FloatingNavBar/FloatingNavBar.jsx";
-import CardsList from "../features/original-card-renderer/CardsList/CardsList.jsx"
+import CardsListProp from "../features/original-card-renderer/CardsList/CardsList.jsx"
 import CardOverlay from "../features/scryfall-card-renderer/CardOverlay/CardOverlay.jsx";
 import IconClose from "../assets/IconClose.jsx";
 import "./App.css";
-import { Outlet } from "react-router";
+import { Outlet, useNavigate } from "react-router";
 import useScryfallCardsSearch from "../hooks/useScryfallCardsSearch.jsx";
 import usePreFetchUrl from "../hooks/usePreFetchUrl.jsx";
+import CardsList from "../features/scryfall-card-renderer/CardsList/CardsList.jsx";
 
 const App = () => {
   const [theme, setTheme] = useState("dark");
@@ -17,6 +18,7 @@ const App = () => {
     queryParam: { format: "json" },
     seedParam: Date.now(),
   });
+  const navigate = useNavigate();
 
   const { data: scryfallCards, isLoading: isLoadingCards } = useScryfallCardsSearch(searchRequest.routeParam, searchRequest.queryParam, searchRequest.seedParam);
   usePreFetchUrl("cardSymbols", "https://api.scryfall.com/symbology", Infinity);
@@ -76,6 +78,10 @@ const App = () => {
       ? { routeParam: "cards/random", queryParam: { format: "json" }, seedParam: Math.random() }
       : { routeParam: "cards/search", queryParam: { q: query }, seedParam: 0 }
     );
+    if (!searchText.trim()) return;
+    navigate(`/cards/${encodeURIComponent(query)}`);
+    console.log(`${encodeURIComponent(query)}`);
+
   };
 
   const handleCardSelect = (cardId) => {
@@ -99,8 +105,8 @@ const App = () => {
           setSearchText={setSearchText}
         />
 
-        {scryfallCards && <CardsList cardData={scryfallCards} onCardSelect={handleCardSelect} />}
-        {/*<Outlet />*/}
+        {/*scryfallCards && <CardsListProp cardData={scryfallCards} onCardSelect={handleCardSelect} />*/}
+        <Outlet />
       </div>
       
 

@@ -1,6 +1,6 @@
 import { createBrowserRouter } from "react-router";
 import App from "./App";
-import CardsList from "../features/original-card-renderer/CardsList/CardsList";
+import CardsList from "../features/scryfall-card-renderer/CardsList/CardsList";
 import CardOverlay from "../features/scryfall-card-renderer/CardOverlay/CardOverlay";
 
 const router = createBrowserRouter([ // be aware of the capitals
@@ -9,7 +9,7 @@ const router = createBrowserRouter([ // be aware of the capitals
     element: <App />, // Top level States + NavigationBar + Outlet
     children: [
       {
-        path: "cards",
+        path: "cards/:searchQuery", // Scryfall card search result
         element: <CardsList />, // Scryfall card search result
       },        
       {
