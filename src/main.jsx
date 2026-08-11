@@ -37,9 +37,14 @@ ReactDOM.createRoot(root).render(
         persister,
         dehydrateOptions: {
           shouldDehydrateQuery: (query) =>
-            query.queryKey[0] === "fetchedUrl" && 
-            query.queryKey[1] === "cardSymbols" &&
-            query.queryKey[2] === "https://api.scryfall.com/symbology"
+            (
+              query.queryKey[0] === "fetchedUrl" // && 
+              //query.queryKey[1] === "cardSymbols" &&
+              //query.queryKey[2] === "https://api.scryfall.com/symbology"
+            ) || (
+              query.queryKey[0] === "scryfallCards" && 
+              query.queryKey[1] === "cards/search"
+          )
         },
       }}
       onSuccess={() => {

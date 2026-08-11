@@ -15,7 +15,7 @@ const App = () => {
   const [searchRequest, setSearchRequest] = useState({
     routeParam: "cards/random",
     queryParam: { format: "json" },
-    seedParam: 0,
+    seedParam: Date.now(),
   });
 
   const { data: scryfallCards, isLoading: isLoadingCards } = useScryfallCardsSearch(searchRequest.routeParam, searchRequest.queryParam, searchRequest.seedParam);
