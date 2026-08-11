@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import CardRenderer from "../CardRenderer";
 import "./CardOverlay.css";
 import IconTurnAround from "../../../assets/IconTurnAround";
@@ -9,6 +10,18 @@ const CardOverlay = ({ card, onSelect }) => {
   const { data: scryfallRulings,} = useFetchUrl("cardRulings", card?.rulings_uri)
   const { data: scryfallPrints,} = useFetchUrl("cardPrints", card?.prints_search_uri)
   
+  const prints = useMemo(() => scryfallPrints || [], [scryfallPrints]);
+
+  const printsReady = useMemo(() => {
+    if (!prints || prints.length === 0) return false;
+    return prints.every((p) => {
+      const hasSingleImage = Boolean(p.image_uris && p.image_uris.normal);
+      const hasFaces = Boolean(p.card_faces && p.card_faces.length > 0);
+      const facesHaveImages = hasFaces && p.card_faces.every((f) => f.image_uris && f.image_uris.normal);
+      return hasSingleImage || facesHaveImages;
+    });
+  }, [prints]);
+
   if (!card) {
     return null;
   }
@@ -58,51 +71,64 @@ const CardOverlay = ({ card, onSelect }) => {
       </div>
       
       <div className="card-prints">
-        {scryfallPrints?.map((cardPrint) => {
+        {!scryfallPrints ? (
+          <div className="prints-loading">Loading prints…</div>
+        ) : !printsReady ? (
+          <div className="prints-loading">Preparing prints…</div>
+        ) : (
+          prints.map((cardPrint) => {
           //const isDoubleFaced = (cardPrint.card_faces ? true : false);
-          const isDoubleFaced = cardPrint.layout === "transform" || cardPrint.layout === "modal_dfc";
-          return (
-            <div key={cardPrint.id} className="card-print oracle-panel-dark corner-scroll">
-              <div className="">
-                <h3>{cardPrint.set_name}</h3>
-                <p>{cardPrint.set.toUpperCase()+"/"+cardPrint.collector_number+" ("+cardPrint.released_at+")"}</p>
-                {scryfallPrints.filter(card => card.id === cardPrint.id)[0].prices.eur &&
-                  <span className="rarity-pill rarity__common">
-                    {scryfallPrints.filter(card => card.id === cardPrint.id)[0].prices.eur} €
-                  </span>
-                }
-                &nbsp;
-                {scryfallPrints.filter(card => card.id === cardPrint.id)[0].prices.eur_foil &&
-                  <span className="rarity-pill rarity-pill--foil rarity__common">
-                    Foil {scryfallPrints.filter(card => card.id === cardPrint.id)[0].prices.eur_foil} €
-                  </span>
-                }
-              </div>
-              &nbsp;
+            const isDoubleFaced = cardPrint.layout === "transform" || cardPrint.layout === "modal_dfc" || (cardPrint.card_faces && cardPrint.card_faces.length > 1);
 
-              <button type="button" className="cardButton" onClick={onSelect}>
-                {isDoubleFaced ? (
-                  <div className="card-flip-outer">
-                    <div className="card-flip-inner">
-                      <div className="card-flip-front">
-                        <img className="card" src={cardPrint.card_faces[0].image_uris.normal} alt={`${cardPrint.set} print front`} />
+            const priceInfo = (scryfallPrints || []).find((p) => p.id === cardPrint.id)?.prices || {};
+
+            return (
+              <div key={cardPrint.id} className="card-print oracle-panel-dark corner-scroll">
+                <div className="">
+                  <h3>{cardPrint.set_name}</h3>
+                  <p>{cardPrint.set?.toUpperCase() + "/" + cardPrint.collector_number + " (" + cardPrint.released_at + ")"}</p>
+                  {priceInfo?.eur && (
+                    <span className="rarity-pill rarity__common">{priceInfo.eur} €</span>
+                  )}
+                  &nbsp;
+                  {priceInfo?.eur_foil && (
+                    <span className="rarity-pill rarity-pill--foil rarity__common">Foil {priceInfo.eur_foil} €</span>
+                  )}
+                </div>
+                &nbsp;
+
+                <button type="button" className="cardButton" onClick={onSelect}>
+                  {isDoubleFaced ? (
+                    <div className="card-flip-outer">
+                      <div className="card-flip-inner">
+                        <div className="card-flip-front">
+                          {cardPrint.card_faces?.[0]?.image_uris?.normal ? (
+                            <img className="card" src={cardPrint.card_faces[0].image_uris.normal} alt={`${cardPrint.set} print front`} />
+                          ) : <div className="card-placeholder">No image</div>}
+                        </div>
+                        <div className="card-flip-back">
+                          {cardPrint.card_faces?.[1]?.image_uris?.normal ? (
+                            <img className="card" src={cardPrint.card_faces[1].image_uris.normal} alt={`${cardPrint.set} print back`} />
+                          ) : <div className="card-placeholder">No image</div>}
+                        </div>
                       </div>
-                      <div className="card-flip-back">
-                        <img className="card" src={cardPrint.card_faces[1].image_uris.normal} alt={`${cardPrint.set} print back`} />
+                      <div className="card-icon">
+                        <IconTurnAround />
                       </div>
                     </div>
-                    <div className="card-icon">
-                      <IconTurnAround />
-                    </div>
-                  </div>
-                ) : (
-                  <img className="card" src={cardPrint.image_uris.normal} alt={`${cardPrint.set} print`} />
-                )}
-              </button>
-              &nbsp;
-            </div>
-          );
-        })}
+                  ) : (
+                    (cardPrint.image_uris?.normal) ? (
+                      <img className="card" src={cardPrint.image_uris.normal} alt={`${cardPrint.set} print`} />
+                    ) : (
+                      <div className="card-placeholder">No image</div>
+                    )
+                  )}
+                </button>
+                &nbsp;
+              </div>
+            );
+          })
+        )}
       </div>
     </div>
   );
