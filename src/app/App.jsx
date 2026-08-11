@@ -1,14 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
+import { Outlet, useLocation, useParams } from "react-router";
 import FloatingNavBar from "../components/FloatingNavBar/FloatingNavBar.jsx";
 import CardOverlay from "../features/scryfall-card-renderer/CardOverlay/CardOverlay.jsx";
 import IconClose from "../assets/IconClose.jsx";
 import "./App.css";
-import { Outlet, useLocation, useParams } from "react-router";
 import useScryfallCardsSearch from "../hooks/useScryfallCardsSearch.jsx";
 import usePreFetchUrl from "../hooks/usePreFetchUrl.jsx";
 
 const App = () => {
-  const [theme, setTheme] = useState("dark");
+  const [theme] = useState("dark");
   const [searchText, setSearchText] = useState("");
   const [selectedCardId, setSelectedCardId] = useState(null);
   const [randomSeed, setRandomSeed] = useState(() => Date.now());
@@ -27,6 +27,8 @@ const App = () => {
     seedParam
   );
   usePreFetchUrl("cardSymbols", "https://api.scryfall.com/symbology", Infinity);
+
+  const randomCardName = isRandomRoute && scryfallCards?.[0]?.name ? scryfallCards[0].name : undefined;
 
   const activeCard = useMemo(
     () => scryfallCards?.find((card) => card.id === selectedCardId),
@@ -92,6 +94,8 @@ const App = () => {
           searchText={searchText}
           setSearchText={setSearchText}
           onRandomRequest={() => setRandomSeed(Date.now())}
+          isRandomRoute={isRandomRoute}
+          randomCardName={randomCardName}
         />
 
         <Outlet context={{ scryfallCards, isLoadingCards, onCardSelect: setSelectedCardId }} />

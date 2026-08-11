@@ -9,6 +9,8 @@ const FloatingNavBar = ({
   searchText,
   setSearchText,
   onRandomRequest,
+  isRandomRoute,
+  randomCardName,
 }) => {
   const navigate = useNavigate();
 
@@ -24,6 +26,11 @@ const FloatingNavBar = ({
     onRandomRequest?.();
     navigate("/random");
   };
+
+  useEffect(() => {
+    if (!isRandomRoute || !randomCardName) return;
+    navigate(`/cards/${encodeURIComponent(randomCardName)}`, { replace: true });
+  }, [isRandomRoute, randomCardName, navigate]);
  
   const navRef                = useRef(null);
 
