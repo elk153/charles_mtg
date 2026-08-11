@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Outlet, useLocation, useParams } from "react-router";
+import { Outlet, useNavigate, useLocation, useParams } from "react-router";
 import FloatingNavBar from "../components/FloatingNavBar/FloatingNavBar.jsx";
 import CardOverlay from "../features/scryfall-card-renderer/CardOverlay/CardOverlay.jsx";
 import IconClose from "../assets/IconClose.jsx";
@@ -12,6 +12,7 @@ const App = () => {
   const [searchText, setSearchText] = useState("");
   const [selectedCardId, setSelectedCardId] = useState(null);
   const [randomSeed, setRandomSeed] = useState(() => Date.now());
+  const navigate = useNavigate();
   const location = useLocation();
   const { searchQuery } = useParams();
 
@@ -26,14 +27,30 @@ const App = () => {
     queryParam,
     seedParam
   );
+
+  // If URL is /card/:cardId (direct link), fetch that single card so
+  // we can render the overlay on top of a search that contains only it.
+  const cardMatch = location.pathname.match(/^\/card\/([^/]+)/);
+  const routeCardId = cardMatch ? cardMatch[1] : null;
+  const { data: cardFromRoute, isLoading: isLoadingCardRoute } = useScryfallCardsSearch(
+    routeCardId ? `cards/${routeCardId}` : null,
+    {},
+    0
+  );
+
+  const effectiveCards = cardFromRoute?.length ? cardFromRoute : scryfallCards;
   usePreFetchUrl("cardSymbols", "https://api.scryfall.com/symbology", Infinity);
 
-  const randomCardName = isRandomRoute && scryfallCards?.[0]?.name ? scryfallCards[0].name : undefined;
+  
 
   const activeCard = useMemo(
-    () => scryfallCards?.find((card) => card.id === selectedCardId),
-    [scryfallCards, selectedCardId]
+    () => effectiveCards?.find((card) => card.id === selectedCardId),
+    [effectiveCards, selectedCardId]
   );
+
+  const overlayCard = selectedCardId
+    ? activeCard
+    : cardFromRoute?.[0];
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
@@ -76,12 +93,37 @@ const App = () => {
 
   }, []);
 
+  useEffect(() => {
+    // Whenever we leave a `/card/:id` route, clear the in-memory selection
+    // so the overlay is closed. This covers Back navigation and close.
+    const match = location.pathname.match(/^\/card\/([^/]+)/);
+    const currentId = match ? decodeURIComponent(match[1]) : null;
+
+    if (!currentId && selectedCardId) {
+      setTimeout(() => {
+        setSelectedCardId(null);
+      }, 0);
+    }
+  }, [location.pathname, selectedCardId]);
+
   const handleCardSelect = (cardId) => {
     setSelectedCardId(cardId);
   };
 
   const handleCloseDetails = () => {
+    // If the overlay was opened from the in-app list, go back in history.
+    if (location.state?.fromList) {
+      // Navigate back first and let the location-change effect clear selection state.
+      navigate(-1);
+      return;
+    }
+
+    // Otherwise (external link), navigate to a cards search for that name.
+    const card = effectiveCards?.find((c) => c.id === selectedCardId) || effectiveCards?.[0];
     setSelectedCardId(null);
+    if (card?.name) {
+      navigate(`/cards/${encodeURIComponent(card.name)}`);
+    }
   };
 
   return (
@@ -94,16 +136,20 @@ const App = () => {
           searchText={searchText}
           setSearchText={setSearchText}
           onRandomRequest={() => setRandomSeed(Date.now())}
-          isRandomRoute={isRandomRoute}
-          randomCardName={randomCardName}
         />
 
-        <Outlet context={{ scryfallCards, isLoadingCards, onCardSelect: setSelectedCardId }} />
+        <Outlet context={{ scryfallCards: effectiveCards, isLoadingCards: isLoadingCards || isLoadingCardRoute, onCardSelect: (id) => {
+          // Called when clicking a card in the list: set selection and navigate
+          // with history state so we know the overlay was opened from the list.
+          setSelectedCardId(id);
+          const encoded = encodeURIComponent(id);
+          navigate(`/card/${encoded}`, { state: { fromList: true, fromPath: location.pathname + location.search } });
+        } }} />
       </div>
       
 
 
-      {activeCard && (
+      {overlayCard && (
         <>
           <div className="nav-close">
             <button className="nav-icon" onClick={handleCloseDetails}>
@@ -111,20 +157,10 @@ const App = () => {
             </button>
           </div>
           <div className="top-layer">
-            {!activeCard
-              ?
-              <div className="card-details">
-                <div className="card-overlay-info oracle-panel-dark corner-got parchment-frame-metallic">
-                  <h3 style={{textAlign: "center"}}>Summoning...</h3>
-                </div>
-              </div>
-              :
               <CardOverlay 
-                card={activeCard} 
+                card={overlayCard} 
                 onCardSelect={handleCardSelect}
               />
-              /**<CarRenderer card={activeCard} />*/
-            }
           </div>
         </>
       )}
