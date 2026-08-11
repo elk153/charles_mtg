@@ -18,8 +18,13 @@ const App = () => {
 
   const normalizedSearchQuery = searchQuery ? decodeURIComponent(searchQuery) : "";
   const isRandomRoute = location.pathname === "/random";
-  const routeParam = isRandomRoute ? "cards/random" : "cards/search";
-  const queryParam = isRandomRoute ? { format: "json" } : { q: normalizedSearchQuery, format: "json" };
+
+  // Avoid issuing an automatic empty `cards/search?q=` request when the
+  // route contains no search term. Manual submits with an empty field still
+  // go to `/random` via FloatingNavBar and should trigger the random API.
+  const shouldDoSearch = !isRandomRoute && normalizedSearchQuery.length > 0;
+  const routeParam = isRandomRoute ? "cards/random" : shouldDoSearch ? "cards/search" : null;
+  const queryParam = isRandomRoute ? { format: "json" } : shouldDoSearch ? { q: normalizedSearchQuery, format: "json" } : {};
   const seedParam = isRandomRoute ? randomSeed : 0;
 
   const { data: scryfallCards, isLoading: isLoadingCards } = useScryfallCardsSearch(
