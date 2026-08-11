@@ -1,14 +1,29 @@
 import { useEffect, useRef } from "react";
+import { useNavigate } from "react-router";
 import Input from "../Input/Input";
 import useScrollDirection from "../../hooks/useScrollDirection";
 import "./FloatingNavBar.css";
 
 const FloatingNavBar = ({
-  handleSearchSubmit,
   isLoading,
   searchText,
   setSearchText,
+  onRandomRequest,
 }) => {
+  const navigate = useNavigate();
+
+  const handleSearchSubmit = (event) => {
+    event.preventDefault();
+    const query = searchText.trim();
+    if (query) {
+      navigate(`/cards/${encodeURIComponent(query)}`);
+      return;
+    }
+
+    setSearchText("");
+    onRandomRequest?.();
+    navigate("/random");
+  };
  
   const navRef                = useRef(null);
 

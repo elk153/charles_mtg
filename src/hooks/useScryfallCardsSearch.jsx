@@ -3,29 +3,15 @@ import createApiClient from "../services/createApiClient";
 
 const scryfallClient = createApiClient("https://api.scryfall.com");
 
-const useScryfallCardsSearch = (routeParam, queryParam={ format: "json" }, seedParam=0, staleTime=86400) => {
-
-  console.log(`useScryfallCardsSearch: ${queryParam}`)
+const useScryfallCardsSearch = (routeParam, queryParam = {}, seedParam = 0, staleTimeInSeconds = 86400) => {
   return useQuery({
-
-    queryKey:
-      ["scryfallCards", routeParam, queryParam, seedParam],
-
-    queryFn:
-      async () => {
-
-        if (!routeParam) return [];
-        const data = await scryfallClient.fetchData(routeParam, queryParam);
-        return data;
-      
-        /* async () => {
-          const res = await fetch("https://api.scryfall.com/cards/random");
-          const json = await res.json();
-          return json; */
-        /* () => fetch("https://api.scryfall.com/cards/random").then((res) => res.json()) */
-      },
-    
-      staleTime: 1000 * staleTime,
+    queryKey: ["scryfallCards", routeParam, queryParam, seedParam],
+    queryFn: async () => {
+      const data = await scryfallClient.fetchData(routeParam, queryParam);
+      return data;
+    },
+    enabled: Boolean(routeParam),
+    staleTime: 1000 * staleTimeInSeconds,
   });
 };
 

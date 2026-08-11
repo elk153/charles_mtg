@@ -1,28 +1,32 @@
 import { useEffect, useMemo, useState } from "react";
 import FloatingNavBar from "../components/FloatingNavBar/FloatingNavBar.jsx";
-import CardsListProp from "../features/original-card-renderer/CardsList/CardsList.jsx"
 import CardOverlay from "../features/scryfall-card-renderer/CardOverlay/CardOverlay.jsx";
 import IconClose from "../assets/IconClose.jsx";
 import "./App.css";
-import { Outlet, useNavigate } from "react-router";
+import { Outlet, useLocation, useParams } from "react-router";
 import useScryfallCardsSearch from "../hooks/useScryfallCardsSearch.jsx";
 import usePreFetchUrl from "../hooks/usePreFetchUrl.jsx";
-import CardsList from "../features/scryfall-card-renderer/CardsList/CardsList.jsx";
 
 const App = () => {
   const [theme, setTheme] = useState("dark");
   const [searchText, setSearchText] = useState("");
   const [selectedCardId, setSelectedCardId] = useState(null);
-  const [searchRequest, setSearchRequest] = useState({
-    routeParam: "cards/random",
-    queryParam: { format: "json" },
-    seedParam: Date.now(),
-  });
-  const navigate = useNavigate();
+  const [randomSeed, setRandomSeed] = useState(() => Date.now());
+  const location = useLocation();
+  const { searchQuery } = useParams();
 
-  const { data: scryfallCards, isLoading: isLoadingCards } = useScryfallCardsSearch(searchRequest.routeParam, searchRequest.queryParam, searchRequest.seedParam);
+  const normalizedSearchQuery = searchQuery ? decodeURIComponent(searchQuery) : "";
+  const isRandomRoute = location.pathname === "/random";
+  const routeParam = isRandomRoute ? "cards/random" : "cards/search";
+  const queryParam = isRandomRoute ? { format: "json" } : { q: normalizedSearchQuery, format: "json" };
+  const seedParam = isRandomRoute ? randomSeed : 0;
+
+  const { data: scryfallCards, isLoading: isLoadingCards } = useScryfallCardsSearch(
+    routeParam,
+    queryParam,
+    seedParam
+  );
   usePreFetchUrl("cardSymbols", "https://api.scryfall.com/symbology", Infinity);
- 
 
   const activeCard = useMemo(
     () => scryfallCards?.find((card) => card.id === selectedCardId),
@@ -70,20 +74,6 @@ const App = () => {
 
   }, []);
 
-  const handleSearchSubmit = (event) => {
-    event.preventDefault();
-    const query = searchText.trim();
-    setSearchRequest(
-    (query === "" || !query)
-      ? { routeParam: "cards/random", queryParam: { format: "json" }, seedParam: Math.random() }
-      : { routeParam: "cards/search", queryParam: { q: query }, seedParam: 0 }
-    );
-    if (!searchText.trim()) return;
-    navigate(`/cards/${encodeURIComponent(query)}`);
-    console.log(`${encodeURIComponent(query)}`);
-
-  };
-
   const handleCardSelect = (cardId) => {
     setSelectedCardId(cardId);
   };
@@ -98,15 +88,13 @@ const App = () => {
         {/*<Header />*/}
         
         <FloatingNavBar // use navbar for Aria
-          onNavigate={(id) => console.log("navigate to:", id)}
-          handleSearchSubmit={handleSearchSubmit}
           isLoading={isLoadingCards}
           searchText={searchText}
           setSearchText={setSearchText}
+          onRandomRequest={() => setRandomSeed(Date.now())}
         />
 
-        {/*scryfallCards && <CardsListProp cardData={scryfallCards} onCardSelect={handleCardSelect} />*/}
-        <Outlet />
+        <Outlet context={{ scryfallCards, isLoadingCards, onCardSelect: setSelectedCardId }} />
       </div>
       
 

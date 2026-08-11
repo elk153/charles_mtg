@@ -1,23 +1,35 @@
-import { Link, useParams } from "react-router";
+import { useParams, useOutletContext } from "react-router";
 import Card from '../../original-card-renderer/Card/Card.jsx';
 import "./CardsList.css";
-import useScryfallCardsSearch from "../../../hooks/useScryfallCardsSearch.jsx";
 
 const CardsList = () => {
+  const { searchQuery } = useParams();
+  const { scryfallCards = [], isLoadingCards = false, onCardSelect } = useOutletContext() ?? {};
+  const decodedQuery = searchQuery ? decodeURIComponent(searchQuery) : "";
 
-  const {searchQuery} = useParams();
-  console.log("CardsList.jsx: searchQuery = ", searchQuery);
-    const { data: scryfallCards, isLoading: isLoadingCards } = useScryfallCardsSearch("cards/search",searchQuery);
-  console.log("CardsList.jsx: scryfallCards = ", scryfallCards);
-  
-/*
+  if (isLoadingCards) {
+    return <div className="cards-list">Loading cards…</div>;
+  }
+
+  if (!scryfallCards || scryfallCards.length === 0) {
+    return (
+      <div className="cards-list">
+        {decodedQuery ? (
+          <p>No cards found for <strong>{decodedQuery}</strong>.</p>
+        ) : (
+          <p>Search for a card to display results.</p>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="cards-list">
-      {cardData.map((card) => (
-        <Card key={card.id} card={card} onSelect={() => onCardSelect(card.id)} />
+      {scryfallCards.map((card) => (
+        <Card key={card.id} card={card} onSelect={() => onCardSelect?.(card.id)} />
       ))}
     </div>
-  )*/
+  );
 };
 
 export default CardsList;
