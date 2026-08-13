@@ -9,7 +9,6 @@ import usePreFetchUrl from "../hooks/usePreFetchUrl.jsx";
 
 const App = () => {
   const [theme] = useState("dark");
-  const [searchText, setSearchText] = useState("");
   const [selectedCardId, setSelectedCardId] = useState(null);
   const [randomSeed, setRandomSeed] = useState(() => Date.now());
   const navigate = useNavigate();
@@ -138,8 +137,6 @@ const App = () => {
         
         <FloatingNavBar // use navbar for Aria
           isLoading={isLoadingCards}
-          searchText={searchText}
-          setSearchText={setSearchText}
           onRandomRequest={() => setRandomSeed(Date.now())}
         />
 
