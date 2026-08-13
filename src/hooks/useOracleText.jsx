@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import useFetchUrl from "./useFetchUrl.jsx";
+import useFetchUrl from "./useFetchUrl.js";
 
 const useOracleText = (text, Component = "p") => {
 

@@ -2,8 +2,8 @@ import { useMemo } from "react";
 import CardRenderer from "../CardRenderer";
 import "./CardOverlay.css";
 import IconTurnAround from "../../../assets/IconTurnAround";
-import useFetchUrl from "../../../hooks/useFetchUrl";
-import OracleText from "../components/OracleText";
+import useFetchUrl from "../../../hooks/useFetchUrl.js";
+import OracleText from "../components/OracleText.jsx";
 
 const CardOverlay = ({ card, onSelect }) => {
   

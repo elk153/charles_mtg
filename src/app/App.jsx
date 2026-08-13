@@ -5,7 +5,7 @@ import CardOverlay from "../features/scryfall-card-renderer/CardOverlay/CardOver
 import IconClose from "../assets/IconClose.jsx";
 import "./App.css";
 import useScryfallCardsSearch from "../hooks/useScryfallCardsSearch.jsx";
-import usePreFetchUrl from "../hooks/usePreFetchUrl.jsx";
+import usePreFetchUrl from "../hooks/usePreFetchUrl.js";
 
 const App = () => {
   const [theme] = useState("dark");
