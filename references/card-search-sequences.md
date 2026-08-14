@@ -1,9 +1,8 @@
----
-title: Card Search Sequence Diagrams
----
+# Card Search Sequence Diagrams
 
 ## Scenario 1: Initial App Load → Random Card
 
+```mermaid
 sequenceDiagram
     participant User
     participant Browser
@@ -32,11 +31,11 @@ sequenceDiagram
     App->>CardsList: Render CardsList (/random route)
     CardsList->>CardsList: Map scryfallCards to Card components
     CardsList-->>User: Display random card(s)
-
----
+```
 
 ## Scenario 2: User Searches by Card Name
 
+```mermaid
 sequenceDiagram
     participant User
     participant FloatingNavBar
@@ -66,11 +65,11 @@ sequenceDiagram
     App->>CardsList: Render CardsList (/cards/Counterspell route)
     CardsList->>CardsList: Map scryfallCards to Card components
     CardsList-->>User: Display search results
-
----
+````
 
 ## Scenario 3: Clicking a Card in the List to Open Overlay
 
+```mermaid
 sequenceDiagram
     participant User
     participant CardsList
@@ -104,11 +103,11 @@ sequenceDiagram
     end
     App->>CardOverlay: Render CardOverlay with card data
     CardOverlay-->>User: Display card details overlay
-
----
+````
 
 ## Scenario 4: Deep Link to Card (/card/:cardId)
 
+```mermaid
 sequenceDiagram
     participant User
     participant Browser
@@ -134,11 +133,11 @@ sequenceDiagram
     App->>App: effectiveCards = cardFromRoute (since no search results)
     App->>CardOverlay: Render CardOverlay with card data
     CardOverlay-->>User: Display card details overlay
-
----
+````
 
 ## Scenario 5: Card Overlay - Loading Rulings & Prints
 
+```mermaid
 sequenceDiagram
     participant User
     participant CardOverlay
@@ -175,11 +174,11 @@ sequenceDiagram
     CardOverlay->>OracleText: Render each ruling
     CardOverlay->>CardOverlay: Render prints gallery
     CardOverlay-->>User: Display rulings & prints
-
----
+````
 
 ## Scenario 6: Empty Search → Redirect to Random
 
+```mermaid
 sequenceDiagram
     participant User
     participant FloatingNavBar
@@ -201,3 +200,4 @@ sequenceDiagram
     FloatingNavBar->>Browser: navigate("/random")
     Browser->>App: location updates
     App-->>User: Display new random card
+```
