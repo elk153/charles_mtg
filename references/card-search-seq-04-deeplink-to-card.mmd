@@ -1,0 +1,25 @@
+sequenceDiagram
+    participant User
+    participant Browser
+    participant App as App.jsx
+    participant Hook as useScryfallCardsSearch
+    participant QC as QueryClient
+    participant API as Scryfall API
+    participant CardOverlay
+
+    User->>Browser: Navigate to /card/{id}
+    Browser->>App: Route loaded
+    App->>App: Extract cardId from URL
+    App->>Hook: useScryfallCardsSearch('cards/{id}')
+    Hook->>QC: Check queryKey cache
+    alt Cache Miss
+        QC->>API: GET /cards/{id}
+        API-->>QC: Return card data
+        QC->>QC: Store (staleTime: 24h)
+    else Cache Hit
+        QC-->>QC: Return cached card
+    end
+    Hook-->>App: { data: card[], isLoading }
+    App->>App: effectiveCards = cardFromRoute
+    App->>CardOverlay: Render with card
+    CardOverlay-->>User: Display overlay
