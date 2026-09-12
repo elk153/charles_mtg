@@ -6,7 +6,7 @@ import CardOverlay from "../features/scryfall-card-renderer/CardOverlay/CardOver
 const router = createBrowserRouter([ // be aware of the capitals
   {
     path: "/",
-    element: <App />, // Top level States + NavigationBar + Outlet
+    element: <App />, 
     children: [
       {
         index: true,
@@ -37,6 +37,26 @@ const router = createBrowserRouter([ // be aware of the capitals
             element: <CardPrintings /> 
           },
         ],*/
+      },
+      {
+        path: "home",
+        element: <Home />,
+      },
+      {
+        path: "search/advanced",
+        element: <AdvancedSearch />,
+      },
+      {
+        path: "favorites",
+        element: <Favorites />,
+      },
+      {
+        path: "collection",
+        element: <Collection />,
+      },
+      {
+        path: "decks",
+        element: <Decks />,
       },
     ],
   }

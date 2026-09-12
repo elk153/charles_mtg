@@ -1,0 +1,59 @@
+/* ==========================================================================
+   navbar-desktop.css
+   Positioning only — visual language lives in navbar-shared.css.
+   A full-width bar pinned to the top of the viewport, its inner content
+   centered, that slides up and fades out on scroll-down.
+   ========================================================================== */
+
+.nav-bar--desktop {
+  display: none; /* shown at desktop breakpoint below */
+}
+
+@media (min-width: 861px) {
+  .nav-bar--desktop {
+    display: block;
+    position: fixed;
+    top: 0.75rem;
+    left: 50%;
+    width: min(92vw, 960px);
+    height: 64px;
+    transform: translate(-50%, 0);
+    z-index: 100;
+
+    /* Desktop header keeps its rounded floating-bar corners rather than
+       spanning edge-to-edge — this is what lets it share nav-surface
+       1:1 with the mobile bar. */
+  }
+
+  .nav-bar--desktop.nav-bar--hidden {
+    transform: translate(-50%, -140%);
+  }
+
+  .nav-bar--desktop .nav-bar__row {
+    justify-content: space-between;
+  }
+
+  .nav-bar--desktop .nav-search {
+    order: 0;
+  }
+
+  .nav-bar--desktop .nav-bar__list {
+    order: 1;
+  }
+
+  .nav-bar--desktop .nav-item {
+    flex-direction: row;
+    padding: 0.5rem 0.75rem;
+    gap: 0.5rem;
+  }
+
+  .nav-bar--desktop .nav-icon {
+    --icon-size: 1.15rem;
+  }
+}
+
+/* The bar is `position: fixed`, so it doesn't reserve layout space.
+   Add top padding/margin to your page's main content wrapper yourself,
+   e.g. `main { padding-top: 5.5rem; }` at the desktop breakpoint —
+   intentionally left out of this file since it depends on your layout. */
+

@@ -1,0 +1,60 @@
+/* ==========================================================================
+   navbar-mobile.css
+   Positioning only — visual language lives in navbar-shared.css.
+   A pill floating above the bottom of the viewport, icon-only, that
+   drops out of view on scroll-down and returns on scroll-up.
+   ========================================================================== */
+
+.nav-bar--mobile {
+  display: block;
+  position: fixed;
+  left: 50%;
+  bottom: calc(0.9rem + env(safe-area-inset-bottom, 0px));
+  width: max-content;
+  max-width: 94vw;
+  height: 58px;
+  transform: translate(-50%, 0);
+  z-index: 100;
+}
+
+.nav-bar--mobile.nav-bar--hidden {
+  transform: translate(-50%, 160%);
+}
+
+.nav-bar--mobile .nav-bar__row {
+  padding: 0 0.5rem;
+  gap: 0.35rem;
+}
+
+.nav-bar--mobile .nav-item {
+  padding: 0.5rem;
+  min-width: 2.5rem;
+}
+
+/* Labels are desktop-only real estate; hide them here even though the
+   markup is shared, and give screen readers the button's aria-label
+   instead (already set in NavBarMobile.jsx). */
+.nav-bar--mobile .nav-label {
+  display: none;
+}
+
+/* The quick-search field starts icon-only and blooms open on focus,
+   since there isn't room for a resting-state text input next to five
+   icons on a phone width. */
+.nav-bar--mobile .nav-search__input {
+  width: 0;
+  opacity: 0;
+  padding: 0;
+}
+
+.nav-bar--mobile .nav-search--expanded .nav-search__input,
+.nav-bar--mobile .nav-search:focus-within .nav-search__input {
+  width: 7rem;
+  opacity: 1;
+}
+
+@media (min-width: 861px) {
+  .nav-bar--mobile {
+    display: none;
+  }
+}
