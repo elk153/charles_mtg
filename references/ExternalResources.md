@@ -8,6 +8,9 @@
 ## State management
 * https://www.developerway.com/posts/react-state-management-2025
 
+## Routing
+* https://vercel.com/i/tanstack-router-vs-react-router
+
 ## Libraries
 * https://github.com/pmndrs/zustand
 * https://nuqs.dev
