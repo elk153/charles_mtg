@@ -2,6 +2,7 @@
 
 ## React concepts
 * https://www.thereactjsbook.com
+* https://fullstackopen.com
 
 ## State management
 * https://www.developerway.com/posts/react-state-management-2025
