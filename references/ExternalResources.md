@@ -19,3 +19,6 @@
 
 ## Inspiring blogs
 * https://www.developerway.com
+
+## Javascript
+* https://www.aleksandrhovhannisyan.com/blog/interactive-guide-to-javascript-events/
