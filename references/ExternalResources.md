@@ -10,6 +10,7 @@
 
 ## Routing
 * https://vercel.com/i/tanstack-router-vs-react-router
+* https://tkdodo.eu/blog/react-query-meets-react-router
 
 ## Libraries
 * https://github.com/pmndrs/zustand
