@@ -22,3 +22,8 @@
 
 ## Javascript
 * https://www.aleksandrhovhannisyan.com/blog/interactive-guide-to-javascript-events/
+
+## Design
+* https://uxdesign.cc/everything-you-need-to-know-about-design-systems-54b109851969
+
+
