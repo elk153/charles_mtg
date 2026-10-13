@@ -1,6 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import AppProviders from "./app/AppProviders.jsx";
+import AppProviders from "./app/AppProviders.tsx";
 
 const container = document.getElementById("root");
 
@@ -13,5 +13,5 @@ const root = createRoot(container);
 root.render(
   <StrictMode>
     <AppProviders />
-  </StrictMode>
+  </StrictMode>,
 );
