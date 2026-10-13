@@ -1,10 +1,16 @@
 import { StrictMode } from "react";
-import ReactDOM from "react-dom/client";
+import { createRoot } from "react-dom/client";
 import AppProviders from "./app/AppProviders.jsx";
 
-const root = document.getElementById("root");
+const container = document.getElementById("root");
 
-ReactDOM.createRoot(root).render(
+if (!container) {
+  throw new Error('Missing the DOM element with id="root"');
+}
+
+const root = createRoot(container);
+
+root.render(
   <StrictMode>
     <AppProviders />
   </StrictMode>

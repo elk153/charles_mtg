@@ -38,7 +38,7 @@ const router = createBrowserRouter([ // be aware of the capitals
           },
         ],*/
       },
-      {
+      /*{
         path: "home",
         element: <Home />,
       },
@@ -57,7 +57,7 @@ const router = createBrowserRouter([ // be aware of the capitals
       {
         path: "decks",
         element: <Decks />,
-      },
+      },*/
     ],
   }
 ]);
