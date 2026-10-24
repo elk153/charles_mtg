@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import navItems from "./navItems";
 import NavSearchField from "./NavSearchField";
-import useScrollVisibility from "./hooks/useScrollVisibility";
+import useScrollVisibility from "../../hooks/useScrollVisibility";
 
 export default function NavBarMobile() {
   const scrollVisible = useScrollVisibility({ threshold: 10, topGuard: 40 });

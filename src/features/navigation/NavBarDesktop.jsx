@@ -2,7 +2,7 @@ import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import navItems from "./navItems";
 import NavSearchField from "./NavSearchField";
-import useScrollVisibility from "./hooks/useScrollVisibility";
+import useScrollVisibility from "../../hooks/useScrollVisibility";
 
 export default function NavBarDesktop() {
   const visible = useScrollVisibility({ threshold: 12, topGuard: 56 });

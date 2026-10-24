@@ -17,18 +17,18 @@ const FloatingNavBar = ({
     event.preventDefault();
     const query = searchText.trim();
     if (query) {
-      navigate(`/cards/${encodeURIComponent(query)}`);
+      navigate(`/v1/cards/${encodeURIComponent(query)}`);
       return;
     }
 
     setSearchText("");
     onRandomRequest?.();
-    navigate("/random");
+    navigate("/v1/random");
   };
 
   useEffect(() => {
     if (!isRandomRoute || !randomCardName) return;
-    navigate(`/cards/${encodeURIComponent(randomCardName)}`, { replace: true });
+    navigate(`/v1/cards/${encodeURIComponent(randomCardName)}`, { replace: true });
   }, [isRandomRoute, randomCardName, navigate]);
  
   const navRef                = useRef(null);

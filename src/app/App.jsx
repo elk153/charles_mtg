@@ -16,11 +16,11 @@ const App = () => {
   const { searchQuery } = useParams();
 
   const normalizedSearchQuery = searchQuery ? decodeURIComponent(searchQuery) : "";
-  const isRandomRoute = location.pathname === "/random";
+  const isRandomRoute = location.pathname === "/v1/random";
 
   // Avoid issuing an automatic empty `cards/search?q=` request when the
   // route contains no search term. Manual submits with an empty field still
-  // go to `/random` via FloatingNavBar and should trigger the random API.
+  // go to `/v1/random` via FloatingNavBar and should trigger the random API.
   const shouldDoSearch = !isRandomRoute && normalizedSearchQuery.length > 0;
   const routeParam = isRandomRoute ? "cards/random" : shouldDoSearch ? "cards/search" : null;
   const queryParam = isRandomRoute ? { format: "json" } : shouldDoSearch ? { q: normalizedSearchQuery, format: "json" } : {};
@@ -32,9 +32,9 @@ const App = () => {
     seedParam
   );
 
-  // If URL is /card/:cardId (direct link), fetch that single card so
+  // If URL is /v1/card/:cardId (direct link), fetch that single card so
   // we can render the overlay on top of a search that contains only it.
-  const cardMatch = location.pathname.match(/^\/card\/([^/]+)/);
+  const cardMatch = location.pathname.match(/^\/v1\/card\/([^/]+)/);
   const routeCardId = cardMatch ? cardMatch[1] : null;
   const { data: cardFromRoute, isLoading: isLoadingCardRoute } = useScryfallCardsSearch(
     routeCardId ? `cards/${routeCardId}` : null,
@@ -98,9 +98,9 @@ const App = () => {
   }, []);
 
   useEffect(() => {
-    // Whenever we leave a `/card/:id` route, clear the in-memory selection
+    // Whenever we leave a `/v1/card/:id` route, clear the in-memory selection
     // so the overlay is closed. This covers Back navigation and close.
-    const match = location.pathname.match(/^\/card\/([^/]+)/);
+    const match = location.pathname.match(/^\/v1\/card\/([^/]+)/);
     const currentId = match ? decodeURIComponent(match[1]) : null;
 
     if (!currentId && selectedCardId) {
@@ -126,7 +126,7 @@ const App = () => {
     const card = effectiveCards?.find((c) => c.id === selectedCardId) || effectiveCards?.[0];
     setSelectedCardId(null);
     if (card?.name) {
-      navigate(`/cards/${encodeURIComponent(card.name)}`);
+      navigate(`/v1/cards/${encodeURIComponent(card.name)}`);
     }
   };
 
@@ -145,7 +145,7 @@ const App = () => {
           // with history state so we know the overlay was opened from the list.
           setSelectedCardId(id);
           const encoded = encodeURIComponent(id);
-          navigate(`/card/${encoded}`, { state: { fromList: true, fromPath: location.pathname + location.search } });
+          navigate(`/v1/card/${encoded}`, { state: { fromList: true, fromPath: location.pathname + location.search } });
         } }} />
       </div>
       

@@ -4,7 +4,7 @@ import {
   FavoritesIcon,
   CollectionIcon,
   DecksIcon,
-} from "./icons/NavIcons";
+} from "./NavIcons";
 
 // Single source of truth for the 5 options. Both NavBarDesktop and
 // NavBarMobile map over this so labels/icons/paths never drift apart.

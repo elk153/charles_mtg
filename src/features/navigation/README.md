@@ -6,7 +6,7 @@ Two breakpoints, one shared visual language. Built directly against the
 
 ## Files
 
-```
+```text
 navbar/
 ├── NavBar.jsx              — drop-in root component (renders both bars)
 ├── NavBarDesktop.jsx        — top header, icon + title, hides on scroll
