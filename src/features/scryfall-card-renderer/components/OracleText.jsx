@@ -1,4 +1,4 @@
-import useOracleText from "../../../hooks/useOracleText";
+import useOracleText from "../../../hooks/useOracleText.tsx";
 
 const OracleText = ({ text, container = "p" }) => {
   const oracleText = useOracleText(text, container);
