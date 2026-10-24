@@ -49,3 +49,48 @@ export default function App() {
     </div>
   );
 }
+
+export function Home() {
+  return (
+    <div>
+      <h1>Welcome to the Home Page</h1>
+      <p>This is the home page of the application.</p>
+    </div>
+  );
+}
+
+export function AdvancedSearch() {
+  return (
+    <div>
+      <h1>Advanced Search</h1>
+      <p>This is the advanced search page of the application.</p>
+    </div>
+  );
+}
+
+export function Favorites() {
+  return (
+    <div>
+      <h1>Favorites</h1>
+      <p>This is the favorites page of the application.</p>
+    </div>
+  );
+}
+
+export function Collection() {
+  return (
+    <div>
+      <h1>Collection</h1>
+      <p>This is the collection page of the application.</p>
+    </div>
+  );
+}
+
+export function Decks() {
+  return (
+    <div>
+      <h1>Decks</h1>
+      <p>This is the decks page of the application.</p>
+    </div>
+  );
+}

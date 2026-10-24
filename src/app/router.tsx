@@ -1,8 +1,9 @@
-import { createBrowserRouter, Navigate } from "react-router";
+import { createBrowserRouter, Navigate, redirect } from "react-router";
 import AppV1 from "./App.jsx";
 import AppV2 from "./App.tsx";
 import CardsList from "../features/scryfall-card-renderer/CardsList/CardsList";
 import CardOverlay from "../features/scryfall-card-renderer/CardOverlay/CardOverlay";
+import { Home, AdvancedSearch, Favorites, Collection, Decks } from "./App.tsx";
 
 const router = createBrowserRouter([ // be aware of the capitals
   {
@@ -31,7 +32,11 @@ const router = createBrowserRouter([ // be aware of the capitals
     path: "/v2",
     element: <AppV2 />,
     children: [
-      /*{
+      {
+        index: true,
+        loader: () => redirect("/v2/home"),
+      },
+      {
         path: "home",
         element: <Home />,
       },
@@ -50,7 +55,7 @@ const router = createBrowserRouter([ // be aware of the capitals
       {
         path: "decks",
         element: <Decks />,
-      },*/
+      },
     ],
   }
 ]);
