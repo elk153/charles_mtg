@@ -22,21 +22,7 @@ const router = createBrowserRouter([ // be aware of the capitals
       },        
       {
         path: "card/:cardId",
-        element: <CardOverlay />, // Card details overlay page
-        /**children: [
-          { 
-            index: true, // when no path is given. It returns the parent's url
-            element: <CardDetails /> 
-          },
-          { 
-            path: "rulings", 
-            element: <CardRulings /> 
-          },
-          { 
-            path: "prints", 
-            element: <CardPrintings /> 
-          },
-        ],*/
+        element: <CardOverlay />,
       },
       /*{
         path: "home",
