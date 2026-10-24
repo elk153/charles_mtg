@@ -1,4 +1,4 @@
-import useOracleText from "../../../hooks/useOracleText";
+import useOracleText from "../../../hooks/useOracleText.tsx";
 import "./CardDetails.css";
 import IconClose from "../../../assets/IconClose";
 import IconTurnAround from "../../../assets/IconTurnAround";

@@ -5,6 +5,9 @@ import IconTurnAround from "../../../assets/IconTurnAround";
 import useFetchUrl from "../../../hooks/useFetchUrl.js";
 import OracleText from "../components/OracleText.jsx";
 
+/**
+ * @param {{ card?: Record<string, unknown> | null, onSelect?: () => void }} props
+ */
 const CardOverlay = ({ card, onSelect }) => {
   
   const { data: scryfallRulings,} = useFetchUrl("cardRulings", card?.rulings_uri)
