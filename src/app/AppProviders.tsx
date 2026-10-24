@@ -7,7 +7,7 @@ import router from "./router.tsx";
 export default function AppProviders() {
   return (
     <PersistenceProvider queryClient={queryClient}>
-      <QueryDevToolsProvider>
+      <QueryDevToolsProvider queryClient={queryClient}>
         <RouterProvider router={router} />
       </QueryDevToolsProvider>
     </PersistenceProvider>

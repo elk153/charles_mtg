@@ -1,5 +1,5 @@
 import React from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router";
 import navItems from "./navItems";
 import NavSearchField from "./NavSearchField";
 import useScrollVisibility from "../../hooks/useScrollVisibility";
