@@ -1,6 +1,6 @@
 # Charles' MTG Collection — Agent Context
 
-Working map of the app for AI coding agents. Verified against branch `typescript` (commit `a74627d`, "inital mod to TS") in October 2026. Where this file and the source disagree, the source wins; say so and propose a fix to this file.
+Working map of the app for AI coding agents. Keep this file aligned with the current source; when documentation and code disagree, verify behavior in the code and update this map when relevant.
 
 ## How to work with me (read first)
 
@@ -38,17 +38,17 @@ Node 22 works. Install with `npm install`.
 
 ## Active application flow
 
-1. `index.html` loads `/theme.css`, `style.css` and `/src/main.tsx`, and holds `#root` plus the splash elements.
-2. `src/main.tsx` mounts `AppProviders` inside `StrictMode`.
+1. `index.html` loads root `style.css` and `/src/main.tsx`, and holds `#root` plus the splash elements. The entry module imports `src/theme.css`.
+2. `src/main.tsx` imports the theme and mounts `AppProviders` inside `StrictMode`.
 3. `src/app/AppProviders.tsx` nests `PersistenceProvider` > `QueryDevToolsProvider` > `RouterProvider`.
-4. `src/app/router.jsx` (React Router data router): `/` redirects to `/random`; `/random` and `/cards/:searchQuery` render the cards list; `/card/:cardId` declares `CardOverlay`.
+4. `src/app/router.tsx` (React Router data router): `/` redirects to `/random`; `/random` and `/cards/:searchQuery` render the cards list; `/card/:cardId` declares `CardOverlay`.
 5. `src/app/App.jsx` is the layout route. It owns search and card queries, the floating search bar, outlet context (`scryfallCards`, `isLoadingCards`, `onCardSelect`), the splash transition, and the overlay.
 6. `scryfall-card-renderer/CardsList/CardsList.jsx` renders results. Despite the folder name it renders `original-card-renderer/Card/Card.jsx` per item.
 7. Clicking a card navigates to `/card/:cardId` with `state.fromList`. `App.jsx` fetches the card if it is a direct link and renders `CardOverlay` in `.top-layer`.
 
 ### Gotchas to preserve
 
-- The routed `CardOverlay` (from `router.jsx`) receives no `card` prop and returns `null`. The visible overlay is the one rendered by `App.jsx`. Understand this before touching card-route rendering.
+- The routed `CardOverlay` (from `router.tsx`) receives no `card` prop and returns `null`. The visible overlay is rendered by `App.jsx`. Understand this before touching card-route rendering.
 - Closing: if `location.state.fromList`, navigate back in history; otherwise navigate to `/cards/<encoded card name>`.
 - Random: seed (`Date.now()`) is part of the query key; an empty search submit changes the seed.
 - Keep route params URI-safe (`encodeURIComponent` / `decodeURIComponent`).
@@ -57,57 +57,58 @@ Node 22 works. Install with `npm install`.
 ## Data and state
 
 - `src/hooks/useScryfallCardsSearch.jsx`: TanStack Query hook, key `["scryfallCards", route, params, seed]`, `enabled` only when a route is given, 24 h `staleTime`. Uses `src/services/createApiClient.js`, which normalizes `card` responses to `[card]` and `list`/`catalog` to `data`, and throws on Scryfall errors.
-- `src/hooks/useFetchUrl.js`: fetches auxiliary Scryfall URLs (rulings, print searches), key `["fetchedUrl", purpose, url]`, returns `json.data`. It does not check `res.ok`.
+- `src/hooks/useFetchUrl.js`: fetches auxiliary Scryfall URLs (rulings, print searches), key `["fetchedUrl", purpose, url]`, returns `json.data`. It does not check `res.ok` and returns an empty array when no URL is provided.
 - `PersistenceProvider.tsx` persists only `fetchedUrl` queries and `scryfallCards` queries whose second key is `"cards/search"`, via `localStorage` (inspect with `JSON.parse(localStorage.getItem("REACT_QUERY_OFFLINE_CACHE"))`). Random and single-card queries are not persisted.
 - `queryProvider.ts`: `gcTime` is 24 h and must stay >= persisted data's max age.
 - `QueryDevToolsProvider.tsx` loads Devtools lazily and only when `import.meta.env.DEV`.
 - Many files contain debug `console.log` calls (e.g. `createApiClient.js`, `useFetchUrl.js`). Do not add more; ask before removing.
 - Prices are current per-printing Scryfall data, not history or collection valuation.
 
-## Source layout (key parts only; list the folders yourself for the rest)
+## Source layout
 
-- `src/main.tsx`, `src/app/` — entry, providers (TS), router and `App.jsx` (JS).
+- `src/main.tsx`, `src/app/` — entry, providers, TypeScript router, and JavaScript layout (`App.jsx`).
 - `src/features/scryfall-card-renderer/` — active renderer. `normalizeCard.js` maps raw Scryfall cards to the internal shape; `scryfallCardLayouts.js` and `components/` (one/split/toggle/flip/meld faces, `OracleText`, `extras/` for saga, class, case, leveler, mutate, prototype) consume that shape.
-- `src/features/original-card-renderer/` — older renderer. Only its `Card/` is used.
+- `src/features/original-card-renderer/Card/` — the older card tile is still used by the active results list; `CardDetails/` and `CardsList/` are not wired in.
 - `src/components/FloatingNavBar/` — active navbar: name search, empty search for random, mobile keyboard/viewport handling, hides on scroll. Also `Input/`.
 - `src/hooks/`, `src/services/` — see Data and state.
-- `public/theme.css` holds theme tokens (dark/light); `style.css` and `src/app/App.css` hold splash and layer styles. The app is fixed to `"dark"` and has no toggle.
-- `references/` — design notes, sequence diagrams (`.mmd`), `CARD.json` sample. May lag the code.
-- `NavClaude/` — separate navbar prototype, not imported by `src/`.
+- `src/theme.css` holds theme tokens (dark/light) and is imported by `src/main.tsx` so Vite tracks it. Root `style.css` is linked by `index.html`; `src/app/App.css` holds app layer styles. The app is fixed to `"dark"` and has no toggle.
+- `src/assets/` — inline SVG icon components.
+- `prototypes/NavClaude/` — separate navbar prototype, outside the production source tree and not imported by `src/`.
+- `public/` — site-root static icons and favicon assets.
+- `docs/` — project notes, architecture, and flow documentation; verify against source because some documents may lag.
 
 ## Present but not wired in (do not edit as if live)
 
-`src/app/App2.jsx` (empty), `src/components/Header/` (import commented out in `App.jsx`), `original-card-renderer/CardDetails/` and `original-card-renderer/CardsList/`, `scryfall-card-renderer/CardsList/CardsList.css` (list uses the original `Card` styles), `src/hooks/useCardSearch.js`, `src/services/getCardPrices.js`, `src/services/getCardRulings.js`, `NavClaude/`.
+`src/app/App2.jsx` (empty), `src/components/Header/` (import/render commented out in `App.jsx`), `src/features/original-card-renderer/CardDetails/` and `CardsList/`, `src/hooks/useCardSearch.js`, `src/services/getCardPrices.js`, and `src/services/getCardRulings.js`. `src/features/scryfall-card-renderer/CardsList/CardsList.css` is imported by the active results list; the individual card tile also imports CSS from `original-card-renderer/Card/`.
 
 ## Planned, not implemented
 
-User-owned collection records (source, physical location), deck building, collection valuation and price history, sales and balance tracking, advanced search (color, role), and page-level navigation (the commented-out routes in `router.jsx`).
+User-owned collection records (source, physical location), deck building, collection valuation and price history, sales and balance tracking, advanced search (color, role), and page-level navigation (the commented-out routes in `router.tsx`).
 
 ## TypeScript migration (the purpose of this branch)
 
-- Currently TypeScript: `main.tsx`, `AppProviders.tsx`, and the three files in `AppProviders/`. Everything else is JS/JSX.
+- Currently TypeScript: `src/main.tsx`, `src/app/AppProviders.tsx`, `src/app/router.tsx`, and the three files in `src/app/AppProviders/`. The remaining application source is JavaScript/JSX.
 - `tsconfig.json`: `strict: true`, `allowJs: true`, `checkJs: false`, `verbatimModuleSyntax: true`, `allowImportingTsExtensions: true`. JS files are **not** type-checked.
 - Imports of `.tsx`/`.ts` files include the extension (as in `AppProviders.tsx`). Use `import type` for type-only imports (required by `verbatimModuleSyntax`).
 - Follow the local pattern: convert one file at a time, only when asked, and avoid `any` and non-null assertions in TS files.
-- Suggested low-risk next conversions, smallest first: `useScrollDirection`, `createApiClient`, `useFetchUrl`, `useScryfallCardsSearch`, then `normalizeCard`. A good first step is a `ScryfallCard` type based on `references/CARD.json`.
+- Suggested low-risk next conversions, smallest first: `useScrollDirection`, `createApiClient`, `useFetchUrl`, `useScryfallCardsSearch`, then `normalizeCard`. A good first step is a `ScryfallCard` type based on `docs/scryfall/CARD.json`.
 
 ## Tooling gotchas
 
-- `eslint.config.js` uses the glob `'**/*.{js,jsx,ts, tsx}'`. The space before `tsx` means `.tsx` files get **no** lint config (verified: `eslint --print-config src/main.tsx` returns nothing). Fixing it will surface new lint errors in `.tsx` files; propose the fix, do not apply silently.
 - `index.html` loads `http://localhost:8097`, almost certainly the standalone React DevTools script. It fails harmlessly when nothing listens on that port, but it also ships in the production build. Check its purpose with the developer before removing. In a Codespace the port is not forwarded by default.
-- `.github/copilot-instructions.md` currently only points to Mermaid diagram rules in `.github/instructions/mermaid.instructions.md`. Diagram requests: write `.mmd` files in `references/`.
+- `.github/copilot-instructions.md` points to Mermaid diagram rules in `.github/mermaid.instructions.md`. Diagram requests: follow those rules and store diagrams in the documented location.
 
 ## Conventions
 
 - Keep the pipeline separated: raw Scryfall data enters through the hooks and client, `normalizeCard.js` maps it, renderer components consume the normalized shape only.
 - Use `createApiClient` for Scryfall card/list endpoints. Auxiliary URL hooks use direct `fetch`; keep their query-key conventions when extending.
 - Be gentle with Scryfall: no request loops or bursts. Check Scryfall's API docs for current rate-limit and header requirements before adding new fetch patterns.
-- Keep new UI aligned with the tokens in `public/theme.css` and the component-local CSS pattern.
+- Keep new UI aligned with the tokens in `src/theme.css` and the component-local CSS pattern.
 - Do not convert unrelated files, rename folders, or "clean up" unused files without being asked.
 
 ## Reference material
 
-`references/CARD_SEARCH_SEQUENCES.md` and `card-search-seq-*.mmd` (search and overlay flows), `Components.md`, `Sequence.md`, `component-architecture.mmd` (architecture), `THEME.md` (theme rationale), `FOLDER_STRUCTURE.md` (general guidance, not the literal tree), `ExternalResources.md`, `RESOURCES.md`, `NavClaude/README.md`. Treat these as aspirational; verify in source.
+Relevant project notes are under `docs/`, including `docs/app/` architecture and flow notes, `docs/theme/theme.md`, `docs/scryfall/CARD.json`, and `docs/file-conventions.md`. `prototypes/NavClaude/README.md` documents the navbar prototype. Treat documentation as supporting context and verify behavior in source.
 
 ## File conventions
 
