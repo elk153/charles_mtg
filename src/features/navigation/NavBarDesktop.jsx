@@ -1,5 +1,5 @@
 import React from "react";
-import { useLocation, useNavigate } from "react-router";
+import { resolvePath, useLocation, useNavigate, useResolvedPath } from "react-router";
 import navItems from "./navItems";
 import NavSearchField from "./NavSearchField";
 import useScrollVisibility from "../../hooks/useScrollVisibility";
@@ -8,9 +8,10 @@ export default function NavBarDesktop() {
   const visible = useScrollVisibility({ threshold: 12, topGuard: 56 });
   const { pathname } = useLocation();
   const navigate = useNavigate();
+  const routeBasePath = useResolvedPath(".").pathname;
 
   function handleSearch(query) {
-    navigate(query ? `/search?q=${encodeURIComponent(query)}` : "/search/random");
+    navigate(query ? `search?q=${encodeURIComponent(query)}` : "search/random");
   }
 
   return (
@@ -23,7 +24,7 @@ export default function NavBarDesktop() {
 
         <ul className="nav-bar__list">
           {navItems.map(({ id, label, path, Icon }) => {
-            const isActive = pathname === path;
+            const isActive = pathname === resolvePath(path, routeBasePath).pathname;
             return (
               <li key={id}>
                 <button
