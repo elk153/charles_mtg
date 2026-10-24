@@ -1,3 +1,6 @@
+# Components Architecture
+
+```mermaid
 graph TD
     A["main.jsx<br/>Entry Point"]
     A --> AP["AppProviders"]
@@ -72,3 +75,4 @@ graph TD
     style CL fill:#6bcf7f
     style CO fill:#6bcf7f
     style CF fill:#74b9ff
+````

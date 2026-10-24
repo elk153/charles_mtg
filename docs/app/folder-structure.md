@@ -2,7 +2,7 @@
 
 ## The Ultimate Modern React Folder Structure
 
-```
+```text
 my-react-app/
 ├── public/
 │   └── favicon.ico
@@ -36,32 +36,32 @@ my-react-app/
 
 1. `src/components/` (Global UI)
 
-Put dumb, reusable, and generic UI components here. These shouldn't contain business logic.
+   Put dumb, reusable, and generic UI components here. These shouldn't contain business logic.
 
-  * Examples: `Button.tsx`, `Modal.tsx`, `InputField.tsx`, `Table.tsx`.
-  * Rule of thumb: If you can copy-paste this component into a completely different project and it still works, it belongs here.
+   * Examples: `Button.tsx`, `Modal.tsx`, `InputField.tsx`, `Table.tsx`.
+   * Rule of thumb: If you can copy-paste this component into a completely different project and it still works, it belongs here.
 
 2. `src/features/` (The Core Engine)
 
-This is where 80% of your actual application logic lives. Split this directory by domain or user feature.
+   This is where 80% of your actual application logic lives. Split this directory by domain or user feature.
 
-* How it works: If you have an e-commerce app, you might have features like cart/, products/, and checkout/.
-* The `index.ts` file: Each feature should have an `index.ts` file acting as a "gatekeeper". It should export only what the rest of the app needs to see, keeping the feature's internal workings isolated.
+   * How it works: If you have an e-commerce app, you might have features like cart/, products/, and checkout/.
+   * The `index.ts` file: Each feature should have an `index.ts` file acting as a "gatekeeper". It should export only what the rest of the app needs to see, keeping the feature's internal workings isolated.
 
 3. `src/hooks/` & `src/utils/` (The Helpers)
 
-* `hooks/`: Global custom hooks that aren't tied to a specific feature. Examples: `useDebounce`, `useLocalStorage`, `useWindowSize`.
-* `utils/`: Pure, synchronous utility functions. Examples: `formatCurrency.ts`, `dateHelpers.ts`, `validateEmail.ts`.
+   * `hooks/`: Global custom hooks that aren't tied to a specific feature. Examples: `useDebounce`, `useLocalStorage`, `useWindowSize`.
+   * `utils/`: Pure, synchronous utility functions. Examples: `formatCurrency.ts`, `dateHelpers.ts`, `validateEmail.ts`.
 
 4. `src/layouts/` & `src/routes/` (The Skeleton)
 
-* `layouts/`: Structural components that wrap your pages. Examples: `RootLayout` (with top nav and sidebar), `AuthLayout` (centered card for login/signup).
-* `routes/`: This is where you map your URLs to specific page components. In modern React, you might have an `AppRoutes.tsx` file here that imports pages like `Home.tsx`, `Profile.tsx`, and `NotFound.tsx`.
+   * `layouts/`: Structural components that wrap your pages. Examples: `RootLayout` (with top nav and sidebar), `AuthLayout` (centered card for login/signup).
+   * `routes/`: This is where you map your URLs to specific page components. In modern React, you might have an `AppRoutes.tsx` file here that imports pages like `Home.tsx`, `Profile.tsx`, and `NotFound.tsx`.
 
 5. `src/stores/` & `src/context/` (The Brain)
 
-* `stores/`: If you are using a global state manager like Zustand or Redux, keep your global slices/stores here (e.g., `themeStore.ts`, `notificationStore.ts`).
-* `context/`: If you prefer native React Context for global app states (like a `ThemeContext`), house them here.
+   * `stores/`: If you are using a global state manager like Zustand or Redux, keep your global slices/stores here (e.g., `themeStore.ts`, `notificationStore.ts`).
+   * `context/`: If you prefer native React Context for global app states (like a `ThemeContext`), house them here.
 
 ### 3 Golden Rules for Modern React Architecture
 
@@ -79,8 +79,7 @@ A feature (like `features/comments`) should rarely import something from inside 
 
 ## The Simple Project Folder Structure
 
-
-```
+```text
 
 my-simple-app/
 ├── public/
@@ -102,21 +101,21 @@ my-simple-app/
 
 1. `src/views/` (Your Pages)
 
-Instead of dividing your app by abstract "features," divide it by what the user sees on the screen.
+   Instead of dividing your app by abstract "features," divide it by what the user sees on the screen.
 
-* If your app has a home screen, an about page, and a settings page, create `Home.tsx`, `About.tsx`, and `Settings.tsx` right inside the views/ folder.
-* Keep the specific logic, state, and minor sub-components for that page inside that single file.
+   * If your app has a home screen, an about page, and a settings page, create `Home.tsx`, `About.tsx`, and `Settings.tsx` right inside the views/ folder.
+   * Keep the specific logic, state, and minor sub-components for that page inside that single file.
 
 2. `src/components/` (Shared Elements)
 
-Only put a component here if it is used by more than one view.
+   Only put a component here if it is used by more than one view.
 
-* If both `Home.tsx` and `Detail.tsx` need a stylized button, create `src/components/Button.tsx`.
-* If a component is only used on the Home page, just write it at the bottom of `Home.tsx` or create a file right next to it. Don't clutter your global components folder early on.
+   * If both `Home.tsx` and `Detail.tsx` need a stylized button, create `src/components/Button.tsx`.
+   * If a component is only used on the Home page, just write it at the bottom of `Home.tsx` or create a file right next to it. Don't clutter your global components folder early on.
 
 3. `src/App.tsx` (The Glue)
 
-In a simple project, `App.tsx` is perfect for holding your global state (like a dark/light theme toggle) or managing your routing (using something lightweight like `react-router-dom` or `wouter`).
+   In a simple project, `App.tsx` is perfect for holding your global state (like a dark/light theme toggle) or managing your routing (using something lightweight like `react-router-dom` or `wouter`).
 
 ### The Rule of Evolution: When to Scale Up
 

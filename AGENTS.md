@@ -25,7 +25,7 @@ The developer is learning React and TypeScript and wants to understand every cha
 Node 22 works. Install with `npm install`.
 
 | Command | Purpose | Status on this branch |
-|---|---|---|
+| --- | --- | --- |
 | `npm run dev` | Vite dev server | works |
 | `npm run build` | production build into `dist/` | passes |
 | `npm run preview` | serve the build | works |
@@ -108,3 +108,7 @@ User-owned collection records (source, physical location), deck building, collec
 ## Reference material
 
 `references/CARD_SEARCH_SEQUENCES.md` and `card-search-seq-*.mmd` (search and overlay flows), `Components.md`, `Sequence.md`, `component-architecture.mmd` (architecture), `THEME.md` (theme rationale), `FOLDER_STRUCTURE.md` (general guidance, not the literal tree), `ExternalResources.md`, `RESOURCES.md`, `NavClaude/README.md`. Treat these as aspirational; verify in source.
+
+## File conventions
+
+Follow docs/file-conventions.md for naming and file types.

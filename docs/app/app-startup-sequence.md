@@ -1,3 +1,6 @@
+# App Startup Sequence
+
+```mermaid
 sequenceDiagram
     participant Browser
     participant main as main.jsx
@@ -89,3 +92,4 @@ sequenceDiagram
     
     Note over App: Initial render complete
     Note over App: App ready for user interaction
+```
