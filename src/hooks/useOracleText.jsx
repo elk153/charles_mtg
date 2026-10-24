@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import useFetchUrl from "./useFetchUrl.js";
 
-const useOracleText = (text, Component = "p") => {
+export default function useOracleText (text, Component = "p") {
 
   // Fetch the card symbols from Scryfall API and cache them for 1 day (86400 seconds)
   const { data: symbols } = useFetchUrl("cardSymbols", "https://api.scryfall.com/symbology", Infinity);
@@ -95,8 +95,93 @@ const useOracleText = (text, Component = "p") => {
     oracleTextRender.push(<Component key={"p-last"}>{paragraphBuffer}</Component>);
   }
   
-  return oracleTextRender;
+  const renderInline = (line, keyPrefix) => {
+    const tokens = line.split(/(\{[^}]+\}|[()])/g).filter(Boolean);
+    const nodes = [];
+    let italicBuffer = [];
+    let isItalic = false;
+
+    tokens.forEach((token, index) => {
+      if (token === "(") {
+        isItalic = true;
+        italicBuffer.push(token);
+        return;
+      }
+
+      if (token === ")" && isItalic) {
+        italicBuffer.push(token);
+        nodes.push(<em key={`em-${keyPrefix}-${index}`}>{italicBuffer}</em>);
+        italicBuffer = [];
+        isItalic = false;
+        return;
+      }
+
+      const symbol = symbolMap[token];
+      const content = symbol
+        ? renderSymbol(`${keyPrefix}-${index}`, symbol)
+        : token;
+
+      if (isItalic) {
+        italicBuffer.push(content);
+      } else {
+        nodes.push(content);
+      }
+    });
+
+    if (italicBuffer.length) {
+      nodes.push(<em key={`em-${keyPrefix}-last`}>{italicBuffer}</em>);
+    }
+
+    return nodes;
+  };
+
+  const lines = (text ?? "").split(/\r\n?|\n/);
+  const rendered = [];
+  let listItems = [];
+  let listStart = 0;
+
+  const flushList = () => {
+    if (listItems.length === 0) return;
+
+    rendered.push(
+      <ul
+        key={`choices-${listStart}`}
+        className="oracle-text__choices"
+      >
+        {listItems}
+      </ul>
+    );
+    listItems = [];
+  };
+
+  lines.forEach((line, lineIndex) => {
+    if (!line.trim()) {
+      flushList();
+      return;
+    }
+
+    const bullet = line.match(/^\s*•\s?(.*)$/);
+
+    if (bullet) {
+      if (listItems.length === 0) listStart = lineIndex;
+
+      listItems.push(
+        <li key={`choice-${lineIndex}`}>
+          {renderInline(bullet[1], `line-${lineIndex}`)}
+        </li>
+      );
+      return;
+    }
+
+    flushList();
+    rendered.push(
+      <Component key={`line-${lineIndex}`}>
+        {renderInline(line, `line-${lineIndex}`)}
+      </Component>
+    );
+  });
+
+  flushList();
+  return rendered;
   
 };
-
-export default useOracleText;
