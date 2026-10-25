@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { QuickSearchIcon } from "./icons/NavIcons";
+import { QuickSearchIcon } from "./NavIcons";
 
 /**
  * Compact name search. Enter (or tapping the torch icon) submits.

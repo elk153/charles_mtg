@@ -1,21 +1,22 @@
 import React, { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { resolvePath, useLocation, useNavigate, useResolvedPath } from "react-router";
 import navItems from "./navItems";
 import NavSearchField from "./NavSearchField";
-import useScrollVisibility from "./hooks/useScrollVisibility";
+import useScrollVisibility from "../../hooks/useScrollVisibility";
 
 export default function NavBarMobile() {
   const scrollVisible = useScrollVisibility({ threshold: 10, topGuard: 40 });
   const [searchFocused, setSearchFocused] = useState(false);
   const { pathname } = useLocation();
   const navigate = useNavigate();
+  const routeBasePath = useResolvedPath(".").pathname;
 
   // Keep the bar on-screen while the person is actively typing in it,
   // even if a scroll event fires (e.g. page reflow on keyboard open).
   const visible = scrollVisible || searchFocused;
 
   function handleSearch(query) {
-    navigate(query ? `/search?q=${encodeURIComponent(query)}` : "/search/random");
+    navigate(query ? `search?q=${encodeURIComponent(query)}` : "search/random");
   }
 
   return (
@@ -34,7 +35,7 @@ export default function NavBarMobile() {
 
         <ul className="nav-bar__list">
           {navItems.map(({ id, label, path, Icon }) => {
-            const isActive = pathname === path;
+            const isActive = pathname === resolvePath(path, routeBasePath).pathname;
             return (
               <li key={id}>
                 <button

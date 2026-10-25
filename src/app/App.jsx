@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Outlet, useNavigate, useLocation, useParams } from "react-router";
+import { Outlet, useNavigate, useLocation, useMatches, useResolvedPath } from "react-router";
 import FloatingNavBar from "../components/FloatingNavBar/FloatingNavBar.jsx";
 import CardOverlay from "../features/scryfall-card-renderer/CardOverlay/CardOverlay.jsx";
 import IconClose from "../assets/IconClose.jsx";
@@ -13,14 +13,15 @@ const App = () => {
   const [randomSeed, setRandomSeed] = useState(() => Date.now());
   const navigate = useNavigate();
   const location = useLocation();
-  const { searchQuery } = useParams();
+  const routeParams = useMatches().slice(-1)[0]?.params ?? {};
+  const { searchQuery, cardId } = routeParams;
 
-  const normalizedSearchQuery = searchQuery ? decodeURIComponent(searchQuery) : "";
-  const isRandomRoute = location.pathname === "/random";
+  const normalizedSearchQuery = searchQuery ?? "";
+  const isRandomRoute = location.pathname === useResolvedPath("random").pathname;
 
   // Avoid issuing an automatic empty `cards/search?q=` request when the
   // route contains no search term. Manual submits with an empty field still
-  // go to `/random` via FloatingNavBar and should trigger the random API.
+  // go to the random route via FloatingNavBar and should trigger the random API.
   const shouldDoSearch = !isRandomRoute && normalizedSearchQuery.length > 0;
   const routeParam = isRandomRoute ? "cards/random" : shouldDoSearch ? "cards/search" : null;
   const queryParam = isRandomRoute ? { format: "json" } : shouldDoSearch ? { q: normalizedSearchQuery, format: "json" } : {};
@@ -32,10 +33,9 @@ const App = () => {
     seedParam
   );
 
-  // If URL is /card/:cardId (direct link), fetch that single card so
+  // If URL is the card-detail route (direct link), fetch that single card so
   // we can render the overlay on top of a search that contains only it.
-  const cardMatch = location.pathname.match(/^\/card\/([^/]+)/);
-  const routeCardId = cardMatch ? cardMatch[1] : null;
+  const routeCardId = cardId ?? null;
   const { data: cardFromRoute, isLoading: isLoadingCardRoute } = useScryfallCardsSearch(
     routeCardId ? `cards/${routeCardId}` : null,
     {},
@@ -98,17 +98,16 @@ const App = () => {
   }, []);
 
   useEffect(() => {
-    // Whenever we leave a `/card/:id` route, clear the in-memory selection
+    // Whenever we leave a card-detail route, clear the in-memory selection
     // so the overlay is closed. This covers Back navigation and close.
-    const match = location.pathname.match(/^\/card\/([^/]+)/);
-    const currentId = match ? decodeURIComponent(match[1]) : null;
+    const currentId = cardId ?? null;
 
     if (!currentId && selectedCardId) {
       setTimeout(() => {
         setSelectedCardId(null);
       }, 0);
     }
-  }, [location.pathname, selectedCardId]);
+  }, [cardId, location.pathname, selectedCardId]);
 
   const handleCardSelect = (cardId) => {
     setSelectedCardId(cardId);
@@ -126,7 +125,7 @@ const App = () => {
     const card = effectiveCards?.find((c) => c.id === selectedCardId) || effectiveCards?.[0];
     setSelectedCardId(null);
     if (card?.name) {
-      navigate(`/cards/${encodeURIComponent(card.name)}`);
+      navigate(`cards/${encodeURIComponent(card.name)}`);
     }
   };
 
@@ -145,7 +144,7 @@ const App = () => {
           // with history state so we know the overlay was opened from the list.
           setSelectedCardId(id);
           const encoded = encodeURIComponent(id);
-          navigate(`/card/${encoded}`, { state: { fromList: true, fromPath: location.pathname + location.search } });
+          navigate(`card/${encoded}`, { state: { fromList: true, fromPath: location.pathname + location.search } });
         } }} />
       </div>
       

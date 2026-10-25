@@ -6,7 +6,7 @@ Two breakpoints, one shared visual language. Built directly against the
 
 ## Files
 
-```
+```text
 navbar/
 ├── NavBar.jsx              — drop-in root component (renders both bars)
 ├── NavBarDesktop.jsx        — top header, icon + title, hides on scroll
@@ -76,9 +76,10 @@ system-safe if you don't.
   you're on Next.js or another router, swap those two hooks out in
   `NavBarDesktop.jsx` / `NavBarMobile.jsx` — everything else is
   router-agnostic.
-- **Search behavior:** empty submit → `/search/random`, non-empty →
-  `/search?q=<term>`. Adjust the two lines in each bar's `handleSearch`
-  to match your actual route.
+- **Search behavior:** empty submit → `search/random`, non-empty →
+  `search?q=<term>`. These destinations are route-relative to the
+  version layout that renders the navbar. Adjust them in each bar's
+  `handleSearch` if the child routes change.
 - **Breakpoint:** 861px is the desktop/mobile split (matches common
   tablet-portrait cutoffs). Change the `min-width` in both CSS files if
   your app uses a different one.
