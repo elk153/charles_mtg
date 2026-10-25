@@ -6,6 +6,7 @@ sequenceDiagram
     participant main as main.jsx
     participant ReactDOM
     participant AppProviders
+    participant ThemeProv as ThemeProvider
     participant PersistProv as PersistenceProvider
     participant QueryProv as QueryDevToolsProvider
     participant RouterProv as RouterProvider
@@ -25,7 +26,9 @@ sequenceDiagram
     ReactDOM->>AppProviders: Render AppProviders
     AppProviders->>AppProviders: Import providers & router config
     
-    AppProviders->>PersistProv: Render PersistenceProvider
+    AppProviders->>ThemeProv: Render ThemeProvider (default theme='dark')
+    ThemeProv->>DOM: Set data-theme and theme-color metadata
+    ThemeProv->>PersistProv: Render PersistenceProvider
     PersistProv->>PersistProv: Load persisted state from storage
     PersistProv->>PersistProv: Initialize queryClient
     
@@ -39,7 +42,6 @@ sequenceDiagram
     Router->>Router: Redirect to /random (index route)
     
     Router->>App: Mount App.jsx component
-    App->>App: useState(theme='dark')
     App->>App: useState(selectedCardId=null)
     App->>App: useState(randomSeed=Date.now())
     App->>App: useLocation() get /random
@@ -65,15 +67,12 @@ sequenceDiagram
     App->>App: useMemo calculate activeCard
     App->>App: useMemo calculate overlayCard
     
-    App->>App: useEffect #1 - Set theme
-    App->>DOM: setAttribute data-theme=dark
-    
-    App->>App: useEffect #2 - Splash animation
+    App->>App: useEffect #1 - Splash animation
     App->>DOM: Get splash elements
     App->>DOM: Add 'ready' class
     App->>DOM: Listen for transitionend
     
-    App->>App: useEffect #3 - Route cleanup
+    App->>App: useEffect #2 - Route cleanup
     
     App->>App: Compute JSX tree
     App->>DOM: Render FloatingNavBar

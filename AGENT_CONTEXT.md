@@ -93,7 +93,7 @@ Defined in `src/app/router.tsx`. There is **no route for `/`** and no redirect t
 - `src/features/navigation/` — v2 navbar (see above).
 - `src/components/FloatingNavBar/` — v1 navbar: name search, empty search for random, mobile keyboard/viewport handling, hides on scroll (`useScrollDirection`). Also `Input/`.
 - `src/hooks/`, `src/services/` — see Data and state.
-- `src/theme.css` — theme tokens (dark/light), imported by `main.tsx`. `style.css` (root) is linked from `index.html`. `src/app/App.css` holds layer styles. The app is fixed to `"dark"` with no toggle.
+- `src/theme.css` — theme tokens (dark/light), imported by `main.tsx`. `src/app/AppProviders/ThemeContext.ts` provides the current theme and setter; `ThemeProvider.tsx` defaults to `"dark"` and synchronizes the document theme and browser theme color. `style.css` (root) is linked from `index.html`. `src/app/App.css` holds layer styles.
 - `src/assets/` — inline SVG icon components. `public/` — site-root icons and favicons.
 - `docs/` — notes (`app/` architecture and flow notes, `theme/theme.md`, `scryfall/CARD.json`, `file-conventions.md`, `external-resources.md`). Some notes lag the code; verify in source.
 

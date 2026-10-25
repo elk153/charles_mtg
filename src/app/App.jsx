@@ -8,7 +8,6 @@ import useScryfallCardsSearch from "../hooks/useScryfallCardsSearch.jsx";
 import usePreFetchUrl from "../hooks/usePreFetchUrl.js";
 
 const App = () => {
-  const [theme] = useState("dark");
   const [selectedCardId, setSelectedCardId] = useState(null);
   const [randomSeed, setRandomSeed] = useState(() => Date.now());
   const navigate = useNavigate();
@@ -55,10 +54,6 @@ const App = () => {
   const overlayCard = selectedCardId
     ? activeCard
     : cardFromRoute?.[0];
-
-  useEffect(() => {
-    document.documentElement.setAttribute("data-theme", theme);
-  }, [theme]);
 
   useEffect(() => {
     window.reactIsReady = true;
