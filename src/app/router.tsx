@@ -8,6 +8,10 @@ import { Home, AdvancedSearch, Favorites, Collection, Decks } from "./App.tsx";
 
 const router = createBrowserRouter([ // be aware of the capitals
   {
+    path: "/",
+    loader: () => redirect("/v1"),   // default route
+  },
+  {
     path: "/v1",
     element: (
       <NuqsAdapter>
