@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
 import Input from "../Input/Input";
+import FloatingThemeToggle from "./FloatingThemeToggle.tsx";
 import useScrollDirection from "../../hooks/useScrollDirection";
 import "./FloatingNavBar.css";
 
@@ -110,6 +111,7 @@ const FloatingNavBar = ({
         value={searchText}
         onChange={setSearchText}
       />
+      <FloatingThemeToggle />
     </nav>
   );
 };

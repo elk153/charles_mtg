@@ -1,5 +1,7 @@
 import { useEffect } from "react";
 import NavBar from "../features/navigation/NavBar.jsx";
+import { Outlet } from "react-router";
+import "./App.css";
 
 declare global {
   interface Window {
@@ -44,53 +46,56 @@ export default function App() {
   }, []);
 
   return (
-    <div className="App">
+    <div className="App AppV2">
       <NavBar />
+      <main className="app-v2__main">
+        <Outlet />
+      </main>
     </div>
   );
 }
 
 export function Home() {
   return (
-    <div>
+    <section className="app-v2__page">
       <h1>Welcome to the Home Page</h1>
       <p>This is the home page of the application.</p>
-    </div>
+    </section>
   );
 }
 
 export function AdvancedSearch() {
   return (
-    <div>
+    <section className="app-v2__page">
       <h1>Advanced Search</h1>
       <p>This is the advanced search page of the application.</p>
-    </div>
+    </section>
   );
 }
 
 export function Favorites() {
   return (
-    <div>
+    <section className="app-v2__page">
       <h1>Favorites</h1>
       <p>This is the favorites page of the application.</p>
-    </div>
+    </section>
   );
 }
 
 export function Collection() {
   return (
-    <div>
+    <section className="app-v2__page">
       <h1>Collection</h1>
       <p>This is the collection page of the application.</p>
-    </div>
+    </section>
   );
 }
 
 export function Decks() {
   return (
-    <div>
+    <section className="app-v2__page">
       <h1>Decks</h1>
       <p>This is the decks page of the application.</p>
-    </div>
+    </section>
   );
 }

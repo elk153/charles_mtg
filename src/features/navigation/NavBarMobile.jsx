@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { resolvePath, useLocation, useNavigate, useResolvedPath } from "react-router";
 import navItems from "./navItems";
 import NavSearchField from "./NavSearchField";
+import NavThemeToggle from "./NavThemeToggle.tsx";
 import useScrollVisibility from "../../hooks/useScrollVisibility";
 
 export default function NavBarMobile() {
@@ -26,6 +27,7 @@ export default function NavBarMobile() {
       aria-label="Primary"
     >
       <div className="nav-bar__row">
+        <NavThemeToggle />
         <NavSearchField
           onSearch={handleSearch}
           expanded={searchFocused}

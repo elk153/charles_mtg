@@ -2,6 +2,7 @@ import React from "react";
 import { resolvePath, useLocation, useNavigate, useResolvedPath } from "react-router";
 import navItems from "./navItems";
 import NavSearchField from "./NavSearchField";
+import NavThemeToggle from "./NavThemeToggle.tsx";
 import useScrollVisibility from "../../hooks/useScrollVisibility";
 
 export default function NavBarDesktop() {
@@ -20,6 +21,7 @@ export default function NavBarDesktop() {
       data-visible={visible}
     >
       <nav className="nav-bar__row" aria-label="Primary">
+        <NavThemeToggle />
         <NavSearchField onSearch={handleSearch} id="nav-search-desktop" />
 
         <ul className="nav-bar__list">

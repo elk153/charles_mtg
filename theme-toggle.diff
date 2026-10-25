@@ -1,0 +1,417 @@
+diff --git a/src/assets/IconMoon.tsx b/src/assets/IconMoon.tsx
+new file mode 100644
+index 0000000..e92a424
+--- /dev/null
++++ b/src/assets/IconMoon.tsx
+@@ -0,0 +1,22 @@
++/**
++ * Filled crescent moon, drawn with currentColor so the parent CSS sets
++ * its color. Sized with `1em`, like IconSun.
++ * Shown in light mode on the FloatingNavBar theme toggle.
++ */
++export default function IconMoon() {
++  return (
++    <svg
++      xmlns="http://www.w3.org/2000/svg"
++      aria-hidden="true"
++      focusable="false"
++      width="1em"
++      height="1em"
++      viewBox="0 0 24 24"
++    >
++      <path
++        fill="currentColor"
++        d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"
++      />
++    </svg>
++  );
++}
+diff --git a/src/assets/IconSun.tsx b/src/assets/IconSun.tsx
+new file mode 100644
+index 0000000..573bd5a
+--- /dev/null
++++ b/src/assets/IconSun.tsx
+@@ -0,0 +1,26 @@
++/**
++ * Filled sun, drawn with currentColor so the parent CSS sets its color.
++ * Sized with `1em`, so the parent's font-size sets its size.
++ * Shown in dark mode on the FloatingNavBar theme toggle.
++ */
++export default function IconSun() {
++  return (
++    <svg
++      xmlns="http://www.w3.org/2000/svg"
++      aria-hidden="true"
++      focusable="false"
++      width="1em"
++      height="1em"
++      viewBox="0 0 24 24"
++    >
++      <circle cx="12" cy="12" r="4.5" fill="currentColor" />
++      <path
++        d="M12 2.5v2.5M12 19v2.5M2.5 12H5M19 12h2.5M5.3 5.3l1.8 1.8M16.9 16.9l1.8 1.8M5.3 18.7l1.8-1.8M16.9 7.1l1.8-1.8"
++        fill="none"
++        stroke="currentColor"
++        strokeWidth="1.8"
++        strokeLinecap="round"
++      />
++    </svg>
++  );
++}
+diff --git a/src/components/FloatingNavBar/FloatingNavBar.css b/src/components/FloatingNavBar/FloatingNavBar.css
+index a851f6f..24a1eae 100644
+--- a/src/components/FloatingNavBar/FloatingNavBar.css
++++ b/src/components/FloatingNavBar/FloatingNavBar.css
+@@ -41,12 +41,18 @@
+   transform: translateX(-50%) translateY(calc(100% + 32px));
+ }
+ 
+-/* Dark mode */
+-@media (prefers-color-scheme: dark) {
+-  .floating-navbar {
++/* Dark mode: follows the app theme (set by ThemeProvider on <html>),
++   no longer the operating system setting, so the theme toggle works. */
++:root[data-theme="dark"] .floating-navbar {
+   background: rgba(15, 23, 42, 0.80);
+   border-color: rgba(255, 255, 255, 0.08);
+-  }
++}
++
++/* Let the search form shrink so the theme toggle still fits on narrow
++   phones. Inputs refuse to shrink below their default width otherwise. */
++.floating-navbar .input,
++.floating-navbar .input input {
++  min-width: 0;
+ }
+ 
+ /* Nav items */
+diff --git a/src/components/FloatingNavBar/FloatingNavBar.jsx b/src/components/FloatingNavBar/FloatingNavBar.jsx
+index 4f028e4..7b14392 100644
+--- a/src/components/FloatingNavBar/FloatingNavBar.jsx
++++ b/src/components/FloatingNavBar/FloatingNavBar.jsx
+@@ -1,6 +1,7 @@
+ import { useState, useEffect, useRef } from "react";
+ import { useNavigate } from "react-router";
+ import Input from "../Input/Input";
++import FloatingThemeToggle from "./FloatingThemeToggle.tsx";
+ import useScrollDirection from "../../hooks/useScrollDirection";
+ import "./FloatingNavBar.css";
+ 
+@@ -110,6 +111,7 @@ const FloatingNavBar = ({
+         value={searchText}
+         onChange={setSearchText}
+       />
++      <FloatingThemeToggle />
+     </nav>
+   );
+ };
+diff --git a/src/components/FloatingNavBar/FloatingThemeToggle.css b/src/components/FloatingNavBar/FloatingThemeToggle.css
+new file mode 100644
+index 0000000..59215bc
+--- /dev/null
++++ b/src/components/FloatingNavBar/FloatingThemeToggle.css
+@@ -0,0 +1,35 @@
++/* Theme toggle button inside the FloatingNavBar.
++   Colors come from the theme tokens, so the icon stays readable on both
++   the light frosted bar and the dark one. */
++
++.floating-theme-toggle {
++  flex: none;
++  display: flex;
++  align-items: center;
++  justify-content: center;
++  width: 36px;
++  height: 36px;
++  padding: 0;
++  border: none;
++  border-radius: 50%;
++  background: transparent;
++  cursor: pointer;
++  font-size: 22px; /* the icons are sized in em */
++  color: var(--text-secondary);
++  transition: background 0.15s, color 0.15s, transform 0.2s;
++}
++
++.floating-theme-toggle:hover,
++.floating-theme-toggle:focus-visible {
++  color: var(--text-accent);
++  background: color-mix(in srgb, var(--text-accent) 12%, transparent);
++}
++
++.floating-theme-toggle:focus-visible {
++  outline: 2px solid var(--text-accent);
++  outline-offset: 2px;
++}
++
++.floating-theme-toggle:active {
++  transform: scale(0.92);
++}
+diff --git a/src/components/FloatingNavBar/FloatingThemeToggle.tsx b/src/components/FloatingNavBar/FloatingThemeToggle.tsx
+new file mode 100644
+index 0000000..0f0778a
+--- /dev/null
++++ b/src/components/FloatingNavBar/FloatingThemeToggle.tsx
+@@ -0,0 +1,33 @@
++import { useTheme } from "../../app/AppProviders/ThemeContext.ts";
++import IconMoon from "../../assets/IconMoon.tsx";
++import IconSun from "../../assets/IconSun.tsx";
++import "./FloatingThemeToggle.css";
++
++/**
++ * Switches the whole app between the dark and light theme.
++ *
++ * `useTheme` is a custom hook that reads the theme state shared by
++ * ThemeProvider through React context. Changing it there updates
++ * <html data-theme="...">, which theme.css turns into new colors.
++ *
++ * The icon shows the theme you will GET when you click, and the
++ * aria-label says the same in words for screen readers.
++ */
++export default function FloatingThemeToggle() {
++  const { theme, setTheme } = useTheme();
++
++  const nextTheme = theme === "dark" ? "light" : "dark";
++  const label = `Switch to ${nextTheme} theme`;
++
++  return (
++    <button
++      type="button"
++      className="floating-theme-toggle"
++      onClick={() => setTheme(nextTheme)}
++      aria-label={label}
++      title={label}
++    >
++      {nextTheme === "light" ? <IconSun /> : <IconMoon />}
++    </button>
++  );
++}
+diff --git a/src/features/navigation/NavBarDesktop.jsx b/src/features/navigation/NavBarDesktop.jsx
+index bef81ff..3badaf3 100644
+--- a/src/features/navigation/NavBarDesktop.jsx
++++ b/src/features/navigation/NavBarDesktop.jsx
+@@ -2,6 +2,7 @@ import React from "react";
+ import { resolvePath, useLocation, useNavigate, useResolvedPath } from "react-router";
+ import navItems from "./navItems";
+ import NavSearchField from "./NavSearchField";
++import NavThemeToggle from "./NavThemeToggle.tsx";
+ import useScrollVisibility from "../../hooks/useScrollVisibility";
+ 
+ export default function NavBarDesktop() {
+@@ -20,6 +21,7 @@ export default function NavBarDesktop() {
+       data-visible={visible}
+     >
+       <nav className="nav-bar__row" aria-label="Primary">
++        <NavThemeToggle />
+         <NavSearchField onSearch={handleSearch} id="nav-search-desktop" />
+ 
+         <ul className="nav-bar__list">
+diff --git a/src/features/navigation/NavBarMobile.jsx b/src/features/navigation/NavBarMobile.jsx
+index 7daf724..5c9313b 100644
+--- a/src/features/navigation/NavBarMobile.jsx
++++ b/src/features/navigation/NavBarMobile.jsx
+@@ -2,6 +2,7 @@ import React, { useState } from "react";
+ import { resolvePath, useLocation, useNavigate, useResolvedPath } from "react-router";
+ import navItems from "./navItems";
+ import NavSearchField from "./NavSearchField";
++import NavThemeToggle from "./NavThemeToggle.tsx";
+ import useScrollVisibility from "../../hooks/useScrollVisibility";
+ 
+ export default function NavBarMobile() {
+@@ -26,6 +27,7 @@ export default function NavBarMobile() {
+       aria-label="Primary"
+     >
+       <div className="nav-bar__row">
++        <NavThemeToggle />
+         <NavSearchField
+           onSearch={handleSearch}
+           expanded={searchFocused}
+diff --git a/src/features/navigation/NavThemeIcons.tsx b/src/features/navigation/NavThemeIcons.tsx
+new file mode 100644
+index 0000000..5fcd27f
+--- /dev/null
++++ b/src/features/navigation/NavThemeIcons.tsx
+@@ -0,0 +1,71 @@
++import type { SVGProps } from "react";
++
++/**
++ * Sun and moon icons for the NavBar theme toggle.
++ *
++ * Same two-layer recipe as NavIcons.jsx, so they pick up the NavBar's
++ * existing CSS (navbar-shared.css) without any new color rules:
++ *  - .nc-trace  the etched outline, always faintly visible
++ *  - .nc-core   the sunken interior, filled with the accent color
++ *               when the toggle is hovered or focused
++ *
++ * `satisfies` checks the object against the SVG prop types while keeping
++ * its exact literal types, so a typo in an attribute name is caught.
++ */
++const base = {
++  viewBox: "0 0 24 24",
++  width: "1em",
++  height: "1em",
++  className: "nav-icon",
++  "aria-hidden": "true",
++  focusable: "false",
++} satisfies SVGProps<SVGSVGElement>;
++
++export function NavSunIcon() {
++  // Shown in dark mode: "click me to get the light theme".
++  return (
++    <svg {...base}>
++      <path
++        className="nc-trace"
++        d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"
++        fill="none"
++        stroke="currentColor"
++        strokeWidth="1.6"
++        strokeLinecap="round"
++      />
++      <circle
++        className="nc-trace"
++        cx="12"
++        cy="12"
++        r="4.6"
++        fill="none"
++        stroke="currentColor"
++        strokeWidth="1.6"
++      />
++      <circle className="nc-core" cx="12" cy="12" r="2.6" />
++    </svg>
++  );
++}
++
++export function NavMoonIcon() {
++  // Shown in light mode: "click me to get the dark theme".
++  return (
++    <svg {...base}>
++      <path
++        className="nc-trace"
++        d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"
++        fill="none"
++        stroke="currentColor"
++        strokeWidth="1.6"
++        strokeLinejoin="round"
++      />
++      {/* The core is the same crescent shrunk toward its middle, so it
++          always stays inside the outline. */}
++      <path
++        className="nc-core"
++        d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"
++        transform="translate(4.73 6.08) scale(0.55)"
++      />
++    </svg>
++  );
++}
+diff --git a/src/features/navigation/NavThemeToggle.css b/src/features/navigation/NavThemeToggle.css
+new file mode 100644
+index 0000000..083497f
+--- /dev/null
++++ b/src/features/navigation/NavThemeToggle.css
+@@ -0,0 +1,52 @@
++/* ==========================================================================
++   NavThemeToggle.css
++   Round button for the NavBar (desktop and mobile). It reuses the pill look
++   of .nav-search and the icon glow of .nav-item.is-active, all through the
++   theme.css tokens, so it follows the dark and light theme by itself.
++   ========================================================================== */
++
++.nav-theme-toggle {
++  /* .nav-icon reads its size from --icon-size, normally set by .nav-item */
++  --icon-size: 1.2rem;
++
++  appearance: none;
++  flex: none;
++  display: flex;
++  align-items: center;
++  justify-content: center;
++  width: 2.1rem;
++  height: 2.1rem;
++  padding: 0;
++  cursor: pointer;
++  color: var(--text-secondary);
++  background: color-mix(in srgb, var(--sublayer-bg, #000) 55%, transparent);
++  border: 1px solid color-mix(in srgb, var(--btn-gold) 30%, transparent);
++  border-radius: 999px;
++  transition: border-color 0.4s ease, box-shadow 0.4s ease;
++}
++
++.nav-theme-toggle:hover,
++.nav-theme-toggle:focus-visible {
++  border-color: var(--text-accent);
++  box-shadow: 0 0 0 1px color-mix(in srgb, var(--text-accent) 40%, transparent),
++    0 0 14px color-mix(in srgb, var(--text-accent) 30%, transparent);
++}
++
++.nav-theme-toggle:focus-visible {
++  outline: 2px solid var(--text-accent);
++  outline-offset: 2px;
++}
++
++/* Same "lit up" look as a selected nav item, shown on hover and focus. */
++.nav-theme-toggle:hover .nc-trace,
++.nav-theme-toggle:focus-visible .nc-trace {
++  stroke: var(--text-accent);
++  opacity: 1;
++}
++
++.nav-theme-toggle:hover .nc-core,
++.nav-theme-toggle:focus-visible .nc-core {
++  fill: var(--text-accent);
++  opacity: 1;
++  filter: drop-shadow(0 0 4px var(--text-accent));
++}
+diff --git a/src/features/navigation/NavThemeToggle.tsx b/src/features/navigation/NavThemeToggle.tsx
+new file mode 100644
+index 0000000..201db5a
+--- /dev/null
++++ b/src/features/navigation/NavThemeToggle.tsx
+@@ -0,0 +1,33 @@
++import { useTheme } from "../../app/AppProviders/ThemeContext.ts";
++import { NavMoonIcon, NavSunIcon } from "./NavThemeIcons.tsx";
++import "./NavThemeToggle.css";
++
++/**
++ * Switches the whole app between the dark and light theme.
++ *
++ * The state lives in ThemeProvider (shared through React context). This
++ * button only reads it with the `useTheme` custom hook and asks for the
++ * other value; ThemeProvider then updates <html data-theme="...">, and
++ * theme.css recolors everything that uses the CSS variables.
++ *
++ * The icon shows the theme you will GET when you click, and the
++ * aria-label says the same in words for screen readers.
++ */
++export default function NavThemeToggle() {
++  const { theme, setTheme } = useTheme();
++
++  const nextTheme = theme === "dark" ? "light" : "dark";
++  const label = `Switch to ${nextTheme} theme`;
++
++  return (
++    <button
++      type="button"
++      className="nav-theme-toggle"
++      onClick={() => setTheme(nextTheme)}
++      aria-label={label}
++      title={label}
++    >
++      {nextTheme === "light" ? <NavSunIcon /> : <NavMoonIcon />}
++    </button>
++  );
++}
+diff --git a/src/features/navigation/navbar-desktop.css b/src/features/navigation/navbar-desktop.css
+index 48b6282..ccd9d71 100644
+--- a/src/features/navigation/navbar-desktop.css
++++ b/src/features/navigation/navbar-desktop.css
+@@ -35,6 +35,11 @@
+ 
+   .nav-bar--desktop .nav-search {
+     order: 0;
++    /* The theme toggle now sits before the search field. The auto margin
++       soaks up the free space so both stay packed on the left, and the
++       nav list stays pushed to the right (space-between would otherwise
++       center the search field). */
++    margin-right: auto;
+   }
+ 
+   .nav-bar--desktop .nav-bar__list {

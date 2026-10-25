@@ -41,12 +41,18 @@
   transform: translateX(-50%) translateY(calc(100% + 32px));
 }
 
-/* Dark mode */
-@media (prefers-color-scheme: dark) {
-  .floating-navbar {
+/* Dark mode: follows the app theme (set by ThemeProvider on <html>),
+   no longer the operating system setting, so the theme toggle works. */
+:root[data-theme="dark"] .floating-navbar {
   background: rgba(15, 23, 42, 0.80);
   border-color: rgba(255, 255, 255, 0.08);
-  }
+}
+
+/* Let the search form shrink so the theme toggle still fits on narrow
+   phones. Inputs refuse to shrink below their default width otherwise. */
+.floating-navbar .input,
+.floating-navbar .input input {
+  min-width: 0;
 }
 
 /* Nav items */

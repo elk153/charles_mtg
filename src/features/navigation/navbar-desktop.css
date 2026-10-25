@@ -35,6 +35,11 @@
 
   .nav-bar--desktop .nav-search {
     order: 0;
+    /* The theme toggle now sits before the search field. The auto margin
+       soaks up the free space so both stay packed on the left, and the
+       nav list stays pushed to the right (space-between would otherwise
+       center the search field). */
+    margin-right: auto;
   }
 
   .nav-bar--desktop .nav-bar__list {
