@@ -39,17 +39,19 @@ body{
   color: var(--text-secondary);
 }
 
-:root[data-theme="light"] .AppV2 .nav-surface {
+:root .AppV2 .nav-surface {
   background: linear-gradient(
     180deg,
-    var(--bg-header) 0%,
-    color-mix(in srgb, var(--bg-header) 65%, var(--bg-card)) 100%
+    color-mix(in srgb, var(--bg-header) 74%, transparent) 0%,
+    color-mix(in srgb, var(--bg-card) 66%, transparent) 100%
   );
+  -webkit-backdrop-filter: blur(18px) saturate(155%);
+  backdrop-filter: blur(18px) saturate(155%);
 }
 
 :root[data-theme="light"] .AppV2 .nav-search,
 :root[data-theme="light"] .AppV2 .nav-theme-toggle {
-  background: color-mix(in srgb, var(--bg-main) 90%, transparent);
+  background: color-mix(in srgb, var(--bg-main) 74%, transparent);
 }
 
 :root[data-theme="light"] .AppV2 .nav-icon .nc-trace {
