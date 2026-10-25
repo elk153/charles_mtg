@@ -1,0 +1,42 @@
+.card-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: center;
+  padding: 5rem 1rem 0; /* top space for the floating search bar */
+  color: var(--text-primary);
+}
+
+.card-filters__group {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.card-filters button,
+.card-filters select,
+.card-filters input {
+  padding: 0.4rem 0.8rem;
+  border-radius: 9999px;
+  border: 1px solid var(--text-secondary);
+  background: var(--bg-card);
+  color: var(--text-primary);
+}
+
+.card-filters button[aria-pressed="true"] {
+  background: var(--btn-gold);
+  color: #1a1a1a;
+}
+
+.card-filters button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.card-filters__count {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin: 0;
+  color: var(--text-secondary);
+}

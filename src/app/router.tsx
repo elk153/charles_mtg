@@ -1,4 +1,5 @@
 import { createBrowserRouter, Navigate, redirect } from "react-router";
+import { NuqsAdapter } from "nuqs/adapters/react-router/v8";
 import AppV1 from "./App.jsx";
 import AppV2 from "./App.tsx";
 import CardsList from "../features/scryfall-card-renderer/CardsList/CardsList";
@@ -8,7 +9,11 @@ import { Home, AdvancedSearch, Favorites, Collection, Decks } from "./App.tsx";
 const router = createBrowserRouter([ // be aware of the capitals
   {
     path: "/v1",
-    element: <AppV1 />,
+    element: (
+      <NuqsAdapter>
+        <AppV1 />
+      </NuqsAdapter>
+    ),
     children: [
       {
         index: true,
@@ -30,7 +35,11 @@ const router = createBrowserRouter([ // be aware of the capitals
   },
   {
     path: "/v2",
-    element: <AppV2 />,
+    element: (
+      <NuqsAdapter>
+        <AppV2 />
+      </NuqsAdapter>
+    ),
     children: [
       {
         index: true,
