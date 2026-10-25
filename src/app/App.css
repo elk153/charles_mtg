@@ -39,6 +39,27 @@ body{
   color: var(--text-secondary);
 }
 
+:root[data-theme="light"] .AppV2 .nav-surface {
+  background: linear-gradient(
+    180deg,
+    var(--bg-header) 0%,
+    color-mix(in srgb, var(--bg-header) 65%, var(--bg-card)) 100%
+  );
+}
+
+:root[data-theme="light"] .AppV2 .nav-search,
+:root[data-theme="light"] .AppV2 .nav-theme-toggle {
+  background: color-mix(in srgb, var(--bg-main) 90%, transparent);
+}
+
+:root[data-theme="light"] .AppV2 .nav-icon .nc-trace {
+  opacity: 0.85;
+}
+
+:root[data-theme="light"] .AppV2 .nav-label {
+  text-shadow: none;
+}
+
 @media (min-width: 861px) {
   .app-v2__main {
     padding: 6.25rem 2rem 2rem;

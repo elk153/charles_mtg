@@ -29,8 +29,8 @@
   --bg-color: var(--bg-main);
   /* Sublayer (base) color behind the theme overlay - defaults to black */
   --sublayer-bg: #000000;
-  --bg-header: #202b30;       /* Dark Slate Header (Kept dark for stark, jarring contrast) */
-  --bg-card: #ced9d4;         /* Cold Moss Gray (Darker than main bg so white glow registers) */
+  --bg-header: #e3eae6;       /* Soft lichen surface */
+  --bg-card: #d5dfd9;         /* Muted moss surface */
   --bg-overlay: rgba(232, 237, 234, 0.5);  /* 15% opacity of bg-main */
   
   /* Interactive Elements */
@@ -39,8 +39,8 @@
   
   /* Typography */
   --text-primary: #121a1d;    /* Dried Ink Slate */
-  --text-secondary: #52635c;  /* Shadowed Lichen Green */
-  --text-accent: #008f76;     /* Deep Sea Aquamarine */
+  --text-secondary: #34463e;  /* Deep lichen green for readable supporting text */
+  --text-accent: #006b56;     /* Deep aquamarine for readable highlights */
   --text-header: #e8edea;
   
   /* 🪄 The Light Mode Dark Halo Shadow */
