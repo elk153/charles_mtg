@@ -30,5 +30,5 @@
 
 - on the navigation bar, add a toggle switch before the search field to toggle from search in scryfall library or personal collection
 - adapt the navigation bar format to handled the newly added elements (theme toggle and search toggle)
-
+- 
 
