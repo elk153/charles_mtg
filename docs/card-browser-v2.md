@@ -18,7 +18,8 @@ construction.
 
 ## Architecture and concepts
 
-- **Routes and deep links:** `/v2/search?q=...` is the name-search route;
+- **Routes and deep links:** the app opens `/v2/home`, which displays the
+  daily seven-card set. `/v2/search?q=...` is the name-search route;
   `/v2/search/random` is the daily mulligan route. `?card=<id>` opens a card
   overlay without replacing the search URL. React Router and nuqs keep the
   existing filter URL state.
@@ -26,15 +27,15 @@ construction.
   parameters, and seed. Search results remain cached for 24 hours. The filter
   controls operate on the current cached Scryfall result; changing a filter
   does not create an API request. Scryfall search is paginated at 175 cards,
-  so this V1 browser flow does not yet fetch later pages.
+  so this V2 browser flow does not yet fetch later pages.
 - **Set picker / mulligan:** the V2 layout prefetches `/sets` alongside card
-  symbols. `getMulliganSets` currently allows non-digital sets of at least five
-  released sets with at least five cards whose `set_type` is `core`,
-  `expansion`, `masters`, `draft_innovation`, `eternal`, or `funny`. Scryfall's Set object does not
+  symbols. `getMulliganSets` currently allows released, non-digital sets with
+  at least five cards whose `set_type` is `core`, `expansion`, `masters`,
+  `draft_innovation`, `eternal`, or `funny`. Scryfall's Set object does not
   expose a direct booster-eligibility flag, so this explicit allowlist is the
   extension point for additional product types. The selected set is stable for
   the UTC day. One random-ordered `cards/search` request with `unique=cards`
-  supplies a cached pool; five different cards are displayed from its first
+  supplies a cached pool; seven different cards are displayed from its first
   page rather than fetching every page of a set.
 - **Rendering:** search tiles use the normal Scryfall card image at a shared
   250px target width. The existing normalized card renderer is reused in the
@@ -45,8 +46,11 @@ construction.
 - **Detail overlay:** the card ID is URL-backed. Rulings are queried through
   TanStack Query; the print query supplies both printing images and their
   current `prices.eur` / `prices.eur_foil` fields, avoiding a separate price
-  endpoint. Detail and print columns scroll independently on wide screens and
-  stack on narrow screens. Art crops retain an artist and Wizards of the Coast
+  endpoint. The details column is narrower than the print column on desktop;
+  both scroll independently on wide screens and stack on narrow screens.
+  Double-faced cards have one flip control below the artwork, and printed-card
+  tiles expose the same flip, favorites, collection, and decks actions as
+  search results. Art crops retain an artist and Wizards of the Coast
   attribution in the same interface.
 - **Shared UI:** navigation source state is stored as `?source=collection`, so
   it is bookmarkable and the desktop/mobile controls stay synchronized.
@@ -79,5 +83,5 @@ success-shaped data.
 - Browser check: `/v2/search?q=lightning%20bolt` loaded two results; clicking
   Red added `colors=R` to the URL; a card action showed its construction
   notice; the details overlay showed printings and prices; and
-  `/v2/search/random` selected Return to Ravnica and displayed five unique
+  `/v2/search/random` selected Return to Ravnica and displayed seven unique
   cards from its cached 175-card search page.

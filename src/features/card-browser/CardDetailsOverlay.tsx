@@ -7,13 +7,14 @@ import useFetchUrl from "../../hooks/useFetchUrl.ts";
 import useScryfallCardsSearch from "../../hooks/useScryfallCardsSearch.ts";
 import fetchCardRulings from "../../services/fetchCardRulings.ts";
 import CardTile from "./CardTile.tsx";
-import type { CardBrowserCard, CardBrowserFace } from "./types.ts";
+import type { CardAction, CardBrowserCard, CardBrowserFace } from "./types.ts";
 import { isCardBrowserCard } from "./types.ts";
 import "./CardDetailsOverlay.css";
 
 type CardDetailsOverlayProps = {
   cardId: string;
   fallbackCard?: CardBrowserCard;
+  onAction: (action: CardAction, card: CardBrowserCard) => void;
   onClose: () => void;
 };
 
@@ -23,6 +24,7 @@ const NO_PRINTS: unknown[] = [];
 export default function CardDetailsOverlay({
   cardId,
   fallbackCard,
+  onAction,
   onClose,
 }: CardDetailsOverlayProps) {
   const dialogRef = useRef<HTMLElement>(null);
@@ -44,9 +46,14 @@ export default function CardDetailsOverlay({
     faces.length > 1 &&
     !["split", "adventure", "flip", "meld"].includes(displayCard?.layout ?? "");
   const activeFace = supportsFaceSelection ? faces[faceIndex] : undefined;
-  const artImage =
+  const nextFace = supportsFaceSelection
+    ? faces[(faceIndex + 1) % faces.length]
+    : undefined;
+  const artCropImage =
     activeFace?.image_uris?.art_crop ??
-    displayCard?.image_uris?.art_crop ??
+    displayCard?.image_uris?.art_crop;
+  const artImage =
+    artCropImage ??
     activeFace?.image_uris?.normal ??
     displayCard?.image_uris?.normal;
   const rulingsUri = originalCard?.rulings_uri;
@@ -152,35 +159,32 @@ export default function CardDetailsOverlay({
       {originalCard && displayCard && contentCard && (
         <div className="card-detail-overlay__columns">
           <div className="card-detail-overlay__details">
-            <div className="card-detail__art">
+            <div
+              className={`card-detail__art${artCropImage ? "" : " card-detail__art--full"}`}
+            >
               {artImage && (
                 <img
-                  className={
-                    activeFace?.image_uris?.art_crop || displayCard.image_uris?.art_crop
-                      ? "card-detail__art-image"
-                      : "card-detail__art-image card-detail__art-image--full"
-                  }
+                  className="card-detail__art-image"
                   src={artImage}
                   alt={`Illustration for ${activeFace?.name ?? displayCard.name}`}
                 />
               )}
-              <p className="card-detail__artist">
+              <p
+                className={`card-detail__artist${artCropImage ? "" : " card-detail__artist--outside"}`}
+              >
                 Illustration by {activeFace?.artist ?? displayCard.artist ?? "Unknown artist"} · © Wizards of the Coast
               </p>
             </div>
 
-            {supportsFaceSelection && (
-              <div className="card-detail__faces" role="group" aria-label="Card faces">
-                {faces.map((face, index) => (
-                  <button
-                    key={`${face.name}-${index}`}
-                    type="button"
-                    aria-pressed={faceIndex === index}
-                    onClick={() => setFaceIndex(index)}
-                  >
-                    {face.name}
-                  </button>
-                ))}
+            {nextFace && (
+              <div className="card-detail__flip-control">
+                <button
+                  type="button"
+                  aria-label={`Flip to ${nextFace.name}`}
+                  onClick={() => setFaceIndex((index) => (index + 1) % faces.length)}
+                >
+                  Flip to {nextFace.name}
+                </button>
               </div>
             )}
 
@@ -228,7 +232,6 @@ export default function CardDetailsOverlay({
           </div>
 
           <section className="card-detail-overlay__prints" aria-label="Card prints">
-            <h2>Printings</h2>
             {printsQuery.isLoading && <p role="status">Loading printings…</p>}
             {printsQuery.error && (
               <p className="card-detail__error" role="alert">
@@ -259,8 +262,8 @@ export default function CardDetailsOverlay({
                     </div>
                     <CardTile
                       card={print}
-                      showActions={false}
                       onSelect={setSelectedPrint}
+                      onAction={onAction}
                     />
                   </article>
                 ))}

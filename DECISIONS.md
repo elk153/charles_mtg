@@ -40,11 +40,12 @@
   must remain available, local filtering satisfies the requested cache-first
   behavior, existing packages already cover routing/query/table needs, and a
   broad migration is unnecessary.
-- Consequences: V2 filters only the first 175-card Scryfall search page. The
-  search-source toggle is URL-backed. The daily mulligan uses an explicit
+- Consequences: V2 filters only the first 175-card Scryfall search page.
+  `/` opens the V2 home page, which shows the daily mulligan. The search-source
+  toggle is URL-backed. The daily mulligan uses an explicit
   non-digital set-type allowlist because the
   Scryfall Set object has no booster-eligibility field; one `unique=cards`,
-  random-ordered search request supplies five cards from the returned page.
+  random-ordered search request supplies seven cards from the returned page.
   Favorites, collection, and deck actions remain notices until those features
   have storage. Collection-mode search remains an under-construction notice.
 - Source: "[V2 Card Browser](./docs/card-browser-v2.md)"

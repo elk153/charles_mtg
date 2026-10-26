@@ -24,7 +24,7 @@ export default function NavBarMobile({
 
   return (
     <nav
-      className={`nav-bar nav-bar--mobile nav-surface${visible ? "" : " nav-bar--hidden"}`}
+      className={`nav-bar nav-bar--mobile nav-surface${visible ? "" : " nav-bar--hidden"}${searchFocused ? " nav-bar--search-focused" : ""}`}
       data-visible={visible}
       aria-label="Primary"
     >

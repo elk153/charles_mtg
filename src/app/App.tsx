@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import NavBar from "../features/navigation/NavBar.tsx";
 import { Outlet } from "react-router";
+import CardBrowserPage from "../features/card-browser/CardBrowserPage.tsx";
 import "./App.css";
 import usePreFetchUrl from "../hooks/usePreFetchUrl.ts";
 
@@ -64,12 +65,7 @@ export default function App() {
 }
 
 export function Home() {
-  return (
-    <section className="app-v2__page">
-      <h1>Welcome to the Home Page</h1>
-      <p>This is the home page of the application.</p>
-    </section>
-  );
+  return <CardBrowserPage mode="mulligan" />;
 }
 
 export function AdvancedSearch() {

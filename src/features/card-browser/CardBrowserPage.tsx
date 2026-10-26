@@ -24,13 +24,17 @@ const ACTION_LABELS: Record<CardAction, string> = {
   deck: "Decks",
 };
 
-export default function CardBrowserPage() {
+type CardBrowserPageProps = {
+  mode?: "search" | "mulligan";
+};
+
+export default function CardBrowserPage({ mode = "search" }: CardBrowserPageProps) {
   const [searchParams, setSearchParams] = useSearchParams();
   const { pathname } = useLocation();
   const [notice, setNotice] = useState("");
   const searchQuery = searchParams.get("q")?.trim() ?? "";
   const cardId = searchParams.get("card");
-  const isRandomRoute = pathname.endsWith("/random");
+  const isRandomRoute = mode === "mulligan" || pathname.endsWith("/random");
   const [dailyDay, setDailyDay] = useState(() =>
     Math.floor(Date.now() / MILLISECONDS_PER_DAY),
   );
@@ -79,7 +83,7 @@ export default function CardBrowserPage() {
   const cards = useMemo<CardBrowserCard[]>(
     () =>
       rawCards && !invalidCardData
-        ? rawCards.filter(isCardBrowserCard).slice(0, isRandomRoute ? 5 : undefined)
+        ? rawCards.filter(isCardBrowserCard).slice(0, isRandomRoute ? 7 : undefined)
         : [],
     [rawCards, invalidCardData, isRandomRoute],
   );
@@ -112,13 +116,16 @@ export default function CardBrowserPage() {
     setNotice(`${ACTION_LABELS[action]} for ${card.name} is under construction.`);
   }
 
+  const pageTitle = isRandomRoute
+    ? mulliganSet
+      ? `Today’s set: ${mulliganSet.name} (${mulliganSet.code.toUpperCase()})`
+      : "Today’s set"
+    : searchQuery || "Search cards";
+
   return (
     <section className="card-browser-page">
       <header className="card-browser__heading">
-        <h1>{isRandomRoute ? "Mulligan" : searchQuery || "Search cards"}</h1>
-        {isRandomRoute && mulliganSet && (
-          <p>Today’s set: {mulliganSet.name} ({mulliganSet.code.toUpperCase()})</p>
-        )}
+        <h1>{pageTitle}</h1>
         {!isRandomRoute && !searchQuery && (
           <p>Enter a card name in the search field to browse Scryfall.</p>
         )}
@@ -154,7 +161,7 @@ export default function CardBrowserPage() {
 
       {search.isLoading && (
         <p className="card-browser__message" role="status">
-          {isRandomRoute ? "Choosing five cards…" : "Loading cards…"}
+          {isRandomRoute ? "Choosing seven cards…" : "Loading cards…"}
         </p>
       )}
 
@@ -214,6 +221,7 @@ export default function CardBrowserPage() {
           key={cardId}
           cardId={cardId}
           fallbackCard={cards.find((card) => card.id === cardId)}
+          onAction={showActionNotice}
           onClose={closeDetails}
         />
       )}
