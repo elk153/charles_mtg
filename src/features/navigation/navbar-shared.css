@@ -12,14 +12,6 @@
    ========================================================================== */
 
 :root {
-  /* ---- Type: a restrained MTG-flavored display face, paired with a
-     modern, highly-legible face for anything a person actually reads
-     at nav size. Swap the family names for self-hosted files if you
-     have licensed faces (e.g. a Beleren-alike) — the variables are the
-     integration point. */
-  --font-display: "Cinzel", "Iowan Old Style", "Palatino Linotype", serif;
-  --font-ui: "Manrope", "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
-
   /* ---- Floating bar geometry, shared by both breakpoints */
   --nav-radius: 18px;
   --nav-border: 1px solid rgba(197, 160, 89, 0.28); /* tarnished gold hairline */

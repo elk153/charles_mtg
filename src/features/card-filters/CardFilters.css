@@ -8,6 +8,34 @@
   color: var(--text-primary);
 }
 
+.card-filters--floating {
+  position: fixed;
+  z-index: 90;
+  top: 5.4rem;
+  left: 50%;
+  box-sizing: border-box;
+  width: min(92vw, 960px);
+  padding: 0.65rem;
+  transform: translateX(-50%);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--nav-radius);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--bg-header) 92%, transparent),
+    color-mix(in srgb, var(--bg-card) 92%, transparent)
+  );
+  box-shadow: var(--eerie-glow);
+  -webkit-backdrop-filter: blur(16px) saturate(130%);
+  backdrop-filter: blur(16px) saturate(130%);
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+}
+
+.card-filters--floating.card-filters--hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -140%);
+}
+
 .card-filters__group {
   display: flex;
   gap: 0.25rem;
@@ -17,15 +45,15 @@
 .card-filters select,
 .card-filters input {
   padding: 0.4rem 0.8rem;
-  border-radius: 9999px;
-  border: 1px solid var(--text-secondary);
+  border-radius: var(--control-radius);
+  border: 1px solid var(--surface-border);
   background: var(--bg-card);
   color: var(--text-primary);
 }
 
 .card-filters button[aria-pressed="true"] {
   background: var(--btn-gold);
-  color: #1a1a1a;
+  color: var(--bg-header);
 }
 
 .card-filters button:disabled {
@@ -39,4 +67,35 @@
   align-items: center;
   margin: 0;
   color: var(--text-secondary);
+}
+
+@media (max-width: 860px) {
+  .card-filters--floating {
+    top: auto;
+    bottom: calc(5.2rem + env(safe-area-inset-bottom, 0px));
+    width: 94vw;
+    gap: 0.4rem;
+    padding: 0.45rem;
+  }
+
+  .card-filters--floating .card-filters__group {
+    flex-wrap: wrap;
+  }
+
+  .card-filters--floating button,
+  .card-filters--floating select,
+  .card-filters--floating input {
+    padding: 0.3rem 0.55rem;
+    font-size: 0.72rem;
+  }
+
+  .card-filters--floating.card-filters--hidden {
+    transform: translate(-50%, 160%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card-filters--floating {
+    transition: opacity 0.2s ease;
+  }
 }

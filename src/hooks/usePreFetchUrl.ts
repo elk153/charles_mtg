@@ -1,0 +1,41 @@
+import { useEffect } from "react";
+import { useIsRestoring, useQueryClient } from "@tanstack/react-query";
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+export default function usePreFetchUrl(
+  dataPurpose: string,
+  urlParam: string,
+  staleTimeInSeconds = 86400,
+) {
+  const queryClient = useQueryClient();
+  const isRestoring = useIsRestoring();
+
+  useEffect(() => {
+    if (isRestoring) return;
+
+    void queryClient.prefetchQuery({
+      queryKey: ["fetchedUrl", dataPurpose, urlParam],
+      queryFn: async () => {
+        console.log(urlParam);
+        const response = await fetch(urlParam, {
+          headers: { Accept: "application/json" },
+        });
+        if (!response.ok) {
+          throw new Error(`[API error] ${response.status} — ${response.statusText}`);
+        }
+
+        const json: unknown = await response.json();
+        if (!isRecord(json) || !Array.isArray(json.data)) {
+          throw new Error("[API error] Response did not contain a data list");
+        }
+
+        console.log(json.data);
+        return json.data;
+      },
+      staleTime: 1000 * staleTimeInSeconds,
+    });
+  }, [queryClient, dataPurpose, urlParam, staleTimeInSeconds, isRestoring]);
+}

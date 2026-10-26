@@ -1,17 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 
-/**
- * useScrollVisibility
- *
- * Shared "disappearing bar" logic for both the desktop header and the
- * mobile floating bar. Scrolling down past `threshold` hides the bar;
- * scrolling up (by even a little) reveals it again. Staying near the
- * top of the page always keeps it visible.
- *
- * @param {number} threshold - px of downward scroll before hiding
- * @param {number} topGuard  - px from top where the bar is always shown
- */
-export default function useScrollVisibility({ threshold = 10, topGuard = 48 } = {}) {
+type ScrollVisibilityOptions = {
+  threshold?: number;
+  topGuard?: number;
+};
+
+export default function useScrollVisibility({
+  threshold = 10,
+  topGuard = 48,
+}: ScrollVisibilityOptions = {}) {
   const [visible, setVisible] = useState(true);
   const lastY = useRef(typeof window !== "undefined" ? window.scrollY : 0);
   const accum = useRef(0);

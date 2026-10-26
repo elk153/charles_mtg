@@ -1,11 +1,17 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { resolvePath, useLocation, useNavigate, useResolvedPath } from "react-router";
 import navItems from "./navItems";
 import NavSearchField from "./NavSearchField";
+import SearchSourceToggle from "./SearchSourceToggle.tsx";
+import type { NavBarProps } from "./types.ts";
 import NavThemeToggle from "./NavThemeToggle.tsx";
 import useScrollVisibility from "../../hooks/useScrollVisibility";
 
-export default function NavBarMobile() {
+export default function NavBarMobile({
+  searchSource,
+  onSearchSourceToggle,
+  onSearch,
+}: NavBarProps) {
   const scrollVisible = useScrollVisibility({ threshold: 10, topGuard: 40 });
   const [searchFocused, setSearchFocused] = useState(false);
   const { pathname } = useLocation();
@@ -16,10 +22,6 @@ export default function NavBarMobile() {
   // even if a scroll event fires (e.g. page reflow on keyboard open).
   const visible = scrollVisible || searchFocused;
 
-  function handleSearch(query) {
-    navigate(query ? `search?q=${encodeURIComponent(query)}` : "search/random");
-  }
-
   return (
     <nav
       className={`nav-bar nav-bar--mobile nav-surface${visible ? "" : " nav-bar--hidden"}`}
@@ -28,8 +30,12 @@ export default function NavBarMobile() {
     >
       <div className="nav-bar__row">
         <NavThemeToggle />
+        <SearchSourceToggle
+          value={searchSource}
+          onToggle={onSearchSourceToggle}
+        />
         <NavSearchField
-          onSearch={handleSearch}
+          onSearch={onSearch}
           expanded={searchFocused}
           onFocusChange={setSearchFocused}
           id="nav-search-mobile"

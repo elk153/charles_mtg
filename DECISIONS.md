@@ -19,3 +19,32 @@
 - Alternatives considered: One shared button component (less duplication, but the two bars look different). A toggleTheme function in the context (needs two more files). Saving the choice in localStorage (left for later; needs an early script to avoid a flash). Putting the FloatingNavBar button between the text field and "Go for it" (needs changes to Input.jsx).
 - Consequences: The FloatingNavBar now follows the app theme instead of the OS setting. The choice is lost on reload. The NavBar mobile bar and the FloatingNavBar on narrow phones are wider or tighter and need a visual check. Each toggle contains the same one-line "pick the other theme" logic.
 - Source: "[Theme] Dark/light toggle in navigation bars"
+
+## D-003: V2 card browser data and integration boundary
+
+- Status: Accepted
+- Date: 2026-10-26
+- Decision: Implement the first card-browser flow under `/v2` and leave V1's
+  card browsing behavior intact. Keep filters in the URL and apply them to the
+  TanStack Query-cached result set; do not issue a Scryfall request for each
+  filter change. Use existing dependencies, convert only the touched browser
+  and navigation surfaces to TypeScript, and keep the new styling local to
+  those features.
+- Why: V2 is the target shell and its navbar already offers the search entry
+  point. Reusing the query cache and the existing layout-aware card renderer
+  avoids duplicate data requests and renderer logic while limiting risk to the
+  working V1 app.
+- Alternatives considered: Replacing V1, integrating the feature into both
+  versions, filtering only a new server query per filter, adding a card-state
+  library, and reorganizing all app CSS. These were not selected because V1
+  must remain available, local filtering satisfies the requested cache-first
+  behavior, existing packages already cover routing/query/table needs, and a
+  broad migration is unnecessary.
+- Consequences: V2 filters only the first 175-card Scryfall search page. The
+  search-source toggle is URL-backed. The daily mulligan uses an explicit
+  non-digital set-type allowlist because the
+  Scryfall Set object has no booster-eligibility field; one `unique=cards`,
+  random-ordered search request supplies five cards from the returned page.
+  Favorites, collection, and deck actions remain notices until those features
+  have storage. Collection-mode search remains an under-construction notice.
+- Source: "[V2 Card Browser](./docs/card-browser-v2.md)"

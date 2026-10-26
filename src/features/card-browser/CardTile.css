@@ -1,0 +1,84 @@
+.browser-card {
+  position: relative;
+  flex: 0 0 var(--card-image-width);
+  width: var(--card-image-width);
+}
+
+.browser-card__media {
+  display: block;
+  width: 100%;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 4.5%;
+  background: transparent;
+  cursor: pointer;
+}
+
+.browser-card__media:focus-visible,
+.browser-card__action:focus-visible {
+  outline: 2px solid var(--text-accent);
+  outline-offset: 3px;
+}
+
+.browser-card__media img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  border-radius: inherit;
+}
+
+.browser-card__placeholder {
+  display: grid;
+  width: 100%;
+  aspect-ratio: 488 / 680;
+  place-items: center;
+  border: 1px solid var(--surface-border);
+  border-radius: 4.5%;
+  color: var(--text-secondary);
+  background: var(--bg-card);
+  font: 0.9rem var(--font-ui);
+}
+
+.browser-card__actions {
+  position: absolute;
+  top: 0.55rem;
+  right: 0.55rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.browser-card__action {
+  display: grid;
+  width: 2.35rem;
+  height: 2.35rem;
+  padding: 0.4rem;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--text-accent) 40%, transparent);
+  border-radius: 50%;
+  color: var(--text-accent);
+  background: color-mix(in srgb, var(--bg-main) 52%, transparent);
+  opacity: 0.62;
+  cursor: pointer;
+  transition: opacity 0.2s ease, filter 0.2s ease, box-shadow 0.2s ease;
+}
+
+.browser-card__action svg {
+  width: 100%;
+  height: 100%;
+}
+
+.browser-card__action:hover,
+.browser-card__action:focus-visible {
+  opacity: 1;
+  filter: drop-shadow(0 0 5px var(--text-accent));
+  box-shadow: 0 0 12px color-mix(in srgb, var(--text-accent) 42%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .browser-card__action {
+    transition: none;
+  }
+}

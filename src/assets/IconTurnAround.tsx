@@ -1,13 +1,16 @@
-export default function IconTurnAround(props) {
+import type { SVGProps } from "react";
+
+export default function IconTurnAround(props: SVGProps<SVGSVGElement>) {
   return (
     <svg 
+      {...props}
       xmlns="http://www.w3.org/2000/svg" 
-      xmlnsXlink="http://www.w3.org/1999/xlink" 
       aria-hidden="true" 
       role="img" 
       width="32" 
       height="32" 
       viewBox="0 0 48 48" 
+      focusable="false"
     >
       <g 
         fill="none" 

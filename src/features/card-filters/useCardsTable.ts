@@ -6,10 +6,8 @@ import { columns, features } from "./columns.ts";
 import { filterParsers } from "./filterParams.ts";
 import type { ScryfallCard } from "./types.ts";
 
-// Stable fallback: a new [] on every render would make the table recompute everything.
-const NO_CARDS: ScryfallCard[] = [];
-
-export function useCardsTable(cards: ScryfallCard[] | undefined) {
+export function useCardsTable<TCard extends ScryfallCard>(cards: TCard[] | undefined) {
+  const noCards = useMemo<TCard[]>(() => [], []);
   // 1. URL state (source of truth). Same shape as useState: [values, setter].
   const [filters, setFilters] = useQueryStates(filterParsers);
 
@@ -32,7 +30,7 @@ export function useCardsTable(cards: ScryfallCard[] | undefined) {
   const table = useTable({
     features,
     columns,
-    data: cards ?? NO_CARDS,
+    data: cards ?? noCards,
     state: { columnFilters, sorting },
   });
 

@@ -1,5 +1,5 @@
 import { useMemo, type ElementType, type ReactElement, type ReactNode } from "react";
-import useFetchUrl from "./useFetchUrl.js";
+import useFetchUrl from "./useFetchUrl.ts";
 
 type CardSymbol = {
   symbol: string;

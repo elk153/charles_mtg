@@ -1,3 +1,12 @@
+:root {
+  --font-display: "Cinzel", "Iowan Old Style", "Palatino Linotype", serif;
+  --font-ui: "Manrope", "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  --card-image-width: 250px;
+  --card-image-gap: 1.5rem;
+  --control-radius: 999px;
+  --surface-border: color-mix(in srgb, var(--btn-gold) 28%, transparent);
+}
+
 :root[data-theme="dark"] {
   /* Backgrounds */
   --bg-main: #162a2b;         /* Deep Spectral Aquamarine (Swampy Trench) */

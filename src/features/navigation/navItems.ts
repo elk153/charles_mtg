@@ -1,10 +1,8 @@
-import {
-  HomeIcon,
-  AdvancedSearchIcon,
-  FavoritesIcon,
-  CollectionIcon,
-  DecksIcon,
-} from "./NavIcons";
+import HomeIcon from "../../assets/navigation/HomeIcon.tsx";
+import AdvancedSearchIcon from "../../assets/navigation/AdvancedSearchIcon.tsx";
+import FavoritesIcon from "../../assets/navigation/FavoritesIcon.tsx";
+import CollectionIcon from "../../assets/navigation/CollectionIcon.tsx";
+import DecksIcon from "../../assets/navigation/DecksIcon.tsx";
 
 // Single source of truth for the 5 options. Both NavBarDesktop and
 // NavBarMobile map over this so labels/icons/paths never drift apart.

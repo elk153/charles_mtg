@@ -1,0 +1,275 @@
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import CardRenderer from "../scryfall-card-renderer/CardRenderer";
+import OracleText from "../scryfall-card-renderer/components/OracleText.jsx";
+import IconClose from "../../assets/IconClose.tsx";
+import useFetchUrl from "../../hooks/useFetchUrl.ts";
+import useScryfallCardsSearch from "../../hooks/useScryfallCardsSearch.ts";
+import fetchCardRulings from "../../services/fetchCardRulings.ts";
+import CardTile from "./CardTile.tsx";
+import type { CardBrowserCard, CardBrowserFace } from "./types.ts";
+import { isCardBrowserCard } from "./types.ts";
+import "./CardDetailsOverlay.css";
+
+type CardDetailsOverlayProps = {
+  cardId: string;
+  fallbackCard?: CardBrowserCard;
+  onClose: () => void;
+};
+
+const DAY_IN_MS = 24 * 60 * 60 * 1000;
+const NO_PRINTS: unknown[] = [];
+
+export default function CardDetailsOverlay({
+  cardId,
+  fallbackCard,
+  onClose,
+}: CardDetailsOverlayProps) {
+  const dialogRef = useRef<HTMLElement>(null);
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
+  const [selectedPrint, setSelectedPrint] = useState<CardBrowserCard | null>(null);
+  const [faceIndex, setFaceIndex] = useState(0);
+  const cardQuery = useScryfallCardsSearch(
+    fallbackCard ? null : `cards/${encodeURIComponent(cardId)}`,
+    {},
+    0,
+  );
+  const fetchedValue = cardQuery.data?.[0];
+  const fetchedCard = isCardBrowserCard(fetchedValue) ? fetchedValue : undefined;
+  const invalidCard = fetchedValue !== undefined && !fetchedCard;
+  const originalCard = fallbackCard ?? fetchedCard;
+  const displayCard = selectedPrint ?? originalCard;
+  const faces = displayCard?.card_faces ?? [];
+  const supportsFaceSelection =
+    faces.length > 1 &&
+    !["split", "adventure", "flip", "meld"].includes(displayCard?.layout ?? "");
+  const activeFace = supportsFaceSelection ? faces[faceIndex] : undefined;
+  const artImage =
+    activeFace?.image_uris?.art_crop ??
+    displayCard?.image_uris?.art_crop ??
+    activeFace?.image_uris?.normal ??
+    displayCard?.image_uris?.normal;
+  const rulingsUri = originalCard?.rulings_uri;
+  const printsUri = originalCard?.prints_search_uri;
+  const rulingsQuery = useQuery({
+    queryKey: ["fetchedUrl", "cardRulingsNormalized", rulingsUri],
+    queryFn: () => {
+      if (!rulingsUri) throw new Error("This card has no rulings URL.");
+      return fetchCardRulings(rulingsUri);
+    },
+    enabled: Boolean(rulingsUri),
+    staleTime: DAY_IN_MS,
+  });
+  const printsQuery = useFetchUrl("cardPrints", printsUri);
+  const printValues = printsQuery.data ?? NO_PRINTS;
+  const invalidPrintData = printValues.some((value) => !isCardBrowserCard(value));
+  const prints = useMemo(
+    () =>
+      invalidPrintData
+        ? []
+        : printValues.filter(isCardBrowserCard),
+    [invalidPrintData, printValues],
+  );
+  const contentCard = useMemo<CardBrowserCard | undefined>(() => {
+    if (!displayCard || !supportsFaceSelection || faceIndex === 0) return displayCard;
+    const selectedFaces: CardBrowserFace[] = displayCard.card_faces ?? [];
+    return {
+      ...displayCard,
+      card_faces: [
+        ...selectedFaces.slice(faceIndex),
+        ...selectedFaces.slice(0, faceIndex),
+      ],
+    };
+  }, [displayCard, faceIndex, supportsFaceSelection]);
+
+  useEffect(() => {
+    closeButtonRef.current?.focus();
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        onClose();
+        return;
+      }
+
+      if (event.key !== "Tab") return;
+      const focusable = dialogRef.current?.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      );
+      if (!focusable?.length) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && event.target === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && event.target === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
+
+  const title = originalCard?.name ?? "Card details";
+
+  return (
+    <section
+      ref={dialogRef}
+      className="card-detail-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-label={`Details for ${title}`}
+    >
+      <header className="card-detail-overlay__toolbar">
+        <h2>{title}</h2>
+        <button
+          ref={closeButtonRef}
+          type="button"
+          className="card-detail-overlay__close"
+          aria-label="Close card details"
+          onClick={onClose}
+        >
+          <IconClose />
+        </button>
+      </header>
+
+      {!originalCard && cardQuery.isLoading && (
+        <p className="card-detail-overlay__message" role="status">
+          Loading card…
+        </p>
+      )}
+      {!originalCard && cardQuery.error && (
+        <p className="card-detail-overlay__message card-detail-overlay__message--error" role="alert">
+          Could not load this card: {cardQuery.error.message}
+        </p>
+      )}
+      {invalidCard && (
+        <p className="card-detail-overlay__message card-detail-overlay__message--error" role="alert">
+          Scryfall returned card data in an unexpected format.
+        </p>
+      )}
+
+      {originalCard && displayCard && contentCard && (
+        <div className="card-detail-overlay__columns">
+          <div className="card-detail-overlay__details">
+            <div className="card-detail__art">
+              {artImage && (
+                <img
+                  className={
+                    activeFace?.image_uris?.art_crop || displayCard.image_uris?.art_crop
+                      ? "card-detail__art-image"
+                      : "card-detail__art-image card-detail__art-image--full"
+                  }
+                  src={artImage}
+                  alt={`Illustration for ${activeFace?.name ?? displayCard.name}`}
+                />
+              )}
+              <p className="card-detail__artist">
+                Illustration by {activeFace?.artist ?? displayCard.artist ?? "Unknown artist"} · © Wizards of the Coast
+              </p>
+            </div>
+
+            {supportsFaceSelection && (
+              <div className="card-detail__faces" role="group" aria-label="Card faces">
+                {faces.map((face, index) => (
+                  <button
+                    key={`${face.name}-${index}`}
+                    type="button"
+                    aria-pressed={faceIndex === index}
+                    onClick={() => setFaceIndex(index)}
+                  >
+                    {face.name}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            <div className="card-detail__renderer">
+              <CardRenderer key={`${displayCard.id}-${faceIndex}`} card={contentCard} />
+            </div>
+
+            <section className="card-detail__section">
+              <h3>Rulings</h3>
+              {rulingsQuery.isLoading && <p role="status">Loading rulings…</p>}
+              {rulingsQuery.error && (
+                <p className="card-detail__error" role="alert">
+                  Could not load rulings: {rulingsQuery.error.message}
+                </p>
+              )}
+              {!rulingsQuery.isLoading && !rulingsQuery.error && (
+                <ul className="card-detail__rulings">
+                  {(rulingsQuery.data ?? []).length > 0 ? (
+                    rulingsQuery.data?.map(({ id, source, date, ruling }, index) => (
+                      <li key={`${id}-${date}-${index}`}>
+                        <OracleText text={ruling} container="span" />
+                        <em>{` (${source}, ${date})`}</em>
+                      </li>
+                    ))
+                  ) : (
+                    <li>None</li>
+                  )}
+                </ul>
+              )}
+            </section>
+
+            <section className="card-detail__section">
+              <h3>Legalities</h3>
+              <div className="card-detail__legalities">
+                {Object.entries(displayCard.legalities ?? {}).map(([format, legality]) => (
+                  <span
+                    key={format}
+                    className={`card-detail__legality card-detail__legality--${legality}`}
+                  >
+                    {format.replaceAll("_", " ")}: {legality.replaceAll("_", " ")}
+                  </span>
+                ))}
+              </div>
+            </section>
+          </div>
+
+          <section className="card-detail-overlay__prints" aria-label="Card prints">
+            <h2>Printings</h2>
+            {printsQuery.isLoading && <p role="status">Loading printings…</p>}
+            {printsQuery.error && (
+              <p className="card-detail__error" role="alert">
+                Could not load printings: {printsQuery.error.message}
+              </p>
+            )}
+            {invalidPrintData && (
+              <p className="card-detail__error" role="alert">
+                Scryfall returned print data in an unexpected format.
+              </p>
+            )}
+            {!printsQuery.isLoading && !printsQuery.error && !invalidPrintData && (
+              <div className="card-detail__print-grid">
+                {prints.map((print) => (
+                  <article className="card-detail__print" key={print.id}>
+                    <div className="card-detail__print-info">
+                      <h3>{print.set_name ?? "Unknown set"}</h3>
+                      <p>
+                        {print.set?.toUpperCase() ?? "—"} / {print.collector_number ?? "—"}
+                        {print.released_at ? ` · ${print.released_at}` : ""}
+                      </p>
+                      <div className="card-detail__prices">
+                        <span>Non-foil: {print.prices?.eur ? `€${print.prices.eur}` : "—"}</span>
+                        <span className="card-detail__foil-price">
+                          Foil: {print.prices?.eur_foil ? `€${print.prices.eur_foil}` : "—"}
+                        </span>
+                      </div>
+                    </div>
+                    <CardTile
+                      card={print}
+                      showActions={false}
+                      onSelect={setSelectedPrint}
+                    />
+                  </article>
+                ))}
+                {prints.length === 0 && <p>No printings found.</p>}
+              </div>
+            )}
+          </section>
+        </div>
+      )}
+    </section>
+  );
+}

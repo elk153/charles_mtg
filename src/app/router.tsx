@@ -4,6 +4,7 @@ import AppV1 from "./App.jsx";
 import AppV2 from "./App.tsx";
 import CardsList from "../features/scryfall-card-renderer/CardsList/CardsList";
 import CardOverlay from "../features/scryfall-card-renderer/CardOverlay/CardOverlay";
+import CardBrowserPage from "../features/card-browser/CardBrowserPage.tsx";
 import { Home, AdvancedSearch, Favorites, Collection, Decks } from "./App.tsx";
 
 const router = createBrowserRouter([ // be aware of the capitals
@@ -56,6 +57,14 @@ const router = createBrowserRouter([ // be aware of the capitals
       {
         path: "search/advanced",
         element: <AdvancedSearch />,
+      },
+      {
+        path: "search",
+        element: <CardBrowserPage />,
+      },
+      {
+        path: "search/random",
+        element: <CardBrowserPage />,
       },
       {
         path: "favorites",

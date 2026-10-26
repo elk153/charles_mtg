@@ -2,10 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import { Outlet, useNavigate, useLocation, useMatches, useResolvedPath } from "react-router";
 import FloatingNavBar from "../components/FloatingNavBar/FloatingNavBar.jsx";
 import CardOverlay from "../features/scryfall-card-renderer/CardOverlay/CardOverlay.jsx";
-import IconClose from "../assets/IconClose.jsx";
+import IconClose from "../assets/IconClose.tsx";
 import "./App.css";
-import useScryfallCardsSearch from "../hooks/useScryfallCardsSearch.jsx";
-import usePreFetchUrl from "../hooks/usePreFetchUrl.js";
+import useScryfallCardsSearch from "../hooks/useScryfallCardsSearch.ts";
+import usePreFetchUrl from "../hooks/usePreFetchUrl.ts";
 
 const App = () => {
   const [selectedCardId, setSelectedCardId] = useState(null);

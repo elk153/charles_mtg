@@ -1,5 +1,12 @@
-import React, { useState } from "react";
-import { QuickSearchIcon } from "./NavIcons";
+import { useState, type FormEvent } from "react";
+import QuickSearchIcon from "../../assets/navigation/QuickSearchIcon.tsx";
+
+type NavSearchFieldProps = {
+  onSearch?: (query: string) => void;
+  expanded?: boolean;
+  onFocusChange?: (focused: boolean) => void;
+  id?: string;
+};
 
 /**
  * Compact name search. Enter (or tapping the torch icon) submits.
@@ -9,10 +16,15 @@ import { QuickSearchIcon } from "./NavIcons";
  *   query === ""  -> navigate('/search/random')
  *   query !== ""  -> navigate(`/search?q=${encodeURIComponent(query)}`)
  */
-export default function NavSearchField({ onSearch, expanded, onFocusChange, id }) {
+export default function NavSearchField({
+  onSearch,
+  expanded = false,
+  onFocusChange,
+  id,
+}: NavSearchFieldProps) {
   const [value, setValue] = useState("");
 
-  function submit(e) {
+  function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     onSearch?.(value.trim());
   }

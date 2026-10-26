@@ -3,7 +3,7 @@ import type { SVGProps } from "react";
 /**
  * Sun and moon icons for the NavBar theme toggle.
  *
- * Same two-layer recipe as NavIcons.jsx, so they pick up the NavBar's
+ * Same two-layer recipe as the navigation assets, so they pick up the NavBar's
  * existing CSS (navbar-shared.css) without any new color rules:
  *  - .nc-trace  the etched outline, always faintly visible
  *  - .nc-core   the sunken interior, filled with the accent color

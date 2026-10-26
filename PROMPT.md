@@ -4,7 +4,6 @@
 
 ### context
 
-- the code base is at <https://github.com/elk153/charles_mtg/tree/card-browser-copilot>, branch card-browser-claude
 - the card browser is used to render card lists and filter them
 - the card browser also renders card details (card illustration, content, rulings, legalities, prints, etc.)
 - the card browser can be called by the different other (upcoming) features of the AppV2 (search fied, home, advanced search, collection, decks). as a first step, the search field call will be implemented. other cases will be provision for.

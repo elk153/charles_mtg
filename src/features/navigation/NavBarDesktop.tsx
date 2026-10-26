@@ -1,19 +1,20 @@
-import React from "react";
+import SearchSourceToggle from "./SearchSourceToggle.tsx";
+import type { NavBarProps } from "./types.ts";
 import { resolvePath, useLocation, useNavigate, useResolvedPath } from "react-router";
 import navItems from "./navItems";
 import NavSearchField from "./NavSearchField";
 import NavThemeToggle from "./NavThemeToggle.tsx";
 import useScrollVisibility from "../../hooks/useScrollVisibility";
 
-export default function NavBarDesktop() {
+export default function NavBarDesktop({
+  searchSource,
+  onSearchSourceToggle,
+  onSearch,
+}: NavBarProps) {
   const visible = useScrollVisibility({ threshold: 12, topGuard: 56 });
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const routeBasePath = useResolvedPath(".").pathname;
-
-  function handleSearch(query) {
-    navigate(query ? `search?q=${encodeURIComponent(query)}` : "search/random");
-  }
 
   return (
     <header
@@ -22,7 +23,11 @@ export default function NavBarDesktop() {
     >
       <nav className="nav-bar__row" aria-label="Primary">
         <NavThemeToggle />
-        <NavSearchField onSearch={handleSearch} id="nav-search-desktop" />
+        <SearchSourceToggle
+          value={searchSource}
+          onToggle={onSearchSourceToggle}
+        />
+        <NavSearchField onSearch={onSearch} id="nav-search-desktop" />
 
         <ul className="nav-bar__list">
           {navItems.map(({ id, label, path, Icon }) => {

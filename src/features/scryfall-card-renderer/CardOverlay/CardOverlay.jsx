@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import CardRenderer from "../CardRenderer";
 import "./CardOverlay.css";
 import IconTurnAround from "../../../assets/IconTurnAround";
-import useFetchUrl from "../../../hooks/useFetchUrl.js";
+import useFetchUrl from "../../../hooks/useFetchUrl.ts";
 import OracleText from "../components/OracleText.jsx";
 
 /**

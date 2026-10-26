@@ -23,12 +23,12 @@
 
 .nav-bar--mobile .nav-bar__row {
   padding: 0 0.5rem;
-  gap: 0.35rem;
+  gap: 0.25rem;
 }
 
 .nav-bar--mobile .nav-item {
-  padding: 0.5rem;
-  min-width: 2.5rem;
+  padding: 0.4rem;
+  min-width: 2.25rem;
 }
 
 /* Labels are desktop-only real estate; hide them here even though the

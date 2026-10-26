@@ -1,7 +1,8 @@
 import { useEffect } from "react";
-import NavBar from "../features/navigation/NavBar.jsx";
+import NavBar from "../features/navigation/NavBar.tsx";
 import { Outlet } from "react-router";
 import "./App.css";
+import usePreFetchUrl from "../hooks/usePreFetchUrl.ts";
 
 declare global {
   interface Window {
@@ -10,6 +11,13 @@ declare global {
 }
 
 export default function App() {
+  usePreFetchUrl(
+    "cardSymbols",
+    "https://api.scryfall.com/symbology",
+    Infinity,
+  );
+  usePreFetchUrl("scryfallSets", "https://api.scryfall.com/sets");
+
   useEffect(() => {
     window.reactIsReady = true;
 

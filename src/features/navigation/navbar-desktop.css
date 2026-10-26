@@ -34,7 +34,7 @@
   }
 
   .nav-bar--desktop .nav-search {
-    order: 0;
+    order: 1;
     /* The theme toggle now sits before the search field. The auto margin
        soaks up the free space so both stay packed on the left, and the
        nav list stays pushed to the right (space-between would otherwise
@@ -43,7 +43,11 @@
   }
 
   .nav-bar--desktop .nav-bar__list {
-    order: 1;
+    order: 2;
+  }
+
+  .nav-bar--desktop .nav-source-toggle {
+    order: 0;
   }
 
   .nav-bar--desktop .nav-item {
@@ -61,4 +65,3 @@
    Add top padding/margin to your page's main content wrapper yourself,
    e.g. `main { padding-top: 5.5rem; }` at the desktop breakpoint —
    intentionally left out of this file since it depends on your layout. */
-
