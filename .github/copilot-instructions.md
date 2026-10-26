@@ -1,6 +1,6 @@
 # Project Context
 
-Read and follow the repository-root `AGENT_CONTEXT_.md` for the app architecture, source tree, active and inactive features, development commands, and project conventions. Keep it as the shared source of truth; do not duplicate its contents here.
+Read and follow the repository-root `AGENTS.md` for the app architecture, source tree, active and inactive features, development commands, and project conventions. Keep it as the shared source of truth; do not duplicate its contents here.
 
 ## Mermaid Diagrams
 
