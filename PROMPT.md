@@ -25,9 +25,9 @@
   - hooks
   - services
   - components
-- work on the card-browser branch
 - propose the use of external libraries when it can simplify the code
 - use the scryfall api to discover the adapted queries
+- code must be in typescript, convert the js and jsx to typescript
 
 ### plan
 
@@ -36,11 +36,10 @@
 - refactor the card-filter to divide the element by categories (color, rarity, etc.), add dictionnary to make it more readable (e.g., colors) and add dictionnary selecting which category is showed based on which feature calls the filter (search field, advanced serach, etc.)
 - have the card-filter bar to have the same dimensions as the NavBar. Make it responsive.
 - the CardFilters shall render below/above the NavBard desktop/mobile. It shall have the same behavior as NavBar when scrolling. it shall follow the theme of AppV2.
-- on the card list, 
+- on the card list:
   - the list will show the card print
-  - for dual faces card, it shall provide a flip capability like for AppV1. the icon shall be a thematic translucid svg icon glowing when hovered. hovering will be the trigger to fil the card on desktop. touching the icon will be the trigger for mobile.
   - add to the right right of the card translucent icons (50% on the card) for the following functions
-    - toggle faces for the cards having 2 faces reuse the IconTurnAround
+    - for dual faces card, it shall provide a flip capability like for AppV1. the icon shall be a thematic translucid svg icon glowing when hovered. hovering will be the trigger to fil the card on desktop. touching the icon will be the trigger for mobile. reuse IconTurnAround. propose a keyboard/accessibility solution too
     - Add/remove the card to favorites (reuse the icon from NavIcons.jsx) for further use
     - add/removed the card to the collection (reuse the icon from NavIcons.jsx) for further use
     - add/remove card to/from a deck (reuse the icon from NavIcons.jsx) for further use
@@ -52,11 +51,11 @@
   - the renderer must manage all card formats like AppV1
   - the renderer shall be made of the following elements
     - Card details:
-      - a banner with the card illustration (not the full card)
+      - a banner with the card illustration (not the full card) above the content
       - the content of the card as for AppV1 using the useOracleText hook
       - the button will change the illustration and card content
-      - the rulings as for AppV1
-      - the legalities (legal / not legal) in a compact/horizontal fashion.
+      - the rulings as for AppV1 with a theme related vertical bar as bullet
+      - the legalities (legal / not legal) in a compact/horizontal fashion (pills)
     - the card prints
       - the set name
       - the set reference
@@ -79,4 +78,8 @@
 Before proceeding with the plan, review the needed documentation and tell me if supplementary libraries are required.
 Make a thourough review and ask questions if elements are missing.
 
-Once accepted, proceed to the changes, creat output as diff (test it), and document the changes in a .md file for me to understand the implementation.
+Once accepted:
+- proceed to the changes
+- creat output one or multiple diff
+- and document the changes in a .md file for me to understand the implementation
+- generate a 
