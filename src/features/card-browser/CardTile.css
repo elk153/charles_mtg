@@ -56,11 +56,11 @@
   height: 2.35rem;
   padding: 0.4rem;
   place-items: center;
-  border: 1px solid color-mix(in srgb, var(--text-accent) 40%, transparent);
+  border: 1px solid color-mix(in srgb, var(--text-accent) 75%, transparent);
   border-radius: 50%;
   color: var(--text-accent);
-  background: color-mix(in srgb, var(--bg-main) 52%, transparent);
-  opacity: 0.62;
+  background: color-mix(in srgb, var(--bg-main) 78%, transparent);
+  opacity: 0.88;
   cursor: pointer;
   transition: opacity 0.2s ease, filter 0.2s ease, box-shadow 0.2s ease;
 }
