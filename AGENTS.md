@@ -17,8 +17,8 @@ The developer is learning React and TypeScript and wants to understand every cha
 
 - React 19 + Vite SPA that finds Magic: The Gathering cards through the public Scryfall API (`https://api.scryfall.com`). Routing uses `react-router` 8 (`createBrowserRouter`).
 - The app currently ships **two layouts** side by side, mounted at different URL prefixes:
-  - **`/v1`: the card browser.** Random card, name search, card detail overlay with rulings, legalities, printings and per-printing EUR / foil EUR prices. Results have client-side filters and sorting represented in the URL.
-  - **`/v2`: a shell under construction.** It has a navbar, theme toggle, and placeholder pages (Home, Advanced Search, Favorites, Collection, Decks). The layout renders these child pages through an `<Outlet />`; their features are placeholders, not working search, favorites, collection, or deck flows.
+  - **`/v1`: the original card browser.** Random card, name search, card detail overlay, rulings, legalities, printings, and per-printing EUR / foil EUR prices. Its result list uses the original card renderer and the `card-filters/` table.
+  - **`/v2`: the current default card browser.** Home shows a daily seven-card set; search results support local color, rarity, type and sorting controls; card details show artwork, rules/legalities and printings with current EUR / foil EUR prices. Favorites, personal collection, decks and advanced search are still placeholders.
 - Both layouts have dark/light theme controls. Theme state is shared through React context, defaults to dark on each page load, and is not persisted.
 - No backend, authentication, or user database. TanStack Query caches remote data in memory and persists some of it in browser `localStorage`.
 - User-owned collection tracking, acquisition/location records, functional favorites/decks, price history, sales and balance are **goals, not features**. Never imply they exist.
@@ -33,27 +33,30 @@ Node 22 works. Install with `npm install`.
 | `npm run build` | production build into `dist/` | passes |
 | `npm run preview` | serve the build | works |
 | `npm run typecheck` | `tsc --noEmit` | passes |
-| `npm run lint` | ESLint | **fails: 21 errors, 1 warning** |
+| `npm run lint` | ESLint | **fails: 19 pre-existing errors, 0 warnings** (checked 26 Oct 2026) |
 
 - No test framework or test script exists.
-- Current lint status (checked 26 Oct 2026): 21 errors and 1 warning. Errors are unused parameters/imports in `src/assets/Icon*.jsx`, `src/features/original-card-renderer/CardDetails/CardDetails.jsx`, `src/features/scryfall-card-renderer/components/SplitFacesCard.jsx`, and `src/features/scryfall-card-renderer/components/extras/*`; the warning is a missing dependency in `src/hooks/usePreFetchUrl.js`. Re-run lint before attributing these to a change; the baseline can change.
+- Current lint status (checked 26 Oct 2026): 19 errors, no warnings. Errors are unused parameters/imports in `src/assets/IconCards.jsx`, `src/assets/IconSearch.jsx`, `src/features/scryfall-card-renderer/components/SplitFacesCard.jsx` and `components/extras/*`, plus conditional `useOracleText` calls and an unused import in the inactive `original-card-renderer/CardDetails/CardDetails.jsx`. Re-run lint before attributing errors to a change; the baseline can change.
 - Run the narrowest check that fits. At minimum run `npm run typecheck` and `npm run build`.
 
 ## Routes
 
-Defined in `src/app/router.tsx`. `/` redirects to `/v1`.
+Defined in `src/app/router.tsx`. `/` redirects to `/v2/home`.
 
 | Path | Renders |
 | --- | --- |
-| `/` | redirects to `/v1` |
+| `/` | redirects to `/v2/home` |
 | `/v1` | redirects to `/v1/random` |
 | `/v1/random` | random card, via `CardsList` |
 | `/v1/cards/:searchQuery` | name search results, via `CardsList` |
 | `/v1/card/:cardId` | declares `CardOverlay` (see gotchas) |
 | `/v2` | redirects to `/v2/home` (route loader) |
-| `/v2/home`, `/v2/search/advanced`, `/v2/favorites`, `/v2/collection`, `/v2/decks` | placeholder pages exported from `src/app/App.tsx` |
+| `/v2/home` | daily seven-card set (`CardBrowserPage` in mulligan mode) |
+| `/v2/search?q=<name>` | Scryfall name search and local filters |
+| `/v2/search/random` | daily set/mulligan browser |
+| `/v2/search/advanced`, `/v2/favorites`, `/v2/collection`, `/v2/decks` | placeholder pages exported from `src/app/App.tsx` |
 
-## v1 flow (working app)
+## v1 flow (original browser)
 
 1. `index.html` links root `style.css` and loads `/src/main.tsx`; it holds `#root` and the splash elements. `main.tsx` imports `src/theme.css` and mounts `AppProviders` in `StrictMode`.
 2. `AppProviders.tsx` nests `ThemeProvider` > `PersistenceProvider` > `QueryDevToolsProvider` (receives `queryClient` as a prop) > `RouterProvider`.
@@ -72,31 +75,34 @@ Defined in `src/app/router.tsx`. `/` redirects to `/v1`.
 - Filters only operate on the cards already returned by the current Scryfall query; they do not issue advanced Scryfall searches.
 - Theme context is provided above the router by `AppProviders`. The v1 floating navbar and v2 desktop/mobile navbars each have a theme toggle. The provider currently initializes to dark and does not save a selection across reloads.
 
-## v2 shell (under construction) and known gaps
+## v2 flow (current default browser)
 
-- `src/app/App.tsx` renders `<NavBar />` and an `<Outlet />`. The five route components (Home, Advanced Search, Favorites, Collection, Decks) render placeholder content; do not present these as implemented features.
-- `src/features/navigation/` holds the v2 navbar: `NavBar` renders `NavBarDesktop` and `NavBarMobile` (CSS shows one at a time), `NavSearchField`, `NavIcons.jsx`, `navItems.js` (the single source of truth for five items), and the theme toggle. The scroll hide/show logic is `src/hooks/useScrollVisibility.js`.
-- The navbar search navigates to `search?q=<term>` or `search/random`. **No such routes exist in `/v2`** (only `search/advanced`), so searching from the v2 navbar leads nowhere yet.
-- `src/features/navigation/README.md` may not reflect the current flat source layout; verify its instructions against the files before following them.
+- `src/app/App.tsx` renders the V2 `NavBar`, prefetches Scryfall card symbols and set metadata, and renders child routes through `<Outlet />`. The Home route renders `CardBrowserPage` in mulligan mode.
+- `src/features/card-browser/CardBrowserPage.tsx` handles `/v2/home`, `/v2/search`, and `/v2/search/random`. Home chooses a stable set per UTC day from released, non-digital, booster-focused Scryfall set types, requests unique cards in random order, and displays up to seven cards from the first result page. The set-type allowlist lives in `mulliganSets.ts`; Scryfall does not supply a direct booster-eligibility flag.
+- Name search and the daily set use `useScryfallCardsSearch`; card results are locally filtered/sorted over the current result page (up to 175 cards), not by issuing a new API request per filter. `?card=<id>` opens the details overlay without replacing the current search URL.
+- `CardDetailsOverlay.tsx` loads card rulings and printings through cached queries. Print entries show current Scryfall EUR / foil EUR prices and reuse `CardTile` for flip, favorites, collection and deck actions. Those actions only show under-construction notices; they do not save user data.
+- `src/features/navigation/` holds the responsive navbar. On mobile, tapping the search icon focuses and expands the input while hiding nav links; Enter or tapping the icon again submits, and Escape closes the field. Navbar links for favorites, collection and decks route to placeholders. The navbar's advanced-search item also routes to a placeholder.
+- `src/features/navigation/README.md` may not reflect the flat source layout; verify its instructions against the files before following them.
 
 ## Data and state
 
-- `src/hooks/useScryfallCardsSearch.jsx`: TanStack Query hook, key `["scryfallCards", route, params, seed]`, `enabled` only when a route is given, 24 h `staleTime`. It uses `src/services/createApiClient.js`, which maps `card` responses to `[card]` and `list`/`catalog` to `data`, and throws on Scryfall errors.
-- `src/hooks/useFetchUrl.js`: fetches auxiliary Scryfall URLs (rulings, print searches), key `["fetchedUrl", purpose, url]`, returns `json.data`. It does not check `res.ok`, and returns an empty array when no URL is given.
+- `src/hooks/useScryfallCardsSearch.ts`: TanStack Query hook, key `["scryfallCards", route, params, seed]`, enabled only when a route is given, 24 h `staleTime`. It uses `src/services/createApiClient.ts`, which normalizes `card` responses to `[card]` and `list`/`catalog` responses to `data`, and throws on Scryfall errors.
+- `src/hooks/useFetchUrl.ts`: fetches auxiliary Scryfall URLs, key `["fetchedUrl", purpose, url]`, validates HTTP status and that the response contains a `data` array, then returns that array. A missing URL returns an empty array.
 - `PersistenceProvider.tsx` persists only `fetchedUrl` queries and `scryfallCards` queries whose second key is `"cards/search"`, in `localStorage`. Random and single-card queries are not persisted.
 - `queryProvider.ts`: `gcTime` is 24 h and must stay >= the persisted data's max age.
 - `QueryDevToolsProvider.tsx` loads Devtools lazily and only when `import.meta.env.DEV`.
-- `features/card-filters/` uses TanStack Table v9 and `nuqs` to filter by color, rarity and type, sort by name/CMC/rarity/price, and keep filter state in the URL. It is wired into the v1 results list only.
+- `features/card-filters/` uses TanStack Table and `nuqs` to filter by color, rarity and type, sort by name/CMC/rarity/price, and keep filter state in the URL. It is used by both V1 and V2 browser results.
 - Many files contain debug `console.log` calls (e.g. `createApiClient.js`, `useFetchUrl.js`). Do not add more; ask before removing.
 - Prices are current per-printing Scryfall data, not history or collection valuation.
 
 ## Source layout
 
 - `src/main.tsx`, `src/app/` — entry, providers, router and the v1/v2 layouts.
-- `src/features/scryfall-card-renderer/` — active renderer. `normalizeCard.js` maps raw Scryfall cards to the internal shape; `scryfallCardLayouts.js` and `components/` (one/split/toggle/flip/meld faces, `OracleText`, `extras/` for saga, class, case, leveler, mutate, prototype) consume that shape.
+- `src/features/scryfall-card-renderer/` — active renderer. `normalizeCard.js` maps raw Scryfall cards to the internal shape; `scryfallCardLayouts.js` and `components/` (one/split/toggle/flip/meld faces, `OracleText`, `extras/` for saga, class, case, leveler, mutate, prototype) consume that shape. Used in V1 and the V2 details overlay.
+- `src/features/card-browser/` — V2 card search, daily mulligan, reusable card tile/actions, and card details/printings overlay.
 - `src/features/original-card-renderer/Card/` — the older card tile, still used by the v1 results list.
 - `src/features/card-filters/` — v1 result filtering, sorting, URL parsers and table setup.
-- `src/features/navigation/` — v2 desktop/mobile navbar and theme toggle (see above).
+- `src/features/navigation/` — V2 desktop/mobile navbar and theme toggle (see above).
 - `src/components/FloatingNavBar/` — v1 navbar: name search, empty search for random, mobile keyboard/viewport handling, hides on scroll (`useScrollDirection`), and theme toggle. Also `Input/`.
 - `src/hooks/`, `src/services/` — see Data and state.
 - `src/theme.css` — theme tokens (dark/light), imported by `main.tsx`. `ThemeContext.ts` and `ThemeProvider.tsx` provide shared theme state and synchronize the document theme and browser theme color. `style.css` (root) is linked from `index.html`. `src/app/App.css` holds layer styles.
@@ -105,15 +111,15 @@ Defined in `src/app/router.tsx`. `/` redirects to `/v1`.
 
 ## Present but not wired in (do not edit as if live)
 
-`src/components/Header/` (commented out in `App.jsx`), `src/features/original-card-renderer/CardDetails/` and `CardsList/`, `src/hooks/useCardSearch.js`, `src/services/getCardPrices.js`, `src/services/getCardRulings.js`. Also `scryfall-card-renderer/CardsList/CardsList.css` is used by the active list, while the tile styles come from `original-card-renderer/Card/`.
+`src/components/Header/` (commented out in `App.jsx`), `src/features/original-card-renderer/CardDetails/` and `CardsList/`, `src/hooks/useCardSearch.js`, `src/hooks/useScrollDirection.js`, `src/services/getCardPrices.js`, and `src/services/getCardRulings.js`. The active V1 `CardsList` is under `scryfall-card-renderer/`; V2 tiles use `features/card-browser/CardTile`.
 
 ## Planned, not implemented
 
-User-owned collection records (source, physical location), functional favorites, deck building, collection valuation and price history, sales and balance tracking, and advanced search beyond the current local result filters. The `/v2` pages are placeholders; the v2 navigation search also points to routes that do not exist.
+User-owned collection records (source, physical location), functional favorites, deck building, collection valuation and price history, sales and balance tracking, and true server-side/advanced search. V2 search is a name search with local result filters, not advanced Scryfall search. The advanced search, favorites, collection and decks pages are placeholders.
 
 ## TypeScript
 
-- **TypeScript today:** `src/main.tsx`, `src/app/App.tsx`, `src/app/AppProviders.tsx`, all files in `src/app/AppProviders/`, `src/app/router.tsx`, `src/hooks/useOracleText.tsx`, theme-toggle and theme-icon components, and all files in `src/features/card-filters/`. Most of the renderer, hooks, services and navigation remain JS/JSX.
+- **TypeScript today:** `src/main.tsx`, `src/app/App.tsx`, `src/app/AppProviders.tsx`, all files in `src/app/AppProviders/`, `src/app/router.tsx`, `src/hooks/useOracleText.tsx`, `useScrollVisibility.ts`, `usePreFetchUrl.ts`, `useScryfallCardsSearch.ts`, `useFetchUrl.ts`, theme and navigation components, all files in `src/features/card-filters/`, and all files in `src/features/card-browser/`. Most renderer components and some services remain JS/JSX.
 - `tsconfig.json`: `strict`, `allowJs: true`, `checkJs: false`, `verbatimModuleSyntax: true`, `allowImportingTsExtensions: true`, `include: ["src"]`. JS files are **not** type-checked, so passing `typecheck` does not type-check the JS/JSX files.
 - Imports of `.ts`/`.tsx` files include the extension. Use `import type` for type-only imports.
 - Convert one file at a time, only when asked. Avoid `any` and non-null assertions in TS files.

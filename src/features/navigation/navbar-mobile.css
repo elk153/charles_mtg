@@ -52,7 +52,8 @@
 
 .nav-bar--mobile .nav-search--expanded .nav-search__input,
 .nav-bar--mobile .nav-search:focus-within .nav-search__input {
-  width: clamp(4rem, 20vw, 6rem);
+  flex: 1 1 auto;
+  width: auto;
   opacity: 1;
 }
 
@@ -77,6 +78,7 @@
 }
 
 .nav-bar--mobile .nav-search--expanded {
+  flex: 1 1 0;
   min-width: 0;
 }
 

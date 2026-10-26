@@ -43,7 +43,7 @@
        soaks up the free space so both stay packed on the left, and the
        nav list stays pushed to the right (space-between would otherwise
        center the search field). */
-    flex: 1 1 8.5rem;
+    flex: 0 1 auto;
     min-width: 0;
     margin-right: auto;
   }

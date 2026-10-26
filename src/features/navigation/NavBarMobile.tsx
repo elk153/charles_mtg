@@ -37,6 +37,7 @@ export default function NavBarMobile({
         <NavSearchField
           onSearch={onSearch}
           expanded={searchFocused}
+          expandOnSubmit
           onFocusChange={setSearchFocused}
           id="nav-search-mobile"
         />
