@@ -94,7 +94,6 @@ Once accepted:
   - Phase 3: card list, API layer, and query cache.
   - Phase 4: details overlay and prints.
   - Phase 5: mulligan.
-- creat output in the form of diff files, one per phase
-- and document the changes in a .md file for me to understand the implementation
+- document the changes in a .md file for me to understand the implementation
 - generate a decision for DECISIONS.md
 - Conversion will occur phase per phase.
