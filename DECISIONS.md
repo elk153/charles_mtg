@@ -106,7 +106,7 @@
 - Decision: Add `/v2/login` (email form that calls `signInWithOtp`) and `/v2/auth/callback`, which waits for the session and then navigates to `next`. `next` must start with `/v2/` and contain no `//` or backslash, otherwise it falls back to `/v2/home`.
 - Why: A separate route leaves room for profile creation later. The validation prevents an open redirect.
 - Alternatives considered: Modal sign-in (harder to deep-link). Inline form only (no home for later profile steps).
-- Consequences: The callback URL must be in the allow-list. First-time-user handling and a `/v2/profile` route plug in here later. Magic-link tokens can be consumed by mail scanners, and a 6-digit code is the fallback. Not implemented yet.
+- Consequences: The app sends magic links to `/v2/auth/callback`, uses PKCE, validates `next` as a same-origin `/v2/` path, and supports six-digit email OTP when the configured email template includes a token. Add the exact production callback URL to the Supabase Auth redirect allow-list; local development is covered by the existing localhost wildcard. First-time-user handling and a `/v2/profile` route plug in here later. Mail scanners may consume magic links; the OTP option is the fallback. App code implemented; production allow-list configuration remains to be verified.
 - Source: "[Supabase] Auth and favorites plan"
 
 ## D-009: RequireAuth layout route
@@ -116,7 +116,7 @@
 - Decision: Wrap `/v2/favorites`, `/v2/collection` and `/v2/decks` in a `RequireAuth` layout route. It renders nothing while the session loads, an inline sign-in invitation linking to `/v2/login?next=<current path>` when signed out, and `<Outlet />` when signed in.
 - Why: An invitation fits your request better than a silent redirect, and the loading state avoids a flash.
 - Alternatives considered: Redirecting to the login route (loses the page context). Guarding inside each page (duplicated).
-- Consequences: This guard is UX only. Security is enforced by RLS, never by the client. Not implemented yet.
+- Consequences: This guard is UX only. Security is enforced by RLS, never by the client. Implemented for `/v2/favorites`, `/v2/collection` and `/v2/decks`.
 - Source: "[Supabase] Auth and favorites plan"
 
 ## D-010: Paginated card source for the card browser

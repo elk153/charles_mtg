@@ -1,0 +1,125 @@
+.auth-page {
+  box-sizing: border-box;
+  display: grid;
+  gap: 1rem;
+  width: min(100%, 30rem);
+  padding: clamp(1.5rem, 5vw, 2.5rem);
+  color: var(--text-primary);
+  background: var(--bg-card);
+  border: 1px solid color-mix(in srgb, var(--btn-gold) 35%, transparent);
+  border-radius: 12px;
+  box-shadow: var(--eerie-glow);
+}
+
+.auth-page h1,
+.auth-page p {
+  margin: 0;
+}
+
+.auth-page h1 {
+  color: var(--text-accent);
+  font-family: var(--font-display);
+}
+
+.auth-page p {
+  color: var(--text-secondary);
+}
+
+.auth-page__form {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.auth-page__form label {
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+
+.auth-page__form input {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 2.8rem;
+  padding: 0.65rem 0.8rem;
+  color: var(--text-primary);
+  background: var(--bg-main);
+  border: 1px solid var(--surface-border);
+  border-radius: 8px;
+  font: inherit;
+}
+
+.auth-page__form button,
+.auth-page__button-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.8rem;
+  padding: 0.65rem 1rem;
+  color: var(--bg-main);
+  background: var(--btn-gold);
+  border: 0;
+  border-radius: 8px;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.auth-page__form button:hover,
+.auth-page__button-link:hover {
+  background: var(--btn-gold-hover);
+}
+
+.auth-page__form button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
+.auth-page__secondary,
+.auth-page__home-link {
+  width: fit-content;
+  padding: 0;
+  color: var(--text-accent);
+  background: none;
+  border: 0;
+  font: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  cursor: pointer;
+}
+
+.auth-page__notice {
+  padding: 0.8rem;
+  border: 1px solid var(--surface-border);
+  border-radius: 8px;
+}
+
+.auth-page__diagnostics {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.auth-page__diagnostics summary {
+  width: fit-content;
+  color: var(--text-accent);
+  cursor: pointer;
+}
+
+.auth-page__diagnostics dl {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.4rem 0.8rem;
+  overflow-wrap: anywhere;
+}
+
+.auth-page__diagnostics dd {
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.auth-page__diagnostics p {
+  font-size: 0.8rem;
+}
+
+.auth-page .auth-page__error {
+  color: #d85b5b;
+}

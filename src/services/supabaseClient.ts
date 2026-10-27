@@ -11,4 +11,9 @@ if (!supabasePublishableKey) {
   throw new Error("Missing VITE_SUPABASE_PUBLISHABLE_KEY environment variable");
 }
 
-export const supabase = createClient(supabaseUrl, supabasePublishableKey);
+export const supabase = createClient(supabaseUrl, supabasePublishableKey, {
+  auth: {
+    flowType: "pkce",
+    detectSessionInUrl: true,
+  },
+});
