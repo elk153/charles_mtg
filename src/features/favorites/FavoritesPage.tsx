@@ -1,5 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { useSearchParams } from "react-router";
+import CardFilters from "../card-filters/CardFilters.tsx";
+import { useCardsTable } from "../card-filters/useCardsTable.ts";
 import CardTile from "../card-browser/CardTile.tsx";
 import CardDetailsOverlay from "../card-browser/CardDetailsOverlay.tsx";
 import type { CardAction, CardBrowserCard } from "../card-browser/types.ts";
@@ -37,6 +39,19 @@ export default function FavoritesPage() {
         : favoriteSource.cards.filter(isCardBrowserCard),
     [favoriteSource.cards, invalidCardData],
   );
+  const { table, filters, setFilters, resetFilters } = useCardsTable(cards);
+  const rows = table.getRowModel().rows;
+  const cardsById = useMemo(
+    () => new Map(cards.map((card) => [card.id, card])),
+    [cards],
+  );
+  const filteredCards = rows.map((row) => {
+    const card = cardsById.get(row.original.id);
+    if (!card) {
+      throw new Error(`Filtered favorite ${row.original.id} was not in the loaded results.`);
+    }
+    return card;
+  });
   const favoriteActionDisabled =
     areFavoriteIdsLoading ||
     Boolean(favoriteIdsError) ||
@@ -121,18 +136,34 @@ export default function FavoritesPage() {
         )}
 
       {cards.length > 0 && (
-        <div className="favorites-page__list" aria-label="Favorite cards">
-          {cards.map((card) => (
-            <CardTile
-              key={card.id}
-              card={card}
-              onSelect={openCard}
-              onAction={handleAction}
-              isFavorite={favoriteIds.has(card.id)}
-              isFavoritePending={favoriteActionDisabled}
-            />
-          ))}
-        </div>
+        <>
+          <CardFilters
+            filters={filters}
+            setFilters={setFilters}
+            onReset={resetFilters}
+            shown={rows.length}
+            total={cards.length}
+            feature="search"
+            layout="floating"
+          />
+          <div className="favorites-page__list" aria-label="Favorite cards">
+            {filteredCards.map((card) => (
+              <CardTile
+                key={card.id}
+                card={card}
+                onSelect={openCard}
+                onAction={handleAction}
+                isFavorite={favoriteIds.has(card.id)}
+                isFavoritePending={favoriteActionDisabled}
+              />
+            ))}
+          </div>
+          {rows.length === 0 && (
+            <p className="favorites-page__message">
+              No favorites match these filters.
+            </p>
+          )}
+        </>
       )}
 
       {(favoriteSource.hasNextPage || favoriteSource.error) && (
