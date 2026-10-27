@@ -7,7 +7,7 @@
 - Decision: The logo was traced from the uploaded raster into a vector SVG with CSS variables for all colors. A full icon set was generated from it: SVGs, favicon.ico, 180/192/512/1024 px PNGs in transparent, dark (#000000) and light (#ffffff) versions where relevant.
 - Why: One vector source keeps every size consistent and lets the colors be edited in one place. The Apple-sized canvas (logo about 70% of the height) leaves room for iOS corner masking. A separate tight crop (about 92%) keeps the favicon readable at small sizes.
 - Alternatives considered: A hand-drawn SVG would be cleaner but less faithful to the original. Inline SVG components via SVGR would allow runtime recoloring but need a new dependency. Both were not chosen for now.
-- Consequences: Files live in public/. The CSS variables only work when the SVG is inlined, not through <img> or as a favicon. A maskable PWA icon and an og:image are not covered yet. The App Store icons are only needed for a native iOS build.
+- Consequences: Files live in public/. The CSS variables only work when the SVG is inlined, not through <img> or as a favicon. A maskable PWA icon and an og:image are not covered yet. The App Store icons are only needed for a native iOS build. Schema changes never go through the MCP; they follow D-014.
 - Source: “[Branding] Logo and icon set”
 
 ## D-002: Theme toggle buttons in both navigation bars
@@ -58,3 +58,133 @@
   focused. Enter or a second tap on the search icon submits, and Escape closes
   the field.
 - Source: "[V2 Card Browser](./docs/card-browser-v2.md)"
+
+## D-004: Supabase project and security baseline
+
+- Status: Accepted
+- Date: 2026-10-27
+- Decision: Use one Supabase project in an EU region for local development and the Netlify site. Only the publishable key reaches the browser (`VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY`). The auth redirect allow-list holds `http://localhost:5173/**` and the Netlify URL. Unused auth providers are off, and the Data API exposes only the `public` schema.
+- Why: This is a solo learning app, so one project keeps setup small. A publishable key in a bundle is only safe because RLS restricts every row.
+- Alternatives considered: Separate dev and production projects (safer, double the setup, can be added later). Any use of the secret/service-role key in the app (rejected: it bypasses RLS).
+- Consequences: Dev and production share data. Free projects can pause after inactivity (verify current rules). Keys never go in chat or the repo, and Netlify holds the production values. New projects expose no tables to the Data API by default, so every migration must grant access explicitly. Legacy anon/service_role keys are not used. The production redirect entry is tightened to the callback route in D-008. Status: implemented once the checks above pass.
+- Source: "[Supabase] Auth and favorites plan"
+
+## D-005: Supabase MCP is read-only
+
+- Status: Accepted
+- Date: 2026-10-27
+- Decision: Connect the Supabase MCP server to VS Code Copilot, scoped to this project with `read_only=true`. Schema changes are written as SQL files in the repo and applied by hand in the SQL editor.
+- Why: Database content can carry prompt-injection text, so a write-enabled agent is a risk. Read-only still lets Copilot inspect schema, logs and advisors.
+- Alternatives considered: Write-enabled MCP (faster, riskier). No MCP (loses the inspection help).
+- Consequences: Copilot cannot apply migrations. To enable writes later, remove the flag, keep the project scope and per-call approvals, then record a superseding decision. Not implemented yet.
+- Source: "[Supabase] Auth and favorites plan"
+
+## D-006: Favorites table keyed to a card printing, with owner-only RLS
+
+- Status: Accepted
+- Date: 2026-10-27
+- Decision: Create `public.favorites (user_id, scryfall_id, created_at)` with primary key `(user_id, scryfall_id)`, an index on `(user_id, created_at desc)`, RLS enabled, and select/insert/delete policies for `authenticated` users on their own rows. `anon` has no access. `scryfall_id` is the Scryfall card id, which identifies one printing. There is no `profiles` table.
+- Why: The composite key prevents duplicates and indexes lookups by user. The second index serves "latest added first". `user_id` defaults to `auth.uid()`, so the browser never sends it.
+- Alternatives considered: Favoriting the card across printings via `oracle_id` (dedupes, but loses the printing). A `profiles` table now (nothing to store yet). Snapshotting card JSON (goes stale).
+- Consequences: Two printings of one card are two favorites. A nullable `oracle_id` column can be added later without breaking anything. The migration is created with supabase migration new and applied with supabase db push (D-014), never pasted into the SQL editor. The editor bypasses RLS, so test through the app. Not implemented yet. Not implemented yet.
+- Source: "[Supabase] Auth and favorites plan"
+
+## D-007: Supabase client and AuthProvider
+
+- Status: Accepted
+- Date: 2026-10-27
+- Decision: Add `@supabase/supabase-js`, create a single client in `src/services/supabaseClient.ts`, and add an `AuthProvider` with a `useAuth` hook. The provider sits inside `PersistenceProvider` and around `RouterProvider`. On sign-out it removes the favorites queries.
+- Why: The library already stores the session and refreshes tokens. A context plus a hook matches the existing `ThemeProvider` pattern.
+- Alternatives considered: Reading the session separately in each component (duplicated logic). A state library (new dependency, unnecessary). Auth UI packages (less to learn, less control).
+- Consequences: One new dependency and two env vars. Queries holding user data must be cleared on sign-out. Not implemented yet.
+- Source: "[Supabase] Auth and favorites plan"
+
+## D-008: Sign-in routes and magic-link callback
+
+- Status: Accepted
+- Date: 2026-10-27
+- Decision: Add `/v2/login` (email form that calls `signInWithOtp`) and `/v2/auth/callback`, which waits for the session and then navigates to `next`. `next` must start with `/v2/` and contain no `//` or backslash, otherwise it falls back to `/v2/home`.
+- Why: A separate route leaves room for profile creation later. The validation prevents an open redirect.
+- Alternatives considered: Modal sign-in (harder to deep-link). Inline form only (no home for later profile steps).
+- Consequences: The callback URL must be in the allow-list. First-time-user handling and a `/v2/profile` route plug in here later. Magic-link tokens can be consumed by mail scanners, and a 6-digit code is the fallback. Not implemented yet.
+- Source: "[Supabase] Auth and favorites plan"
+
+## D-009: RequireAuth layout route
+
+- Status: Accepted
+- Date: 2026-10-27
+- Decision: Wrap `/v2/favorites`, `/v2/collection` and `/v2/decks` in a `RequireAuth` layout route. It renders nothing while the session loads, an inline sign-in invitation linking to `/v2/login?next=<current path>` when signed out, and `<Outlet />` when signed in.
+- Why: An invitation fits your request better than a silent redirect, and the loading state avoids a flash.
+- Alternatives considered: Redirecting to the login route (loses the page context). Guarding inside each page (duplicated).
+- Consequences: This guard is UX only. Security is enforced by RLS, never by the client. Not implemented yet.
+- Source: "[Supabase] Auth and favorites plan"
+
+## D-010: Paginated card source for the card browser
+
+- Status: Accepted
+- Date: 2026-10-27
+- Decision: Define a `CardSource` shape (`cards`, `isLoading`, `isFetchingNextPage`, `hasNextPage`, `fetchNextPage`, `error`). Implement it for Scryfall search with `useInfiniteQuery`, following `next_page` while `has_more` is true. Add a "Load more" button. Keep the current daily-set mode as a single page and leave V1 untouched.
+- Why: One source shape lets search, favorites, collections and decks share the card browser. A button is the simplest trigger and keeps Scryfall requests polite.
+- Alternatives considered: Infinite scroll with an intersection observer (a new dependency, can come later). A separate browser per page (duplicates the filter code).
+- Consequences: The current 175-card limit is lifted, but local filters and sorts cover only the cards loaded so far. `createApiClient` strips `has_more` and `next_page`, so a sibling function is needed rather than changing it. Infinite queries need a key prefix that `PersistenceProvider` does not persist, because the data shape differs. Not implemented yet.
+- Source: "[Supabase] Auth and favorites plan"
+
+## D-011: Favorite hooks and the heart toggle
+
+- Status: Accepted
+- Date: 2026-10-27
+- Decision: Add `useFavoriteIds` (a query for the user's `scryfall_id` set) and `useToggleFavorite` (a mutation that inserts or deletes, then invalidates). Optimistic updates come later. The heart on `CardTile` replaces the under-construction notice. For anonymous users it shows the sign-in invitation.
+- Why: One id set lets every tile show its heart without a request per card.
+- Alternatives considered: Checking each visible card with `.in(...)` (more requests). Starting optimistic (more concepts at once).
+- Consequences: The Supabase API caps rows per request (default 1000, verify), so the id query needs paging if favorites pass that. Favorites are never persisted to `localStorage`. Not implemented yet.
+- Source: "[Supabase] Auth and favorites plan"
+
+## D-012: Favorites page on the shared card source
+
+- Status: Accepted
+- Date: 2026-10-27
+- Decision: Implement `CardSource` for favorites. Each page reads up to 75 rows ordered by `created_at desc`, continuing from the last row's `created_at`. It resolves them through Scryfall's `POST /cards/collection`, re-orders them by the Supabase order, and skips ids Scryfall no longer returns. Page size is a single constant.
+- Why: Scryfall accepts at most 75 identifiers per request. Cursor paging stays correct when favorites are added or removed between pages.
+- Alternatives considered: Offset paging (rows can shift). Relying on Scryfall's response order (not guaranteed).
+- Consequences: A new POST helper is needed because `createApiClient` is for GET. "No sort selected" means latest added. Collections and decks will implement the same `CardSource` later. Not implemented yet.
+- Source: "[Supabase] Auth and favorites plan"
+
+## D-013: Email delivery for magic links
+
+- Status: Evaluating
+- Date: 2026-10-27
+- Decision: Use Supabase's built-in sender during solo development, and choose a free SMTP provider before inviting others.
+- Why: The built-in sender is for testing and heavily rate-limited, but enough for one developer.
+- Alternatives considered: Brevo (free daily quota, can verify a single sender address), Resend (free monthly quota, needs a domain you control), Mailtrap (test inbox only, no real delivery). Verify current free limits.
+- Consequences: A `netlify.app` address cannot be verified as a sending domain, so Resend needs a domain. Without one, Brevo is the practical option, and sending from a free-mail address can land in spam.
+- Source: "[Supabase] Auth and favorites plan"
+
+## D-014: Schema tracked as migration files and applied with the Supabase CLI
+
+- Status: Accepted
+- Date: 2026-10-27
+- Decision: Keep every schema change as a timestamped SQL file in `supabase/migrations/`, created with `supabase migration new` and applied with `supabase db push` (dry run first). The CLI is added as a pinned dev dependency, or run through `npx`, after approval. No local Docker database for now. The dashboard is for reading and experiments, not for schema changes.
+- Why: Files in git give a reviewable history and one source of truth. `db push` also records each migration in the project's migration history, so later automation knows what is already applied. Pasting into the SQL editor would leave that history empty.
+- Alternatives considered: SQL editor plus committed files (simple, but files and database drift, and later automation would try to re-run them). Hand-written GitHub Actions running `db push` (needs the access token and database password stored as GitHub secrets). A local Docker stack (best for testing, heavy for now).
+- Consequences: One dev dependency and a one-time `supabase login` and `supabase link`. The token lives on your machine and the database password is typed in the terminal. Rollbacks are new forward migrations. Each migration still needs approval per AGENTS.md. If the schema is changed in the dashboard, `supabase db pull` captures it as a file. Not implemented yet.
+- Source: "[Supabase] Migrations and GitHub"
+
+## D-015: Supabase GitHub integration deploys migrations from main
+
+- Status: Evaluating
+- Date: 2026-10-27
+- Decision: After `favorites` is merged, connect the Supabase GitHub integration to this repository only, with the working directory at the repo root, "Deploy to production" on for `main`, and automatic branching off.
+- Why: Merging to `main` then applies pending migrations, and no database password or access token is stored in GitHub. Deploying from GitHub works on any plan.
+- Alternatives considered: Keep manual `db push` (enough for one developer, nothing to configure). Branching with per-PR preview databases (isolated and data-less, plan requirements to verify, not needed without users). GitHub Actions with stored secrets.
+- Consequences: Supabase gets read access to the repo. With one shared project, a merge changes the live database. Because D-014 records history, migrations already applied from the feature branch should not run twice; verify on the first merge. `config.toml` does not push auth settings, which stay in the dashboard (D-004). Revisit if a staging project is added.
+- Source: "[Supabase] Migrations and GitHub"
+
+## D-016: Generated TypeScript types for the database
+
+- Status: Evaluating
+- Date: 2026-10-27
+- Decision: After the first migration, generate `src/types/database.ts` with the CLI (`supabase gen types typescript --linked`, flag to verify) and pass `Database` to `createClient<Database>()` in D-007.
+- Why: `npm run typecheck` then catches wrong table or column names at compile time.
+- Alternatives considered: Hand-written row types (drift from the schema). No types (no checks).
+- Consequences: A generated, committed file that must be regenerated after every migration. JS/JSX files stay unchecked, as in AGENTS.md. Not implemented yet.
+- Source: "[Supabase] Migrations and GitHub"
