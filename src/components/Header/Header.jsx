@@ -16,7 +16,7 @@ const Header = () => {
       </nav>
 
       <h1 className="title">
-        Charles' MTG Collection
+        Charles' Binder
       </h1>
 
       <img className="logo" src="/favicon.svg" />

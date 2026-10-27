@@ -1,6 +1,6 @@
 {
-  "name": "Charles' MTG Collection",
-  "short_name": "MTG Collection",
+  "name": "Charles' Binder",
+  "short_name": "Charles' Binder",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#162a2b",

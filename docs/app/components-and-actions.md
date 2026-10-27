@@ -1,4 +1,4 @@
-# Charles' MTG Components Structure
+# Charles' Binder Components Structure
 
 ## Main and Providers components
 
