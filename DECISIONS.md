@@ -151,12 +151,12 @@
 
 ## D-013: Email delivery for magic links
 
-- Status: Evaluating
+- Status: Accepted
 - Date: 2026-10-27
-- Decision: Use Supabase's built-in sender during solo development, and choose a free SMTP provider before inviting others.
-- Why: The built-in sender is for testing and heavily rate-limited, but enough for one developer.
-- Alternatives considered: Brevo (free daily quota, can verify a single sender address), Resend (free monthly quota, needs a domain you control), Mailtrap (test inbox only, no real delivery). Verify current free limits.
-- Consequences: A `netlify.app` address cannot be verified as a sending domain, so Resend needs a domain. Without one, Brevo is the practical option, and sending from a free-mail address can land in spam.
+- Decision: Use Brevo as Supabase Auth's custom SMTP provider. Keep the Supabase built-in sender only for development until Brevo is configured and tested.
+- Why: Brevo is the selected transactional SMTP provider for the app's magic links and email OTPs.
+- Alternatives considered: Supabase's built-in sender (limited to development and rate-limited), Resend, and Mailtrap (test inbox only, not production delivery).
+- Consequences: Brevo currently requires an authenticated sending domain and a verified sender; the Netlify subdomain is not a domain we can authenticate. Configure SMTP credentials in the Supabase Dashboard only, following [`supabase/EMAIL.md`](./supabase/EMAIL.md). Provider selection is accepted; dashboard setup and end-to-end delivery verification remain pending.
 - Source: "[Supabase] Auth and favorites plan"
 
 ## D-014: Schema tracked as migration files and applied with the Supabase CLI
