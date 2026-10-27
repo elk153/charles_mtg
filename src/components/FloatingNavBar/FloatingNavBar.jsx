@@ -16,6 +16,7 @@ const FloatingNavBar = ({
 
   const handleSearchSubmit = (event) => {
     event.preventDefault();
+    event.currentTarget.querySelector("input")?.blur();
     const query = searchText.trim();
     if (query) {
       navigate(`cards/${encodeURIComponent(query)}`);

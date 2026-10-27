@@ -30,6 +30,7 @@ export default function NavSearchField({
 
   function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    inputRef.current?.blur();
     onSearch?.(value.trim());
   }
 

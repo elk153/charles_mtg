@@ -271,6 +271,12 @@
   background: var(--bg-card);
 }
 
+.card-detail__print .browser-card {
+  flex-basis: 100%;
+  width: 100%;
+  margin-inline: auto;
+}
+
 .card-detail__print-info {
   height: 7rem;
   overflow: hidden;
