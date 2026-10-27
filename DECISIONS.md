@@ -69,6 +69,7 @@
 - Consequences: Dev and production share data. Free projects can pause after inactivity (verify current rules). Keys never go in chat or the repo, and Netlify holds the production values. New projects expose no tables to the Data API by default, so every migration must grant access explicitly. Legacy anon/service_role keys are not used. The production redirect entry is tightened to the callback route in D-008. Status: implemented once the checks above pass.
 - Source: "[Supabase] Auth and favorites plan"
 
+
 ## D-005: Supabase MCP is read-only
 
 - Status: Accepted
@@ -151,22 +152,22 @@
 
 ## D-013: Email delivery for magic links
 
-- Status: Evaluating
+- Status: Not working
 - Date: 2026-10-27
 - Decision: Use Supabase's built-in sender during solo development, and choose a free SMTP provider before inviting others.
 - Why: The built-in sender is for testing and heavily rate-limited, but enough for one developer.
 - Alternatives considered: Brevo (free daily quota, can verify a single sender address), Resend (free monthly quota, needs a domain you control), Mailtrap (test inbox only, no real delivery). Verify current free limits.
-- Consequences: A `netlify.app` address cannot be verified as a sending domain, so Resend needs a domain. Without one, Brevo is the practical option, and sending from a free-mail address can land in spam.
+- Consequences: Passwordless magic-link sign-in was not reliable and is no longer the sign-in flow. The replacement is recorded in D-017. Supabase may still send email confirmation for signup, depending on Auth settings.
 - Source: "[Supabase] Auth and favorites plan"
 
 ## D-014: Schema tracked as migration files and applied with the Supabase CLI
 
-- Status: Accepted
+- Status: Implemented
 - Date: 2026-10-27
-- Decision: Keep every schema change as a timestamped SQL file in `supabase/migrations/`, created with `supabase migration new` and applied with `supabase db push` (dry run first). The CLI is added as a pinned dev dependency, or run through `npx`, after approval. No local Docker database for now. The dashboard is for reading and experiments, not for schema changes.
+- Decision: Keep every schema change as a timestamped SQL file in `supabase/migrations/`, created with `supabase migration new` and applied with `supabase db push` (dry run first). The CLI is pinned as a dev dependency and invoked through `npx`. Local Docker is optional for testing; the dashboard is for reading and experiments, not for schema changes.
 - Why: Files in git give a reviewable history and one source of truth. `db push` also records each migration in the project's migration history, so later automation knows what is already applied. Pasting into the SQL editor would leave that history empty.
 - Alternatives considered: SQL editor plus committed files (simple, but files and database drift, and later automation would try to re-run them). Hand-written GitHub Actions running `db push` (needs the access token and database password stored as GitHub secrets). A local Docker stack (best for testing, heavy for now).
-- Consequences: One dev dependency and a one-time `supabase login` and `supabase link`. The token lives on your machine and the database password is typed in the terminal. Rollbacks are new forward migrations. Each migration still needs approval per AGENTS.md. If the schema is changed in the dashboard, `supabase db pull` captures it as a file. Not implemented yet.
+- Consequences: The Supabase CLI is pinned as a dev dependency, and `supabase/MIGRATIONS.md` documents setup, local pgTAP testing, dry-run, apply, and history verification. `supabase login` and `supabase link` are one-time local setup; local database testing requires Docker, but remote migration application does not. Rollbacks are new forward migrations. Each migration still needs approval per AGENTS.md. If the schema is changed in the dashboard, `supabase db pull` captures it as a file. Implemented; no remote schema changes were made as part of this workflow setup.
 - Source: "[Supabase] Migrations and GitHub"
 
 ## D-015: Supabase GitHub integration deploys migrations from main
@@ -188,3 +189,13 @@
 - Alternatives considered: Hand-written row types (drift from the schema). No types (no checks).
 - Consequences: A generated, committed file that must be regenerated after every migration. JS/JSX files stay unchecked, as in AGENTS.md. Not implemented yet.
 - Source: "[Supabase] Migrations and GitHub"
+
+## D-017: Email and password authentication replaces magic-link sign-in
+
+- Status: Implemented
+- Date: 2026-10-27
+- Decision: Use Supabase's native email/password signup and sign-in on `/v2/login`; keep `/v2/auth/callback` for signup email confirmation and return users only to validated `/v2/` paths.
+- Why: Passwordless magic-link sign-in was not working reliably during testing. The password flow supports regular sign-in without requiring a magic link each time.
+- Alternatives considered: Continue troubleshooting passwordless magic links (D-013, not working); literal username/password authentication (requires a custom username identity mapping because Supabase's native password identifier is email or phone).
+- Consequences: Signup confirmation emails may still be sent when email confirmation is enabled in Supabase Auth. SMTP delivery configuration is not required for normal password sign-in. Existing D-008 routes implement this flow; remote Auth settings are managed separately.
+- Source: "[Supabase] Auth and favorites plan"

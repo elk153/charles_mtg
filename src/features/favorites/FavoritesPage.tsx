@@ -99,7 +99,7 @@ export default function FavoritesPage() {
   return (
     <section className="favorites-page">
       <header className="favorites-page__heading">
-        <h1>Favorites</h1>
+        {/*<h1>Favorites</h1>*/}
       </header>
 
       {favoriteSource.isLoading && (

@@ -190,7 +190,7 @@ export default function CardBrowserPage({ mode = "search" }: CardBrowserPageProp
   return (
     <section className="card-browser-page">
       <header className="card-browser__heading">
-        <h1>{pageTitle}</h1>
+        {/*<h1>{pageTitle}</h1>*/}
         {!isRandomRoute && !searchQuery && (
           <p>Enter a card name in the search field to browse Scryfall.</p>
         )}
