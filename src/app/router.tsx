@@ -5,6 +5,9 @@ import AppV2 from "./App.tsx";
 import CardsList from "../features/scryfall-card-renderer/CardsList/CardsList";
 import CardOverlay from "../features/scryfall-card-renderer/CardOverlay/CardOverlay";
 import CardBrowserPage from "../features/card-browser/CardBrowserPage.tsx";
+import LoginPage from "../features/auth/LoginPage.tsx";
+import AuthCallbackPage from "../features/auth/AuthCallbackPage.tsx";
+import RequireAuth from "../features/auth/RequireAuth.tsx";
 import { Home, AdvancedSearch, Favorites, Collection, Decks } from "./App.tsx";
 
 const router = createBrowserRouter([ // be aware of the capitals
@@ -55,6 +58,14 @@ const router = createBrowserRouter([ // be aware of the capitals
         element: <Home />,
       },
       {
+        path: "login",
+        element: <LoginPage />,
+      },
+      {
+        path: "auth/callback",
+        element: <AuthCallbackPage />,
+      },
+      {
         path: "search/advanced",
         element: <AdvancedSearch />,
       },
@@ -67,16 +78,21 @@ const router = createBrowserRouter([ // be aware of the capitals
         element: <CardBrowserPage />,
       },
       {
-        path: "favorites",
-        element: <Favorites />,
-      },
-      {
-        path: "collection",
-        element: <Collection />,
-      },
-      {
-        path: "decks",
-        element: <Decks />,
+        element: <RequireAuth />,
+        children: [
+          {
+            path: "favorites",
+            element: <Favorites />,
+          },
+          {
+            path: "collection",
+            element: <Collection />,
+          },
+          {
+            path: "decks",
+            element: <Decks />,
+          },
+        ],
       },
     ],
   }

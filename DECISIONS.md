@@ -99,14 +99,14 @@
 - Consequences: The existing `@supabase/supabase-js` dependency and `VITE_SUPABASE_URL` / `VITE_SUPABASE_PUBLISHABLE_KEY` configuration are used by the shared client. `AuthProvider` exposes session, user, loading state and sign-out through `useAuth`; sign-out removes favorites queries from the React Query cache. Implemented; sign-in UI and user-facing auth routes are covered by D-008.
 - Source: "[Supabase] Auth and favorites plan"
 
-## D-008: Sign-in routes and magic-link callback
+## D-008: Email and password authentication
 
 - Status: Accepted
 - Date: 2026-10-27
-- Decision: Add `/v2/login` (email form that calls `signInWithOtp`) and `/v2/auth/callback`, which waits for the session and then navigates to `next`. `next` must start with `/v2/` and contain no `//` or backslash, otherwise it falls back to `/v2/home`.
-- Why: A separate route leaves room for profile creation later. The validation prevents an open redirect.
-- Alternatives considered: Modal sign-in (harder to deep-link). Inline form only (no home for later profile steps).
-- Consequences: The callback URL must be in the allow-list. First-time-user handling and a `/v2/profile` route plug in here later. Magic-link tokens can be consumed by mail scanners, and a 6-digit code is the fallback. Not implemented yet.
+- Decision: Add `/v2/login` with email/password sign-in and signup, plus `/v2/auth/callback` for email confirmation. After authentication, navigate to `next` only when it starts with `/v2/` and contains no `//` or backslash; otherwise use `/v2/home`.
+- Why: Use Supabase's built-in password authentication rather than passwordless OTP, while keeping a dedicated route for account access.
+- Alternatives considered: Passwordless email OTP (D-008's previous implementation); literal usernames (not supported as a native Supabase Auth identifier).
+- Consequences: Supabase email confirmation must be enabled/configured as desired, and the callback URL must be in the Auth redirect allow-list. Email confirmation links are for signup verification only; normal sign-in uses the password. Password reset and profile management are outside this decision. Implemented.
 - Source: "[Supabase] Auth and favorites plan"
 
 ## D-009: RequireAuth layout route
@@ -116,7 +116,7 @@
 - Decision: Wrap `/v2/favorites`, `/v2/collection` and `/v2/decks` in a `RequireAuth` layout route. It renders nothing while the session loads, an inline sign-in invitation linking to `/v2/login?next=<current path>` when signed out, and `<Outlet />` when signed in.
 - Why: An invitation fits your request better than a silent redirect, and the loading state avoids a flash.
 - Alternatives considered: Redirecting to the login route (loses the page context). Guarding inside each page (duplicated).
-- Consequences: This guard is UX only. Security is enforced by RLS, never by the client. Not implemented yet.
+- Consequences: This guard is UX only. Security is enforced by RLS, never by the client. Implemented.
 - Source: "[Supabase] Auth and favorites plan"
 
 ## D-010: Paginated card source for the card browser

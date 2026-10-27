@@ -20,7 +20,7 @@ The developer is learning React and TypeScript and wants to understand every cha
   - **`/v1`: the original card browser.** Random card, name search, card detail overlay, rulings, legalities, printings, and per-printing EUR / foil EUR prices. Its result list uses the original card renderer and the `card-filters/` table.
   - **`/v2`: the current default card browser.** Home shows a daily seven-card set; search results support local color, rarity, type and sorting controls; card details show artwork, rules/legalities and printings with current EUR / foil EUR prices. Favorites, personal collection, decks and advanced search are still placeholders.
 - Both layouts have dark/light theme controls. Theme state is shared through React context, defaults to dark on each page load, and is not persisted.
-- No backend, authentication, or user database. TanStack Query caches remote data in memory and persists some of it in browser `localStorage`.
+- No custom application backend or user database. Supabase Auth provides managed email/password signup and sign-in; account data is managed by Supabase. TanStack Query caches remote data in memory and persists some of it in browser `localStorage`.
 - User-owned collection tracking, acquisition/location records, functional favorites/decks, price history, sales and balance are **goals, not features**. Never imply they exist.
 
 ## Commands and current status
@@ -52,6 +52,8 @@ Defined in `src/app/router.tsx`. `/` redirects to `/v2/home`.
 | `/v1/card/:cardId` | declares `CardOverlay` (see gotchas) |
 | `/v2` | redirects to `/v2/home` (route loader) |
 | `/v2/home` | daily seven-card set (`CardBrowserPage` in mulligan mode) |
+| `/v2/login` | email/password signup and sign-in |
+| `/v2/auth/callback` | completes email confirmation and returns to a safe `/v2/` path |
 | `/v2/search?q=<name>` | Scryfall name search and local filters |
 | `/v2/search/random` | daily set/mulligan browser |
 | `/v2/search/advanced`, `/v2/favorites`, `/v2/collection`, `/v2/decks` | placeholder pages exported from `src/app/App.tsx` |
