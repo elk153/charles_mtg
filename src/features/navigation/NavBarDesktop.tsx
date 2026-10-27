@@ -10,6 +10,9 @@ export default function NavBarDesktop({
   searchSource,
   onSearchSourceToggle,
   onSearch,
+  isAuthenticated,
+  isSigningOut,
+  onLogout,
 }: NavBarProps) {
   const visible = useScrollVisibility({ threshold: 12, topGuard: 56 });
   const { pathname } = useLocation();
@@ -46,6 +49,20 @@ export default function NavBarDesktop({
               </li>
             );
           })}
+          {isAuthenticated && (
+            <li>
+              <button
+                type="button"
+                className="nav-item"
+                onClick={onLogout}
+                disabled={isSigningOut}
+                aria-label="Log out"
+              >
+                <span className="nav-icon" aria-hidden="true">↪</span>
+                <span className="nav-label">{isSigningOut ? "Logging out…" : "Log out"}</span>
+              </button>
+            </li>
+          )}
         </ul>
       </nav>
     </header>

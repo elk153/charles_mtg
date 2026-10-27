@@ -11,6 +11,9 @@ export default function NavBarMobile({
   searchSource,
   onSearchSourceToggle,
   onSearch,
+  isAuthenticated,
+  isSigningOut,
+  onLogout,
 }: NavBarProps) {
   const scrollVisible = useScrollVisibility({ threshold: 10, topGuard: 40 });
   const [searchFocused, setSearchFocused] = useState(false);
@@ -59,6 +62,20 @@ export default function NavBarMobile({
               </li>
             );
           })}
+          {isAuthenticated && (
+            <li>
+              <button
+                type="button"
+                className="nav-item"
+                onClick={onLogout}
+                disabled={isSigningOut}
+                aria-label={isSigningOut ? "Logging out" : "Log out"}
+                title={isSigningOut ? "Logging out" : "Log out"}
+              >
+                <span className="nav-icon" aria-hidden="true">↪</span>
+              </button>
+            </li>
+          )}
         </ul>
       </div>
     </nav>

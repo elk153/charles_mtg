@@ -10,6 +10,8 @@ type CardTileProps = {
   card: CardBrowserCard;
   onSelect?: (card: CardBrowserCard) => void;
   onAction?: (action: CardAction, card: CardBrowserCard) => void;
+  isFavorite?: boolean;
+  isFavoritePending?: boolean;
   showActions?: boolean;
 };
 
@@ -23,6 +25,8 @@ export default function CardTile({
   card,
   onSelect,
   onAction,
+  isFavorite = false,
+  isFavoritePending = false,
   showActions = true,
 }: CardTileProps) {
   const [showBack, setShowBack] = useState(false);
@@ -87,18 +91,33 @@ export default function CardTile({
             </button>
           )}
 
-          {CARD_ACTIONS.map(({ action, label, Icon }) => (
-            <button
-              key={action}
-              type="button"
-              className="browser-card__action"
-              aria-label={`${label} action for ${card.name} (under construction)`}
-              title={`${label} — under construction`}
-              onClick={() => onAction?.(action, card)}
-            >
-              <Icon />
-            </button>
-          ))}
+          {CARD_ACTIONS.map(({ action, label, Icon }) => {
+            const isFavoriteAction = action === "favorite";
+            const favoriteLabel = isFavorite
+              ? "Remove from Favorites"
+              : "Add to Favorites";
+            const actionLabel = isFavoriteAction
+              ? favoriteLabel
+              : `${label} — under construction`;
+            return (
+              <button
+                key={action}
+                type="button"
+                className={`browser-card__action${isFavoriteAction && isFavorite ? " browser-card__action--favorite-active" : ""}`}
+                aria-label={
+                  isFavoriteAction
+                    ? `${favoriteLabel}: ${card.name}`
+                    : `${label} action for ${card.name} (under construction)`
+                }
+                aria-pressed={isFavoriteAction ? isFavorite : undefined}
+                title={`${actionLabel}${isFavoritePending && isFavoriteAction ? " — updating" : ""}`}
+                disabled={isFavoriteAction && isFavoritePending}
+                onClick={() => onAction?.(action, card)}
+              >
+                <Icon />
+              </button>
+            );
+          })}
         </div>
       )}
     </article>

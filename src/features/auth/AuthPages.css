@@ -1,44 +1,25 @@
 .auth-page {
-  box-sizing: border-box;
-  display: grid;
-  gap: 1rem;
   width: min(100%, 30rem);
-  padding: clamp(1.5rem, 5vw, 2.5rem);
-  color: var(--text-primary);
-  background: var(--bg-card);
-  border: 1px solid color-mix(in srgb, var(--btn-gold) 35%, transparent);
-  border-radius: 12px;
-  box-shadow: var(--eerie-glow);
 }
 
-.auth-page h1,
-.auth-page p {
-  margin: 0;
+.auth-page__intro {
+  margin-bottom: 1.5rem !important;
 }
 
-.auth-page h1 {
-  color: var(--text-accent);
-  font-family: var(--font-display);
-}
-
-.auth-page p {
-  color: var(--text-secondary);
-}
-
-.auth-page__form {
+.auth-form {
   display: grid;
-  gap: 0.65rem;
+  gap: 0.75rem;
 }
 
-.auth-page__form label {
+.auth-form label {
   color: var(--text-primary);
-  font-size: 0.9rem;
+  font-weight: 700;
 }
 
-.auth-page__form input {
+.auth-form input {
   box-sizing: border-box;
   width: 100%;
-  min-height: 2.8rem;
+  min-height: 2.75rem;
   padding: 0.65rem 0.8rem;
   color: var(--text-primary);
   background: var(--bg-main);
@@ -47,79 +28,71 @@
   font: inherit;
 }
 
-.auth-page__form button,
-.auth-page__button-link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 2.8rem;
-  padding: 0.65rem 1rem;
+.auth-form input:focus-visible,
+.auth-submit:focus-visible,
+.auth-link:focus-visible {
+  outline: 2px solid var(--text-accent);
+  outline-offset: 3px;
+}
+
+.auth-submit {
+  min-height: 2.75rem;
+  margin-top: 0.5rem;
   color: var(--bg-main);
   background: var(--btn-gold);
   border: 0;
   border-radius: 8px;
   font: inherit;
   font-weight: 700;
-  text-decoration: none;
   cursor: pointer;
 }
 
-.auth-page__form button:hover,
-.auth-page__button-link:hover {
+.auth-submit:hover:not(:disabled) {
   background: var(--btn-gold-hover);
 }
 
-.auth-page__form button:disabled {
+.auth-submit--link {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1.25rem;
+  text-decoration: none;
+}
+
+.auth-submit:disabled,
+.auth-form input:disabled {
   cursor: wait;
   opacity: 0.7;
 }
 
-.auth-page__secondary,
-.auth-page__home-link {
-  width: fit-content;
+.auth-message {
+  margin: 0.5rem 0;
+  color: var(--text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.auth-message--error {
+  color: #d65b54;
+}
+
+.auth-mode-switch {
+  margin-top: 1.5rem;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.auth-link {
   padding: 0;
   color: var(--text-accent);
   background: none;
   border: 0;
   font: inherit;
   text-decoration: underline;
-  text-underline-offset: 0.2em;
   cursor: pointer;
 }
 
-.auth-page__notice {
-  padding: 0.8rem;
-  border: 1px solid var(--surface-border);
-  border-radius: 8px;
-}
-
-.auth-page__diagnostics {
-  color: var(--text-secondary);
-  font-size: 0.85rem;
-}
-
-.auth-page__diagnostics summary {
-  width: fit-content;
-  color: var(--text-accent);
-  cursor: pointer;
-}
-
-.auth-page__diagnostics dl {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 0.4rem 0.8rem;
-  overflow-wrap: anywhere;
-}
-
-.auth-page__diagnostics dd {
-  margin: 0;
-  color: var(--text-primary);
-}
-
-.auth-page__diagnostics p {
-  font-size: 0.8rem;
-}
-
-.auth-page .auth-page__error {
-  color: #d85b5b;
+.auth-link:disabled {
+  cursor: wait;
+  opacity: 0.7;
 }

@@ -69,6 +69,7 @@
 - Consequences: Dev and production share data. Free projects can pause after inactivity (verify current rules). Keys never go in chat or the repo, and Netlify holds the production values. New projects expose no tables to the Data API by default, so every migration must grant access explicitly. Legacy anon/service_role keys are not used. The production redirect entry is tightened to the callback route in D-008. Status: implemented once the checks above pass.
 - Source: "[Supabase] Auth and favorites plan"
 
+
 ## D-005: Supabase MCP is read-only
 
 - Status: Accepted
@@ -99,14 +100,14 @@
 - Consequences: The existing `@supabase/supabase-js` dependency and `VITE_SUPABASE_URL` / `VITE_SUPABASE_PUBLISHABLE_KEY` configuration are used by the shared client. `AuthProvider` exposes session, user, loading state and sign-out through `useAuth`; sign-out removes favorites queries from the React Query cache. Implemented; sign-in UI and user-facing auth routes are covered by D-008.
 - Source: "[Supabase] Auth and favorites plan"
 
-## D-008: Sign-in routes and magic-link callback
+## D-008: Email and password authentication
 
 - Status: Accepted
 - Date: 2026-10-27
-- Decision: Add `/v2/login` (email form that calls `signInWithOtp`) and `/v2/auth/callback`, which waits for the session and then navigates to `next`. `next` must start with `/v2/` and contain no `//` or backslash, otherwise it falls back to `/v2/home`.
-- Why: A separate route leaves room for profile creation later. The validation prevents an open redirect.
-- Alternatives considered: Modal sign-in (harder to deep-link). Inline form only (no home for later profile steps).
-- Consequences: The app sends magic links to `/v2/auth/callback`, uses PKCE, validates `next` as a same-origin `/v2/` path, and supports six-digit email OTP when the configured email template includes a token. Add the exact production callback URL to the Supabase Auth redirect allow-list; local development is covered by the existing localhost wildcard. First-time-user handling and a `/v2/profile` route plug in here later. Mail scanners may consume magic links; the OTP option is the fallback. App code implemented; production allow-list configuration remains to be verified.
+- Decision: Add `/v2/login` with email/password sign-in and signup, plus `/v2/auth/callback` for email confirmation. After authentication, navigate to `next` only when it starts with `/v2/` and contains no `//` or backslash; otherwise use `/v2/home`.
+- Why: Use Supabase's built-in password authentication rather than passwordless OTP, while keeping a dedicated route for account access.
+- Alternatives considered: Passwordless email OTP (D-008's previous implementation); literal usernames (not supported as a native Supabase Auth identifier).
+- Consequences: Supabase email confirmation must be enabled/configured as desired, and the callback URL must be in the Auth redirect allow-list. Email confirmation links are for signup verification only; normal sign-in uses the password. Password reset and profile management are outside this decision. Implemented.
 - Source: "[Supabase] Auth and favorites plan"
 
 ## D-009: RequireAuth layout route
@@ -116,7 +117,7 @@
 - Decision: Wrap `/v2/favorites`, `/v2/collection` and `/v2/decks` in a `RequireAuth` layout route. It renders nothing while the session loads, an inline sign-in invitation linking to `/v2/login?next=<current path>` when signed out, and `<Outlet />` when signed in.
 - Why: An invitation fits your request better than a silent redirect, and the loading state avoids a flash.
 - Alternatives considered: Redirecting to the login route (loses the page context). Guarding inside each page (duplicated).
-- Consequences: This guard is UX only. Security is enforced by RLS, never by the client. Implemented for `/v2/favorites`, `/v2/collection` and `/v2/decks`.
+- Consequences: This guard is UX only. Security is enforced by RLS, never by the client. Implemented.
 - Source: "[Supabase] Auth and favorites plan"
 
 ## D-010: Paginated card source for the card browser
@@ -126,7 +127,7 @@
 - Decision: Define a `CardSource` shape (`cards`, `isLoading`, `isFetchingNextPage`, `hasNextPage`, `fetchNextPage`, `error`). Implement it for Scryfall search with `useInfiniteQuery`, following `next_page` while `has_more` is true. Add a "Load more" button. Keep the current daily-set mode as a single page and leave V1 untouched.
 - Why: One source shape lets search, favorites, collections and decks share the card browser. A button is the simplest trigger and keeps Scryfall requests polite.
 - Alternatives considered: Infinite scroll with an intersection observer (a new dependency, can come later). A separate browser per page (duplicates the filter code).
-- Consequences: The current 175-card limit is lifted, but local filters and sorts cover only the cards loaded so far. `createApiClient` strips `has_more` and `next_page`, so a sibling function is needed rather than changing it. Infinite queries need a key prefix that `PersistenceProvider` does not persist, because the data shape differs. Not implemented yet.
+- Consequences: Search results can be paged beyond the first 175 cards, but local filters and sorts cover only cards loaded so far. The daily set remains limited to seven cards and V1 is unchanged. The paginated hook reads Scryfall's `has_more` and `next_page` metadata directly, and uses a query-key prefix that `PersistenceProvider` does not persist. Implemented.
 - Source: "[Supabase] Auth and favorites plan"
 
 ## D-011: Favorite hooks and the heart toggle
@@ -136,37 +137,37 @@
 - Decision: Add `useFavoriteIds` (a query for the user's `scryfall_id` set) and `useToggleFavorite` (a mutation that inserts or deletes, then invalidates). Optimistic updates come later. The heart on `CardTile` replaces the under-construction notice. For anonymous users it shows the sign-in invitation.
 - Why: One id set lets every tile show its heart without a request per card.
 - Alternatives considered: Checking each visible card with `.in(...)` (more requests). Starting optimistic (more concepts at once).
-- Consequences: The Supabase API caps rows per request (default 1000, verify), so the id query needs paging if favorites pass that. Favorites are never persisted to `localStorage`. Not implemented yet.
+- Consequences: The favorite-ID query pages through results in bounded batches to avoid API row caps. Favorites are never persisted to `localStorage`; they are loaded for the current authenticated user and refreshed after successful toggles. Anonymous users receive a sign-in invitation that returns to the current page. Implemented.
 - Source: "[Supabase] Auth and favorites plan"
 
 ## D-012: Favorites page on the shared card source
 
 - Status: Accepted
 - Date: 2026-10-27
-- Decision: Implement `CardSource` for favorites. Each page reads up to 75 rows ordered by `created_at desc`, continuing from the last row's `created_at`. It resolves them through Scryfall's `POST /cards/collection`, re-orders them by the Supabase order, and skips ids Scryfall no longer returns. Page size is a single constant.
+- Decision: Implement `CardSource` for favorites. Each page reads up to 75 rows ordered by `created_at desc, scryfall_id desc`, continuing from the last row with a composite cursor. It resolves them through Scryfall's `POST /cards/collection`, re-orders them by the Supabase order, and skips ids Scryfall no longer returns. Page size is a single constant.
 - Why: Scryfall accepts at most 75 identifiers per request. Cursor paging stays correct when favorites are added or removed between pages.
 - Alternatives considered: Offset paging (rows can shift). Relying on Scryfall's response order (not guaranteed).
-- Consequences: A new POST helper is needed because `createApiClient` is for GET. "No sort selected" means latest added. Collections and decks will implement the same `CardSource` later. Not implemented yet.
+- Consequences: The favorites hook issues one Scryfall collection request for each loaded page and skips missing cards without changing Supabase pagination. The composite cursor avoids skipping favorites with tied timestamps. "No sort selected" means latest added. Collections and decks can implement the same `CardSource` later. Implemented.
 - Source: "[Supabase] Auth and favorites plan"
 
 ## D-013: Email delivery for magic links
 
-- Status: Accepted
+- Status: Not working
 - Date: 2026-10-27
-- Decision: Use Brevo as Supabase Auth's custom SMTP provider. Keep the Supabase built-in sender only for development until Brevo is configured and tested.
-- Why: Brevo is the selected transactional SMTP provider for the app's magic links and email OTPs.
-- Alternatives considered: Supabase's built-in sender (limited to development and rate-limited), Resend, and Mailtrap (test inbox only, not production delivery).
-- Consequences: Brevo currently requires an authenticated sending domain and a verified sender; the Netlify subdomain is not a domain we can authenticate. Configure SMTP credentials in the Supabase Dashboard only, following [`supabase/EMAIL.md`](./supabase/EMAIL.md). Provider selection is accepted; dashboard setup and end-to-end delivery verification remain pending.
+- Decision: Use Supabase's built-in sender during solo development, and choose a free SMTP provider before inviting others.
+- Why: The built-in sender is for testing and heavily rate-limited, but enough for one developer.
+- Alternatives considered: Brevo (free daily quota, can verify a single sender address), Resend (free monthly quota, needs a domain you control), Mailtrap (test inbox only, no real delivery). Verify current free limits.
+- Consequences: Passwordless magic-link sign-in was not reliable and is no longer the sign-in flow. The replacement is recorded in D-017. Supabase may still send email confirmation for signup, depending on Auth settings.
 - Source: "[Supabase] Auth and favorites plan"
 
 ## D-014: Schema tracked as migration files and applied with the Supabase CLI
 
-- Status: Accepted
+- Status: Implemented
 - Date: 2026-10-27
-- Decision: Keep every schema change as a timestamped SQL file in `supabase/migrations/`, created with `supabase migration new` and applied with `supabase db push` (dry run first). The CLI is added as a pinned dev dependency, or run through `npx`, after approval. No local Docker database for now. The dashboard is for reading and experiments, not for schema changes.
+- Decision: Keep every schema change as a timestamped SQL file in `supabase/migrations/`, created with `supabase migration new` and applied with `supabase db push` (dry run first). The CLI is pinned as a dev dependency and invoked through `npx`. Local Docker is optional for testing; the dashboard is for reading and experiments, not for schema changes.
 - Why: Files in git give a reviewable history and one source of truth. `db push` also records each migration in the project's migration history, so later automation knows what is already applied. Pasting into the SQL editor would leave that history empty.
 - Alternatives considered: SQL editor plus committed files (simple, but files and database drift, and later automation would try to re-run them). Hand-written GitHub Actions running `db push` (needs the access token and database password stored as GitHub secrets). A local Docker stack (best for testing, heavy for now).
-- Consequences: One dev dependency and a one-time `supabase login` and `supabase link`. The token lives on your machine and the database password is typed in the terminal. Rollbacks are new forward migrations. Each migration still needs approval per AGENTS.md. If the schema is changed in the dashboard, `supabase db pull` captures it as a file. Not implemented yet.
+- Consequences: The Supabase CLI is pinned as a dev dependency, and `supabase/MIGRATIONS.md` documents setup, local pgTAP testing, dry-run, apply, and history verification. `supabase login` and `supabase link` are one-time local setup; local database testing requires Docker, but remote migration application does not. Rollbacks are new forward migrations. Each migration still needs approval per AGENTS.md. If the schema is changed in the dashboard, `supabase db pull` captures it as a file. Implemented; no remote schema changes were made as part of this workflow setup.
 - Source: "[Supabase] Migrations and GitHub"
 
 ## D-015: Supabase GitHub integration deploys migrations from main
@@ -188,3 +189,13 @@
 - Alternatives considered: Hand-written row types (drift from the schema). No types (no checks).
 - Consequences: A generated, committed file that must be regenerated after every migration. JS/JSX files stay unchecked, as in AGENTS.md. Not implemented yet.
 - Source: "[Supabase] Migrations and GitHub"
+
+## D-017: Email and password authentication replaces magic-link sign-in
+
+- Status: Implemented
+- Date: 2026-10-27
+- Decision: Use Supabase's native email/password signup and sign-in on `/v2/login`; keep `/v2/auth/callback` for signup email confirmation and return users only to validated `/v2/` paths.
+- Why: Passwordless magic-link sign-in was not working reliably during testing. The password flow supports regular sign-in without requiring a magic link each time.
+- Alternatives considered: Continue troubleshooting passwordless magic links (D-013, not working); literal username/password authentication (requires a custom username identity mapping because Supabase's native password identifier is email or phone).
+- Consequences: Signup confirmation emails may still be sent when email confirmation is enabled in Supabase Auth. SMTP delivery configuration is not required for normal password sign-in. Existing D-008 routes implement this flow; remote Auth settings are managed separately.
+- Source: "[Supabase] Auth and favorites plan"

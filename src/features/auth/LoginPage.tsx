@@ -1,147 +1,167 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router";
+import { useNavigate, useSearchParams } from "react-router";
 import { useAuth } from "../../app/AppProviders/AuthContext.ts";
 import { supabase } from "../../services/supabaseClient.ts";
-import {
-  getAuthCallbackUrl,
-  getSafeAuthDestination,
-} from "./authRedirect.ts";
+import { getAuthCallbackUrl, getSafeNextPath } from "./authRedirect.ts";
 import "./AuthPages.css";
 
+type AuthMode = "sign-in" | "sign-up";
+
 export default function LoginPage() {
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { session, isLoading } = useAuth();
-  const next = getSafeAuthDestination(searchParams.get("next"));
+  const [searchParams] = useSearchParams();
+  const { isLoading, user } = useAuth();
+  const nextPath = getSafeNextPath(searchParams.get("next"));
+  const [mode, setMode] = useState<AuthMode>("sign-in");
   const [email, setEmail] = useState("");
-  const [code, setCode] = useState("");
-  const [emailSent, setEmailSent] = useState(false);
-  const [showCodeEntry, setShowCodeEntry] = useState(false);
+  const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [statusMessage, setStatusMessage] = useState("");
 
   useEffect(() => {
-    if (!isLoading && session) {
-      navigate(next, { replace: true });
+    if (!isLoading && user) {
+      navigate(nextPath, { replace: true });
     }
-  }, [isLoading, session, navigate, next]);
+  }, [isLoading, navigate, nextPath, user]);
 
-  async function handleSendLink(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setErrorMessage(null);
+    setErrorMessage("");
+    setStatusMessage("");
     setIsSubmitting(true);
 
-    const { error } = await supabase.auth.signInWithOtp({
-      email: email.trim(),
-      options: {
-        emailRedirectTo: getAuthCallbackUrl(next),
-      },
-    });
+    try {
+      if (mode === "sign-in") {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email: email.trim(),
+          password,
+        });
 
-    setIsSubmitting(false);
-    if (error) {
-      setErrorMessage(error.message);
-      return;
+        if (error) {
+          setErrorMessage(error.message);
+          return;
+        }
+
+        if (!data.session) {
+          setErrorMessage("Sign-in succeeded without creating a session. Please try again.");
+          return;
+        }
+
+        navigate(nextPath, { replace: true });
+        return;
+      }
+
+      const { data, error } = await supabase.auth.signUp({
+        email: email.trim(),
+        password,
+        options: {
+          emailRedirectTo: getAuthCallbackUrl(nextPath),
+        },
+      });
+
+      if (error) {
+        setErrorMessage(error.message);
+        return;
+      }
+
+      if (data.session) {
+        navigate(nextPath, { replace: true });
+        return;
+      }
+
+      setStatusMessage(
+        "If this address can be registered, check its inbox for a confirmation email before signing in.",
+      );
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "Authentication could not be completed.",
+      );
+    } finally {
+      setIsSubmitting(false);
     }
-
-    setEmailSent(true);
   }
 
-  async function handleVerifyCode(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setErrorMessage(null);
-    setIsSubmitting(true);
-
-    const { data, error } = await supabase.auth.verifyOtp({
-      email: email.trim(),
-      token: code.trim(),
-      type: "email",
-    });
-
-    setIsSubmitting(false);
-    if (error) {
-      setErrorMessage(error.message);
-      return;
-    }
-    if (!data.session) {
-      setErrorMessage("The code was accepted but no session was created. Try again.");
-      return;
-    }
-
-    navigate(next, { replace: true });
+  if (isLoading || user) {
+    return (
+      <section className="app-v2__page auth-page" aria-live="polite">
+        <p>Checking your session…</p>
+      </section>
+    );
   }
+
+  const isSigningIn = mode === "sign-in";
 
   return (
-    <section className="auth-page" aria-labelledby="login-title">
-      <h1 id="login-title">Sign in</h1>
-      <p>Enter your email and we’ll send you a sign-in link.</p>
+    <section className="app-v2__page auth-page">
+      <h1>{isSigningIn ? "Sign in" : "Create account"}</h1>
+      <p className="auth-page__intro">
+        {isSigningIn
+          ? "Sign in with your email address and password."
+          : "Create an account with your email address and a password."}
+      </p>
 
-      <form className="auth-page__form" onSubmit={handleSendLink}>
-        <label htmlFor="login-email">Email address</label>
+      <form className="auth-form" onSubmit={handleSubmit}>
+        <label htmlFor="auth-email">Email</label>
         <input
-          autoComplete="email"
-          id="login-email"
+          id="auth-email"
           name="email"
-          onChange={(event) => setEmail(event.target.value)}
-          required
           type="email"
+          autoComplete="email"
+          required
           value={email}
+          onChange={(event) => setEmail(event.target.value)}
+          disabled={isSubmitting}
         />
-        <button disabled={isSubmitting} type="submit">
-          {isSubmitting ? "Sending…" : "Send sign-in link"}
+
+        <label htmlFor="auth-password">Password</label>
+        <input
+          id="auth-password"
+          name="password"
+          type="password"
+          autoComplete={isSigningIn ? "current-password" : "new-password"}
+          required
+          minLength={6}
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+          disabled={isSubmitting}
+        />
+
+        {errorMessage && (
+          <p className="auth-message auth-message--error" role="alert">
+            {errorMessage}
+          </p>
+        )}
+        {statusMessage && (
+          <p className="auth-message" role="status">
+            {statusMessage}
+          </p>
+        )}
+
+        <button className="auth-submit" type="submit" disabled={isSubmitting}>
+          {isSubmitting
+            ? "Please wait…"
+            : isSigningIn
+              ? "Sign in"
+              : "Create account"}
         </button>
       </form>
 
-      {emailSent && (
-        <p className="auth-page__notice" role="status">
-          Check your email for a sign-in link. If your email contains a
-          six-digit code, you can enter it here instead.
-        </p>
-      )}
-
-      <button
-        aria-expanded={showCodeEntry}
-        className="auth-page__secondary"
-        onClick={() => {
-          setShowCodeEntry((shown) => !shown);
-          setErrorMessage(null);
-        }}
-        type="button"
-      >
-        {showCodeEntry ? "Use the sign-in link" : "Enter a six-digit email code"}
-      </button>
-
-      {showCodeEntry && (
-        <form className="auth-page__form" onSubmit={handleVerifyCode}>
-          <label htmlFor="login-code">Six-digit code</label>
-          <input
-            autoComplete="one-time-code"
-            id="login-code"
-            inputMode="numeric"
-            maxLength={6}
-            minLength={6}
-            name="code"
-            onChange={(event) => setCode(event.target.value)}
-            pattern="[0-9]{6}"
-            required
-            type="text"
-            value={code}
-          />
-          <button disabled={isSubmitting} type="submit">
-            {isSubmitting ? "Verifying…" : "Verify code"}
-          </button>
-        </form>
-      )}
-
-      {errorMessage && (
-        <p className="auth-page__error" role="alert">
-          {errorMessage}
-        </p>
-      )}
-
-      <Link className="auth-page__home-link" to="/v2/home">
-        Return to home
-      </Link>
+      <p className="auth-mode-switch">
+        {isSigningIn ? "New here?" : "Already have an account?"}{" "}
+        <button
+          type="button"
+          className="auth-link"
+          onClick={() => {
+            setMode(isSigningIn ? "sign-up" : "sign-in");
+            setErrorMessage("");
+            setStatusMessage("");
+          }}
+          disabled={isSubmitting}
+        >
+          {isSigningIn ? "Create an account" : "Sign in"}
+        </button>
+      </p>
     </section>
   );
 }
