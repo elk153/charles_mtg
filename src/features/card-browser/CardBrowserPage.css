@@ -46,6 +46,38 @@
   color: var(--text-accent);
 }
 
+.card-browser__pagination {
+  display: flex;
+  justify-content: center;
+  width: min(100%, 80rem);
+  margin: 1.5rem auto;
+}
+
+.card-browser__pagination button {
+  min-height: 2.75rem;
+  padding: 0.65rem 1.25rem;
+  border: 1px solid var(--surface-border);
+  border-radius: var(--control-radius);
+  color: var(--bg-main);
+  background: var(--btn-gold);
+  font: inherit;
+  cursor: pointer;
+}
+
+.card-browser__pagination button:hover:not(:disabled) {
+  background: var(--btn-gold-hover);
+}
+
+.card-browser__pagination button:focus-visible {
+  outline: 2px solid var(--text-accent);
+  outline-offset: 3px;
+}
+
+.card-browser__pagination button:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
 .card-browser__notice {
   position: fixed;
   z-index: 95;

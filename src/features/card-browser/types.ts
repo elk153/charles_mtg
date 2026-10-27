@@ -1,4 +1,14 @@
 import type { ScryfallCard } from "../card-filters/types.ts";
+import type { ApiRecord } from "../../services/createApiClient.ts";
+
+export type CardSource<TCard = ApiRecord> = {
+  cards: TCard[];
+  isLoading: boolean;
+  isFetchingNextPage: boolean;
+  hasNextPage: boolean;
+  fetchNextPage: () => void;
+  error: Error | null;
+};
 
 export type CardImageUris = {
   normal?: string;

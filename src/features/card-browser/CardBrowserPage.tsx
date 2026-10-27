@@ -4,9 +4,10 @@ import CardFilters from "../card-filters/CardFilters.tsx";
 import { useCardsTable } from "../card-filters/useCardsTable.ts";
 import CardTile from "./CardTile.tsx";
 import CardDetailsOverlay from "./CardDetailsOverlay.tsx";
-import type { CardAction, CardBrowserCard } from "./types.ts";
+import type { CardAction, CardBrowserCard, CardSource } from "./types.ts";
 import { isCardBrowserCard } from "./types.ts";
 import useScryfallCardsSearch from "../../hooks/useScryfallCardsSearch.ts";
+import useScryfallCardPages from "../../hooks/useScryfallCardPages.ts";
 import useFetchUrl from "../../hooks/useFetchUrl.ts";
 import {
   getMulliganSets,
@@ -77,13 +78,33 @@ export default function CardBrowserPage({ mode = "search" }: CardBrowserPageProp
     ? { q: mulliganQuery, unique: "cards", order: "random", format: "json" }
     : { q: searchQuery, format: "json" };
   const querySeed = isRandomRoute ? dailyDay : 0;
-  const search = useScryfallCardsSearch(routeParam, queryParams, querySeed);
-  const rawCards = search.data;
+  const singlePageSearch = useScryfallCardsSearch(
+    isRandomRoute ? routeParam : null,
+    queryParams,
+    querySeed,
+  );
+  const paginatedSearch = useScryfallCardPages(
+    !isRandomRoute && routeParam ? queryParams : null,
+    querySeed,
+  );
+  const cardSource: CardSource = isRandomRoute
+    ? {
+        cards: singlePageSearch.data ?? [],
+        isLoading: singlePageSearch.isLoading,
+        isFetchingNextPage: false,
+        hasNextPage: false,
+        fetchNextPage: () => {},
+        error: singlePageSearch.error,
+      }
+    : paginatedSearch;
+  const rawCards = cardSource.cards;
   const invalidCardData = rawCards?.some((card) => !isCardBrowserCard(card)) ?? false;
   const cards = useMemo<CardBrowserCard[]>(
     () =>
       rawCards && !invalidCardData
-        ? rawCards.filter(isCardBrowserCard).slice(0, isRandomRoute ? 7 : undefined)
+        ? isRandomRoute
+          ? rawCards.filter(isCardBrowserCard).slice(0, 7)
+          : rawCards.filter(isCardBrowserCard)
         : [],
     [rawCards, invalidCardData, isRandomRoute],
   );
@@ -98,7 +119,7 @@ export default function CardBrowserPage({ mode = "search" }: CardBrowserPageProp
     if (!card) throw new Error(`Filtered card ${row.original.id} was not in the cached result.`);
     return card;
   });
-  const total = isRandomRoute ? cards.length : rawCards?.length ?? 0;
+  const total = cards.length;
 
   function openCard(card: CardBrowserCard) {
     const next = new URLSearchParams(searchParams);
@@ -159,15 +180,16 @@ export default function CardBrowserPage({ mode = "search" }: CardBrowserPageProp
           </p>
         )}
 
-      {search.isLoading && (
+      {cardSource.isLoading && (
         <p className="card-browser__message" role="status">
           {isRandomRoute ? "Choosing seven cards…" : "Loading cards…"}
         </p>
       )}
 
-      {search.error && (
+      {cardSource.error && (
         <p className="card-browser__message card-browser__message--error" role="alert">
-          Could not load cards: {search.error.message}
+          Could not load {isRandomRoute || cards.length === 0 ? "cards" : "additional cards"}:{" "}
+          {cardSource.error.message}
         </p>
       )}
 
@@ -177,7 +199,7 @@ export default function CardBrowserPage({ mode = "search" }: CardBrowserPageProp
         </p>
       )}
 
-      {!search.isLoading && !search.error && !invalidCardData && routeParam && total === 0 && (
+      {!cardSource.isLoading && !cardSource.error && !invalidCardData && routeParam && total === 0 && (
         <p className="card-browser__message">No cards found.</p>
       )}
 
@@ -204,6 +226,21 @@ export default function CardBrowserPage({ mode = "search" }: CardBrowserPageProp
           </div>
           {rows.length === 0 && (
             <p className="card-browser__message">No cards match these filters.</p>
+          )}
+          {!isRandomRoute && cardSource.hasNextPage && (
+            <div className="card-browser__pagination">
+              <button
+                type="button"
+                onClick={cardSource.fetchNextPage}
+                disabled={cardSource.isFetchingNextPage}
+              >
+                {cardSource.isFetchingNextPage
+                  ? "Loading more cards…"
+                  : cardSource.error
+                    ? "Retry loading more"
+                    : "Load more"}
+              </button>
+            </div>
           )}
         </>
       )}

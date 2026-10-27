@@ -126,7 +126,7 @@
 - Decision: Define a `CardSource` shape (`cards`, `isLoading`, `isFetchingNextPage`, `hasNextPage`, `fetchNextPage`, `error`). Implement it for Scryfall search with `useInfiniteQuery`, following `next_page` while `has_more` is true. Add a "Load more" button. Keep the current daily-set mode as a single page and leave V1 untouched.
 - Why: One source shape lets search, favorites, collections and decks share the card browser. A button is the simplest trigger and keeps Scryfall requests polite.
 - Alternatives considered: Infinite scroll with an intersection observer (a new dependency, can come later). A separate browser per page (duplicates the filter code).
-- Consequences: The current 175-card limit is lifted, but local filters and sorts cover only the cards loaded so far. `createApiClient` strips `has_more` and `next_page`, so a sibling function is needed rather than changing it. Infinite queries need a key prefix that `PersistenceProvider` does not persist, because the data shape differs. Not implemented yet.
+- Consequences: Search results can be paged beyond the first 175 cards, but local filters and sorts cover only cards loaded so far. The daily set remains limited to seven cards and V1 is unchanged. The paginated hook reads Scryfall's `has_more` and `next_page` metadata directly, and uses a query-key prefix that `PersistenceProvider` does not persist. Implemented.
 - Source: "[Supabase] Auth and favorites plan"
 
 ## D-011: Favorite hooks and the heart toggle
