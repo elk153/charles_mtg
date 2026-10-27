@@ -199,3 +199,13 @@
 - Alternatives considered: Continue troubleshooting passwordless magic links (D-013, not working); literal username/password authentication (requires a custom username identity mapping because Supabase's native password identifier is email or phone).
 - Consequences: Signup confirmation emails may still be sent when email confirmation is enabled in Supabase Auth. SMTP delivery configuration is not required for normal password sign-in. Existing D-008 routes implement this flow; remote Auth settings are managed separately.
 - Source: "[Supabase] Auth and favorites plan"
+
+## D-018: Cross-device favorites refresh and printing availability
+
+- Status: Pending
+- Date: 2026-10-27
+- Decision: Keep favorites synchronized across signed-in devices using Supabase Realtime notifications to refresh the authenticated user's favorites. In the card browser, also surface the user's favorited printing when it is absent from the current Scryfall name-search results. Deduplicate by Scryfall printing ID and apply the existing local filters and sorting to the combined results. Leave the daily seven-card set and unrelated searches unchanged.
+- Why: The current favorite-ID query only refreshes after local mutations or when it becomes stale; it does not notify another open device. Search results are also returned independently by Scryfall and may not include the exact printing saved as a favorite.
+- Alternatives considered: Rely on periodic or focus-triggered refetching (not immediate on an already-open device). Refresh only the favorite heart state (does not make the missing printing available in the browser).
+- Consequences: The implementation plan is to add a reusable user-owned-table Realtime invalidation hook that future collection and deck queries can also use; extract shared, bounded Scryfall collection hydration for card IDs; use both for favorites; and merge matching missing favorite printings into name-search results. Realtime notifications are refresh signals only; re-fetch data under existing RLS rules rather than trusting event payloads as authorization. Enable the favorites table in the `supabase_realtime` publication through a migration. Preserve search pagination, deduplication by printing ID, and local filter/sort behavior. No code or remote database changes have been made; implementation is pending.
+- Source: "[Supabase Realtime: Postgres Changes](https://supabase.com/docs/guides/realtime/postgres-changes)"; "[Supabase Realtime: Subscribing to Database Changes](https://supabase.com/docs/guides/realtime/subscribing-to-database-changes)"
