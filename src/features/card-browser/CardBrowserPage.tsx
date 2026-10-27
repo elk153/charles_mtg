@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useLocation, useSearchParams } from "react-router";
+import { Link, useLocation, useSearchParams } from "react-router";
 import CardFilters from "../card-filters/CardFilters.tsx";
 import { useCardsTable } from "../card-filters/useCardsTable.ts";
 import CardTile from "./CardTile.tsx";
 import CardDetailsOverlay from "./CardDetailsOverlay.tsx";
 import type { CardAction, CardBrowserCard, CardSource } from "./types.ts";
 import { isCardBrowserCard } from "./types.ts";
+import { useAuth } from "../../app/AppProviders/AuthContext.ts";
+import { useFavoriteIds, useToggleFavorite } from "../favorites/useFavorites.ts";
 import useScryfallCardsSearch from "../../hooks/useScryfallCardsSearch.ts";
 import useScryfallCardPages from "../../hooks/useScryfallCardPages.ts";
 import useFetchUrl from "../../hooks/useFetchUrl.ts";
@@ -31,8 +33,17 @@ type CardBrowserPageProps = {
 
 export default function CardBrowserPage({ mode = "search" }: CardBrowserPageProps) {
   const [searchParams, setSearchParams] = useSearchParams();
-  const { pathname } = useLocation();
+  const location = useLocation();
+  const { pathname } = location;
+  const { user, isLoading: isAuthLoading } = useAuth();
+  const {
+    favoriteIds,
+    isLoading: areFavoritesLoading,
+    error: favoritesError,
+  } = useFavoriteIds();
+  const toggleFavorite = useToggleFavorite();
   const [notice, setNotice] = useState("");
+  const [signInPath, setSignInPath] = useState<string | null>(null);
   const searchQuery = searchParams.get("q")?.trim() ?? "";
   const cardId = searchParams.get("card");
   const isRandomRoute = mode === "mulligan" || pathname.endsWith("/random");
@@ -134,8 +145,41 @@ export default function CardBrowserPage({ mode = "search" }: CardBrowserPageProp
   }, [searchParams, setSearchParams]);
 
   function showActionNotice(action: CardAction, card: CardBrowserCard) {
-    setNotice(`${ACTION_LABELS[action]} for ${card.name} is under construction.`);
+    setSignInPath(null);
+
+    if (action !== "favorite") {
+      setNotice(`${ACTION_LABELS[action]} for ${card.name} is under construction.`);
+      return;
+    }
+
+    if (!user) {
+      const nextPath = `${location.pathname}${location.search}${location.hash}`;
+      setNotice(`Sign in to save ${card.name} to Favorites.`);
+      setSignInPath(`/v2/login?next=${encodeURIComponent(nextPath)}`);
+      return;
+    }
+
+    const wasFavorite = favoriteIds.has(card.id);
+    toggleFavorite.mutate(
+      { userId: user.id, scryfallId: card.id, isFavorite: wasFavorite },
+      {
+        onSuccess: () =>
+          setNotice(
+            wasFavorite
+              ? `Removed ${card.name} from Favorites.`
+              : `Added ${card.name} to Favorites.`,
+          ),
+        onError: (error) =>
+          setNotice(`Could not update Favorites for ${card.name}: ${error.message}`),
+      },
+    );
   }
+
+  const favoriteActionDisabled =
+    isAuthLoading ||
+    areFavoritesLoading ||
+    Boolean(favoritesError) ||
+    toggleFavorite.isPending;
 
   const pageTitle = isRandomRoute
     ? mulliganSet
@@ -193,6 +237,12 @@ export default function CardBrowserPage({ mode = "search" }: CardBrowserPageProp
         </p>
       )}
 
+      {user && favoritesError && (
+        <p className="card-browser__message card-browser__message--error" role="alert">
+          Could not load favorites: {favoritesError.message}
+        </p>
+      )}
+
       {invalidCardData && (
         <p className="card-browser__message card-browser__message--error" role="alert">
           Scryfall returned card data in an unexpected format.
@@ -221,6 +271,8 @@ export default function CardBrowserPage({ mode = "search" }: CardBrowserPageProp
                 card={card}
                 onSelect={openCard}
                 onAction={showActionNotice}
+                isFavorite={favoriteIds.has(card.id)}
+                isFavoritePending={favoriteActionDisabled}
               />
             ))}
           </div>
@@ -246,12 +298,19 @@ export default function CardBrowserPage({ mode = "search" }: CardBrowserPageProp
       )}
 
       {notice && (
-        <p className="card-browser__notice" role="status">
-          {notice}
-          <button type="button" onClick={() => setNotice("")}>
+        <div className="card-browser__notice" role="status">
+          <span>{notice}</span>
+          {signInPath && <Link to={signInPath}>Sign in</Link>}
+          <button
+            type="button"
+            onClick={() => {
+              setNotice("");
+              setSignInPath(null);
+            }}
+          >
             Dismiss
           </button>
-        </p>
+        </div>
       )}
       {cardId && (
         <CardDetailsOverlay
@@ -259,6 +318,8 @@ export default function CardBrowserPage({ mode = "search" }: CardBrowserPageProp
           cardId={cardId}
           fallbackCard={cards.find((card) => card.id === cardId)}
           onAction={showActionNotice}
+          favoriteIds={favoriteIds}
+          favoriteActionDisabled={favoriteActionDisabled}
           onClose={closeDetails}
         />
       )}

@@ -136,17 +136,17 @@
 - Decision: Add `useFavoriteIds` (a query for the user's `scryfall_id` set) and `useToggleFavorite` (a mutation that inserts or deletes, then invalidates). Optimistic updates come later. The heart on `CardTile` replaces the under-construction notice. For anonymous users it shows the sign-in invitation.
 - Why: One id set lets every tile show its heart without a request per card.
 - Alternatives considered: Checking each visible card with `.in(...)` (more requests). Starting optimistic (more concepts at once).
-- Consequences: The Supabase API caps rows per request (default 1000, verify), so the id query needs paging if favorites pass that. Favorites are never persisted to `localStorage`. Not implemented yet.
+- Consequences: The favorite-ID query pages through results in bounded batches to avoid API row caps. Favorites are never persisted to `localStorage`; they are loaded for the current authenticated user and refreshed after successful toggles. Anonymous users receive a sign-in invitation that returns to the current page. Implemented.
 - Source: "[Supabase] Auth and favorites plan"
 
 ## D-012: Favorites page on the shared card source
 
 - Status: Accepted
 - Date: 2026-10-27
-- Decision: Implement `CardSource` for favorites. Each page reads up to 75 rows ordered by `created_at desc`, continuing from the last row's `created_at`. It resolves them through Scryfall's `POST /cards/collection`, re-orders them by the Supabase order, and skips ids Scryfall no longer returns. Page size is a single constant.
+- Decision: Implement `CardSource` for favorites. Each page reads up to 75 rows ordered by `created_at desc, scryfall_id desc`, continuing from the last row with a composite cursor. It resolves them through Scryfall's `POST /cards/collection`, re-orders them by the Supabase order, and skips ids Scryfall no longer returns. Page size is a single constant.
 - Why: Scryfall accepts at most 75 identifiers per request. Cursor paging stays correct when favorites are added or removed between pages.
 - Alternatives considered: Offset paging (rows can shift). Relying on Scryfall's response order (not guaranteed).
-- Consequences: A new POST helper is needed because `createApiClient` is for GET. "No sort selected" means latest added. Collections and decks will implement the same `CardSource` later. Not implemented yet.
+- Consequences: The favorites hook issues one Scryfall collection request for each loaded page and skips missing cards without changing Supabase pagination. The composite cursor avoids skipping favorites with tied timestamps. "No sort selected" means latest added. Collections and decks can implement the same `CardSource` later. Implemented.
 - Source: "[Supabase] Auth and favorites plan"
 
 ## D-013: Email delivery for magic links

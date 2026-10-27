@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import NavBar from "../features/navigation/NavBar.tsx";
 import { Outlet } from "react-router";
 import CardBrowserPage from "../features/card-browser/CardBrowserPage.tsx";
+import FavoritesPage from "../features/favorites/FavoritesPage.tsx";
 import "./App.css";
 import usePreFetchUrl from "../hooks/usePreFetchUrl.ts";
 
@@ -78,12 +79,7 @@ export function AdvancedSearch() {
 }
 
 export function Favorites() {
-  return (
-    <section className="app-v2__page">
-      <h1>Favorites</h1>
-      <p>This is the favorites page of the application.</p>
-    </section>
-  );
+  return <FavoritesPage />;
 }
 
 export function Collection() {

@@ -18,10 +18,10 @@ The developer is learning React and TypeScript and wants to understand every cha
 - React 19 + Vite SPA that finds Magic: The Gathering cards through the public Scryfall API (`https://api.scryfall.com`). Routing uses `react-router` 8 (`createBrowserRouter`).
 - The app currently ships **two layouts** side by side, mounted at different URL prefixes:
   - **`/v1`: the original card browser.** Random card, name search, card detail overlay, rulings, legalities, printings, and per-printing EUR / foil EUR prices. Its result list uses the original card renderer and the `card-filters/` table.
-  - **`/v2`: the current default card browser.** Home shows a daily seven-card set; search results support local color, rarity, type and sorting controls; card details show artwork, rules/legalities and printings with current EUR / foil EUR prices. Favorites, personal collection, decks and advanced search are still placeholders.
+  - **`/v2`: the current default card browser.** Home shows a daily seven-card set; search results support local color, rarity, type and sorting controls; card details show artwork, rules/legalities and printings with current EUR / foil EUR prices. Favorites are saved to Supabase and displayed in a paginated favorites page. Personal collection, decks and advanced search remain placeholders.
 - Both layouts have dark/light theme controls. Theme state is shared through React context, defaults to dark on each page load, and is not persisted.
 - No custom application backend or user database. Supabase Auth provides managed email/password signup and sign-in; account data is managed by Supabase. TanStack Query caches remote data in memory and persists some of it in browser `localStorage`.
-- User-owned collection tracking, acquisition/location records, functional favorites/decks, price history, sales and balance are **goals, not features**. Never imply they exist.
+- User-owned collection tracking, acquisition/location records, functional deck building, price history, sales and balance are **goals, not features**. Never imply they exist.
 
 ## Commands and current status
 
@@ -56,7 +56,8 @@ Defined in `src/app/router.tsx`. `/` redirects to `/v2/home`.
 | `/v2/auth/callback` | completes email confirmation and returns to a safe `/v2/` path |
 | `/v2/search?q=<name>` | Scryfall name search and local filters |
 | `/v2/search/random` | daily set/mulligan browser |
-| `/v2/search/advanced`, `/v2/favorites`, `/v2/collection`, `/v2/decks` | placeholder pages exported from `src/app/App.tsx` |
+| `/v2/favorites` | paginated signed-in user's favorites (`FavoritesPage`) |
+| `/v2/search/advanced`, `/v2/collection`, `/v2/decks` | placeholder pages exported from `src/app/App.tsx` |
 
 ## v1 flow (original browser)
 
@@ -82,8 +83,9 @@ Defined in `src/app/router.tsx`. `/` redirects to `/v2/home`.
 - `src/app/App.tsx` renders the V2 `NavBar`, prefetches Scryfall card symbols and set metadata, and renders child routes through `<Outlet />`. The Home route renders `CardBrowserPage` in mulligan mode.
 - `src/features/card-browser/CardBrowserPage.tsx` handles `/v2/home`, `/v2/search`, and `/v2/search/random`. Home chooses a stable set per UTC day from released, non-digital, booster-focused Scryfall set types, requests unique cards in random order, and displays up to seven cards from the first result page. The set-type allowlist lives in `mulliganSets.ts`; Scryfall does not supply a direct booster-eligibility flag.
 - Name search uses the paginated `useScryfallCardPages` hook with an explicit load-more button; filters and sorting apply only to cards loaded so far. The daily set uses `useScryfallCardsSearch` for a single page of up to seven cards. `?card=<id>` opens the details overlay without replacing the current search URL.
-- `CardDetailsOverlay.tsx` loads card rulings and printings through cached queries. Print entries show current Scryfall EUR / foil EUR prices and reuse `CardTile` for flip, favorites, collection and deck actions. Those actions only show under-construction notices; they do not save user data.
-- `src/features/navigation/` holds the responsive navbar. On mobile, tapping the search icon focuses and expands the input while hiding nav links; Enter or tapping the icon again submits, and Escape closes the field. Navbar links for favorites, collection and decks route to placeholders. The navbar's advanced-search item also routes to a placeholder.
+- The protected `/v2/favorites` page uses `useFavoriteCards` to page Supabase favorites newest-first with a composite cursor, hydrates each batch of up to 75 card IDs through Scryfall's collection endpoint, preserves the Supabase ordering, and skips IDs no longer present in Scryfall.
+- `CardDetailsOverlay.tsx` loads card rulings and printings through cached queries. Print entries show current Scryfall EUR / foil EUR prices and reuse `CardTile` for flip, favorites, collection and deck actions. Favorites load from the authenticated user's RLS-protected Supabase rows and can be added or removed; signed-out users are invited to sign in. Collection and deck actions remain under construction.
+- `src/features/navigation/` holds the responsive navbar. On mobile, tapping the search icon focuses and expands the input while hiding nav links; Enter or tapping the icon again submits, and Escape closes the field. Favorites are functional; collection and decks route to placeholders. The navbar's advanced-search item also routes to a placeholder.
 - `src/features/navigation/README.md` may not reflect the flat source layout; verify its instructions against the files before following them.
 
 ## Data and state
@@ -117,7 +119,7 @@ Defined in `src/app/router.tsx`. `/` redirects to `/v2/home`.
 
 ## Planned, not implemented
 
-User-owned collection records (source, physical location), functional favorites, deck building, collection valuation and price history, sales and balance tracking, and true server-side/advanced search. V2 search is a name search with local result filters, not advanced Scryfall search. The advanced search, favorites, collection and decks pages are placeholders.
+User-owned collection records (source, physical location), deck building, collection valuation and price history, sales and balance tracking, and true server-side/advanced search. V2 search is a name search with local result filters, not advanced Scryfall search. The advanced search, collection and decks pages are placeholders.
 
 ## TypeScript
 

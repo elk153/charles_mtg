@@ -97,7 +97,8 @@
   font: 0.85rem var(--font-ui);
 }
 
-.card-browser__notice button {
+.card-browser__notice button,
+.card-browser__notice a {
   border: 0;
   color: var(--text-accent);
   background: transparent;

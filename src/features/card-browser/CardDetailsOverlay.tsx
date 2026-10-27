@@ -15,6 +15,8 @@ type CardDetailsOverlayProps = {
   cardId: string;
   fallbackCard?: CardBrowserCard;
   onAction: (action: CardAction, card: CardBrowserCard) => void;
+  favoriteIds: ReadonlySet<string>;
+  favoriteActionDisabled: boolean;
   onClose: () => void;
 };
 
@@ -25,6 +27,8 @@ export default function CardDetailsOverlay({
   cardId,
   fallbackCard,
   onAction,
+  favoriteIds,
+  favoriteActionDisabled,
   onClose,
 }: CardDetailsOverlayProps) {
   const dialogRef = useRef<HTMLElement>(null);
@@ -264,6 +268,8 @@ export default function CardDetailsOverlay({
                       card={print}
                       onSelect={setSelectedPrint}
                       onAction={onAction}
+                      isFavorite={favoriteIds.has(print.id)}
+                      isFavoritePending={favoriteActionDisabled}
                     />
                   </article>
                 ))}
