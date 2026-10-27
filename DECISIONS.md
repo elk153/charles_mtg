@@ -209,3 +209,13 @@
 - Alternatives considered: Rely on periodic or focus-triggered refetching (not immediate on an already-open device). Refresh only the favorite heart state (does not make the missing printing available in the browser).
 - Consequences: The implementation plan is to add a reusable user-owned-table Realtime invalidation hook that future collection and deck queries can also use; extract shared, bounded Scryfall collection hydration for card IDs; use both for favorites; and merge matching missing favorite printings into name-search results. Realtime notifications are refresh signals only; re-fetch data under existing RLS rules rather than trusting event payloads as authorization. Enable the favorites table in the `supabase_realtime` publication through a migration. Preserve search pagination, deduplication by printing ID, and local filter/sort behavior. No code or remote database changes have been made; implementation is pending.
 - Source: "[Supabase Realtime: Postgres Changes](https://supabase.com/docs/guides/realtime/postgres-changes)"; "[Supabase Realtime: Subscribing to Database Changes](https://supabase.com/docs/guides/realtime/subscribing-to-database-changes)"
+
+## D-019: Select between Scryfall and personal collection search
+
+- Status: Pending
+- Date: 2026-10-27
+- Decision: Add a search-scope toggle with two modes: "Scryfall" searches the public Scryfall catalog, and "Personal collection" searches only the signed-in user's owned card sources. Initially, the personal scope includes Favorites; when the collection feature is implemented, include Collection there as well. Keep Scryfall as the default scope.
+- Why: Searching a user's own cards is a different task from searching the full Scryfall catalog, and should not require them to remember which page contains each card.
+- Alternatives considered: Keep independent search experiences on separate pages (less discoverable). Search Scryfall and personal sources together by default (mixes owned and unowned results).
+- Consequences: The selected scope must be visible and preserved while searching. Personal-scope results must respect the current user's access controls and should combine supported personal sources without duplicates by Scryfall printing ID. Until Collection exists, the personal scope searches Favorites only; collection records must not be implied or fabricated. Implementation is pending.
+- Source: User request, 2026-10-27
