@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { useNavigate, useSearchParams } from "react-router";
+import { useAuth } from "../../app/AppProviders/AuthContext.ts";
 import NavBarDesktop from "./NavBarDesktop.tsx";
 import NavBarMobile from "./NavBarMobile.tsx";
 import type { SearchSource } from "./types.ts";
@@ -16,6 +18,9 @@ import "./navbar-mobile.css";
 export default function NavBar() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { user, signOut } = useAuth();
+  const [isSigningOut, setIsSigningOut] = useState(false);
+  const [logoutError, setLogoutError] = useState("");
   const searchSource: SearchSource =
     searchParams.get("source") === "collection" ? "collection" : "scryfall";
   const isCollectionMode = searchSource === "collection";
@@ -35,10 +40,34 @@ export default function NavBar() {
     setSearchParams(next, { preventScrollReset: true });
   }
 
+  async function handleLogout() {
+    setLogoutError("");
+    setIsSigningOut(true);
+
+    try {
+      const { error } = await signOut();
+      if (error) {
+        setLogoutError(error.message);
+        return;
+      }
+
+      navigate("/v2/home", { replace: true });
+    } catch (error) {
+      setLogoutError(
+        error instanceof Error ? error.message : "Sign-out could not be completed.",
+      );
+    } finally {
+      setIsSigningOut(false);
+    }
+  }
+
   const navProps = {
     searchSource,
     onSearchSourceToggle: toggleSearchSource,
     onSearch: handleSearch,
+    isAuthenticated: Boolean(user),
+    isSigningOut,
+    onLogout: () => void handleLogout(),
   };
 
   return (
@@ -48,6 +77,11 @@ export default function NavBar() {
       {isCollectionMode && (
         <p className="nav-mode-notice" role="status">
           Personal collection search is under construction.
+        </p>
+      )}
+      {logoutError && (
+        <p className="nav-mode-notice" role="alert">
+          Could not log out: {logoutError}
         </p>
       )}
     </>
