@@ -2,7 +2,7 @@
 
 ## D-001: Logo and icon set for the web app
 
-- Status: Accepted
+- Status: Implemented
 - Date: 2026-10-25
 - Decision: The logo was traced from the uploaded raster into a vector SVG with CSS variables for all colors. A full icon set was generated from it: SVGs, favicon.ico, 180/192/512/1024 px PNGs in transparent, dark (#000000) and light (#ffffff) versions where relevant.
 - Why: One vector source keeps every size consistent and lets the colors be edited in one place. The Apple-sized canvas (logo about 70% of the height) leaves room for iOS corner masking. A separate tight crop (about 92%) keeps the favicon readable at small sizes.
@@ -12,7 +12,7 @@
 
 ## D-002: Theme toggle buttons in both navigation bars
 
-- Status: Accepted
+- Status: Implemented
 - Date: 2026-10-25
 - Decision: Each navigation bar gets its own round button that switches between the dark and light theme through the existing useTheme() hook. The icon shows the theme you will switch to (sun in dark mode, moon in light mode).
 - Why: The theme state, the data-theme attribute and the theme tokens already existed, so the simplest fix was a button that calls setTheme. Separate components per bar let each match its own visual style (glowing two-layer icons in the NavBar, plain filled icons in the FloatingNavBar).
@@ -22,7 +22,7 @@
 
 ## D-003: V2 card browser data and integration boundary
 
-- Status: Accepted
+- Status: Implemented
 - Date: 2026-10-26
 - Decision: Implement the first card-browser flow under `/v2` and leave V1's
   card browsing behavior intact. Keep filters in the URL and apply them to the
@@ -82,7 +82,7 @@
 
 ## D-006: Favorites table keyed to a card printing, with owner-only RLS
 
-- Status: Accepted
+- Status: Implemented
 - Date: 2026-10-27
 - Decision: Create `public.favorites (user_id, scryfall_id, created_at)` with primary key `(user_id, scryfall_id)`, an index on `(user_id, created_at desc)`, RLS enabled, and select/insert/delete policies for `authenticated` users on their own rows. `anon` has no access. `scryfall_id` is the Scryfall card id, which identifies one printing. There is no `profiles` table.
 - Why: The composite key prevents duplicates and indexes lookups by user. The second index serves "latest added first". `user_id` defaults to `auth.uid()`, so the browser never sends it.
@@ -92,7 +92,7 @@
 
 ## D-007: Supabase client and AuthProvider
 
-- Status: Accepted
+- Status: Implemented
 - Date: 2026-10-27
 - Decision: Add `@supabase/supabase-js`, create a single client in `src/services/supabaseClient.ts`, and add an `AuthProvider` with a `useAuth` hook. The provider sits inside `PersistenceProvider` and around `RouterProvider`. On sign-out it removes the favorites queries.
 - Why: The library already stores the session and refreshes tokens. A context plus a hook matches the existing `ThemeProvider` pattern.
@@ -102,7 +102,7 @@
 
 ## D-008: Email and password authentication
 
-- Status: Accepted
+- Status: Implemented
 - Date: 2026-10-27
 - Decision: Add `/v2/login` with email/password sign-in and signup, plus `/v2/auth/callback` for email confirmation. After authentication, navigate to `next` only when it starts with `/v2/` and contains no `//` or backslash; otherwise use `/v2/home`.
 - Why: Use Supabase's built-in password authentication rather than passwordless OTP, while keeping a dedicated route for account access.
@@ -112,7 +112,7 @@
 
 ## D-009: RequireAuth layout route
 
-- Status: Accepted
+- Status: Implemented
 - Date: 2026-10-27
 - Decision: Wrap `/v2/favorites`, `/v2/collection` and `/v2/decks` in a `RequireAuth` layout route. It renders nothing while the session loads, an inline sign-in invitation linking to `/v2/login?next=<current path>` when signed out, and `<Outlet />` when signed in.
 - Why: An invitation fits your request better than a silent redirect, and the loading state avoids a flash.
@@ -122,7 +122,7 @@
 
 ## D-010: Paginated card source for the card browser
 
-- Status: Accepted
+- Status: Implemented
 - Date: 2026-10-27
 - Decision: Define a `CardSource` shape (`cards`, `isLoading`, `isFetchingNextPage`, `hasNextPage`, `fetchNextPage`, `error`). Implement it for Scryfall search with `useInfiniteQuery`, following `next_page` while `has_more` is true. Add a "Load more" button. Keep the current daily-set mode as a single page and leave V1 untouched.
 - Why: One source shape lets search, favorites, collections and decks share the card browser. A button is the simplest trigger and keeps Scryfall requests polite.
@@ -132,7 +132,7 @@
 
 ## D-011: Favorite hooks and the heart toggle
 
-- Status: Accepted
+- Status: Implemented
 - Date: 2026-10-27
 - Decision: Add `useFavoriteIds` (a query for the user's `scryfall_id` set) and `useToggleFavorite` (a mutation that inserts or deletes, then invalidates). Optimistic updates come later. The heart on `CardTile` replaces the under-construction notice. For anonymous users it shows the sign-in invitation.
 - Why: One id set lets every tile show its heart without a request per card.
@@ -142,7 +142,7 @@
 
 ## D-012: Favorites page on the shared card source
 
-- Status: Accepted
+- Status: Implemented
 - Date: 2026-10-27
 - Decision: Implement `CardSource` for favorites. Each page reads up to 75 rows ordered by `created_at desc, scryfall_id desc`, continuing from the last row with a composite cursor. It resolves them through Scryfall's `POST /cards/collection`, re-orders them by the Supabase order, and skips ids Scryfall no longer returns. Page size is a single constant.
 - Why: Scryfall accepts at most 75 identifiers per request. Cursor paging stays correct when favorites are added or removed between pages.
