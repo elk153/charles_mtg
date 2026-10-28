@@ -282,12 +282,12 @@
 
 ## D-026: Binder schema migration
 
-- Status: Accepted
+- Status: Implemented
 - Date: 2026-10-28
-- Decision: One migration creates `binders (id, user_id, name, created_at, updated_at)` and `binder_cards` (one row per copy: `binder_id` nullable with `ON DELETE SET NULL`, `scryfall_id`, `rarity`, `status`, `acquisition_type`, `acquisition_format`, `condition`, `finish`, `language`, `purchase_price`, `acquired_at`, `location`, `notes`, `disposed_at`, `disposal_price`, timestamps). Use `text` plus `check` constraints. Binder names are unique per user, case-insensitive. RLS on both tables, update granted only on editable columns, and policies verify that `binder_id` belongs to the user. Add RLS tests.
+- Decision: One migration creates `binders (id, user_id, name, created_at, updated_at)` and `binder_cards` (one row per copy: `id`, `user_id`, nullable `binder_id` with `ON DELETE SET NULL`, `scryfall_id`, `rarity`, `status`, `acquisition_type`, `acquisition_format`, `condition`, `finish`, `language`, `purchase_price`, `acquired_at`, `location`, `notes`, `disposed_at`, `disposal_price`, timestamps). Use `text` plus `check` constraints. Binder names are unique per user, case-insensitive. RLS on both tables, update granted only on editable columns, and policies verify that `binder_id` belongs to the user. Add RLS tests.
 - Why: Per-copy rows hold per-copy metadata. `SET NULL` implements "deleting a binder moves cards to loose". `rarity` on each copy allows covers without Scryfall calls.
 - Alternatives considered: Enums (harder to change); quantity column (no per-copy metadata); composite foreign key for ownership (more complex than a policy check).
-- Consequences: Needs explicit approval, a dry run before `supabase db push`, and a note that applying it changes the live database. Check: dry run succeeds; RLS tests show one user cannot read, write or attach to another user's rows, and `anon` has no access.
+- Consequences: `binder_cards.user_id` explicitly owns loose copies; cards attached to a binder must reference a binder owned by the same user. Grants exclude ownership and card-identity updates; timestamp triggers use the shared D-025 function. A paired manual rollback is in `supabase/rollback/`. The pgTAP tests cover grants, RLS isolation, ownership, and deleting a binder to move its cards to loose; they could not be run because the local database is unavailable (Docker is required). The linked dry run listed this migration as pending; it has not been applied by this task. Apply only after separately confirming the live database change.
 - Source: "[Binder & Decks] Planning"
 
 ## D-027: Binder copies query and icon state

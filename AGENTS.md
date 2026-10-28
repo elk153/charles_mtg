@@ -94,6 +94,7 @@ Defined in `src/app/router.tsx`. `/` redirects to `/v2/home`.
 - `src/hooks/useScryfallCardsSearch.ts`: TanStack Query hook, key `["scryfallCards", route, params, seed]`, enabled only when a route is given, 24 h `staleTime`. It uses `src/services/createApiClient.ts`, which normalizes `card` responses to `[card]` and `list`/`catalog` responses to `data`, and throws on Scryfall errors.
 - `src/hooks/useFetchUrl.ts`: fetches auxiliary Scryfall URLs, key `["fetchedUrl", purpose, url]`, validates HTTP status and that the response contains a `data` array, then returns that array. A missing URL returns an empty array.
 - `src/services/fetchScryfallCards.ts` performs a validated, abortable Scryfall collection request bounded to 75 identifiers; favorites use it to hydrate each paginated set while preserving database ordering and skipping cards no longer found by Scryfall.
+- Binder schema migrations create `binders` and per-copy `binder_cards`; loose copies remain user-owned through `binder_cards.user_id`. Every migration has a matching manual rollback in `supabase/rollback/`, and exposed user data tables require least-privilege grants, RLS policies, and pgTAP coverage.
 - `PersistenceProvider.tsx` persists only `fetchedUrl` queries and `scryfallCards` queries whose second key is `"cards/search"`, in `localStorage`. Random and single-card queries are not persisted.
 - `queryProvider.ts`: `gcTime` is 24 h and must stay >= the persisted data's max age.
 - `QueryDevToolsProvider.tsx` loads Devtools lazily and only when `import.meta.env.DEV`.

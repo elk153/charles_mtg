@@ -14,6 +14,104 @@ export type Database = {
   }
   public: {
     Tables: {
+      binder_cards: {
+        Row: {
+          acquired_at: string | null
+          acquisition_format: string | null
+          acquisition_type: string | null
+          binder_id: string | null
+          condition: string | null
+          created_at: string
+          disposal_price: number | null
+          disposed_at: string | null
+          finish: string | null
+          id: string
+          language: string | null
+          location: string | null
+          notes: string | null
+          purchase_price: number | null
+          rarity: string
+          scryfall_id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          acquired_at?: string | null
+          acquisition_format?: string | null
+          acquisition_type?: string | null
+          binder_id?: string | null
+          condition?: string | null
+          created_at?: string
+          disposal_price?: number | null
+          disposed_at?: string | null
+          finish?: string | null
+          id?: string
+          language?: string | null
+          location?: string | null
+          notes?: string | null
+          purchase_price?: number | null
+          rarity: string
+          scryfall_id: string
+          status: string
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          acquired_at?: string | null
+          acquisition_format?: string | null
+          acquisition_type?: string | null
+          binder_id?: string | null
+          condition?: string | null
+          created_at?: string
+          disposal_price?: number | null
+          disposed_at?: string | null
+          finish?: string | null
+          id?: string
+          language?: string | null
+          location?: string | null
+          notes?: string | null
+          purchase_price?: number | null
+          rarity?: string
+          scryfall_id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "binder_cards_binder_id_fkey"
+            columns: ["binder_id"]
+            isOneToOne: false
+            referencedRelation: "binders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      binders: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+          user_id?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       favorites: {
         Row: {
           created_at: string
