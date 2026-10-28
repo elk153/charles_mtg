@@ -64,33 +64,6 @@ export default function CardTile({
 
       {showActions && (
         <div className="browser-card__actions" aria-label={`${card.name} actions`}>
-          {canFlip && (
-            <button
-              type="button"
-              className="browser-card__action browser-card__action--flip"
-              aria-label={`Show ${showBack ? faces[0].name : faces[1].name}`}
-              aria-pressed={showBack}
-              title="Flip card"
-              onPointerEnter={(event) => {
-                if (event.pointerType !== "mouse") return;
-                mouseIsHoveringFlip.current = true;
-                setShowBack(true);
-              }}
-              onPointerLeave={(event) => {
-                if (event.pointerType !== "mouse") return;
-                mouseIsHoveringFlip.current = false;
-                setShowBack(false);
-              }}
-              onClick={() => {
-                if (!mouseIsHoveringFlip.current) {
-                  setShowBack((current) => !current);
-                }
-              }}
-            >
-              <IconTurnAround />
-            </button>
-          )}
-
           {CARD_ACTIONS.map(({ action, label, Icon }) => {
             const isFavoriteAction = action === "favorite";
             const favoriteLabel = isFavorite
@@ -118,6 +91,32 @@ export default function CardTile({
               </button>
             );
           })}
+          {canFlip && (
+            <button
+              type="button"
+              className="browser-card__action browser-card__action--flip"
+              aria-label={`Show ${showBack ? faces[0].name : faces[1].name}`}
+              aria-pressed={showBack}
+              title="Flip card"
+              onPointerEnter={(event) => {
+                if (event.pointerType !== "mouse") return;
+                mouseIsHoveringFlip.current = true;
+                setShowBack(true);
+              }}
+              onPointerLeave={(event) => {
+                if (event.pointerType !== "mouse") return;
+                mouseIsHoveringFlip.current = false;
+                setShowBack(false);
+              }}
+              onClick={() => {
+                if (!mouseIsHoveringFlip.current) {
+                  setShowBack((current) => !current);
+                }
+              }}
+            >
+              <IconTurnAround />
+            </button>
+          )}
         </div>
       )}
     </article>
