@@ -2,7 +2,7 @@
 
 ## context
 
-- use the <[`binder-deck-1` ](https://github.com/elk153/oracle_binder/tree/dev)> branch as baseline
+- use the <https://github.com/elk153/oracle_binder/tree/binder-deck-1> branch as baseline
 - a user can currently add/remove a card to favorites
 - the first objective is to build a card-binder feature
 - the second objective is to build a card-binder feature
@@ -21,9 +21,14 @@
 - adding the metadata overlay will be triggered by clicking the icon to add it to the binder
 - hovering the icon (desktop) or clicking the icon (mobile) will display the metadata. modifiy/save/cancel buttons will be used to trigger edition mode.
 - there shall be a difference between deleting a card (delete all data) and marking the card sold/lost/offered (data is kept in database)
+- the binder shall allow to have different binders. binders will have a name given by the user and the illustation will be the most legendary/rare card belonging to the binder.
+- binder feature will propose views for all cards or a binder list. clicking a binder will list the cards from the binder
+- cards not in a binder will be part of a 'loose' binder.
+-  deleting a binder will move its cards to the loose
 
 ## card-deck features
 
+- the decks 
 - create a decks table in the databse using migration
 - card decks can use cards from the binder, proxies or virtual.
 - proxies shall appear in the decks they are added to. proxies shall be recognisable with hashed border around the card.
@@ -31,6 +36,7 @@
 - one card from the binder can only exist in one deck
 - if a card is removed from a deck, it can be switched to virtual or proxy
 - the logic/visual to add/remove/modify/etc. shall be the same as for the binder
+- decks management/vizualisation will follow the same logic as binders
 
 ## other changes
 
