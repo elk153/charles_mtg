@@ -1,4 +1,4 @@
-export default function CollectionIcon() {
+export default function BinderIcon() {
   return (
     <svg
       viewBox="0 0 24 24"

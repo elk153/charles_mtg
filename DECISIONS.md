@@ -114,7 +114,7 @@
 
 - Status: Implemented
 - Date: 2026-10-27
-- Decision: Wrap `/v2/favorites`, `/v2/collection` and `/v2/decks` in a `RequireAuth` layout route. It renders nothing while the session loads, an inline sign-in invitation linking to `/v2/login?next=<current path>` when signed out, and `<Outlet />` when signed in.
+- Decision: Wrap `/v2/favorites`, `/v2/binder` and `/v2/decks` in a `RequireAuth` layout route. It renders nothing while the session loads, an inline sign-in invitation linking to `/v2/login?next=<current path>` when signed out, and `<Outlet />` when signed in.
 - Why: An invitation fits your request better than a silent redirect, and the loading state avoids a flash.
 - Alternatives considered: Redirecting to the login route (loses the page context). Guarding inside each page (duplicated).
 - Consequences: This guard is UX only. Security is enforced by RLS, never by the client. Implemented.
@@ -252,12 +252,12 @@
 
 ## D-023: Replace Collection with Binder
 
-- Status: Accepted
+- Status: Implemented
 - Date: 2026-10-28
 - Decision: Rename the nav item label to "Binder", rename `CollectionIcon.tsx` to `BinderIcon.tsx`, change the route from `/v2/collection` to `/v2/binder`, and redirect the old path. Rename the `CardAction` value `collection` to `binder`.
 - Why: The feature is a binder; "collection" implies a different, undefined thing.
 - Alternatives considered: Keep the route and change only the label (path and label drift apart); no redirect (breaks existing links).
-- Consequences: Needs approval for the file rename and route change. Touches `navItems.ts`, `router.tsx`, the placeholder in `App.tsx`, `CardTile.tsx`, `types.ts`, the navbar README, and the `RequireAuth` references in D-009. Check: `npm run typecheck` and `npm run build` pass; `/v2/binder` loads behind sign-in; `/v2/collection` redirects to it.
+- Consequences: The Binder route stays behind `RequireAuth`, and the old `/v2/collection` URL redirects to it. The card-action value is `binder`; personal-collection search scope remains distinct. Check: `npm run typecheck` and `npm run build` pass; `/v2/binder` is protected and `/v2/collection` redirects to it.
 - Source: "[Binder & Decks] Planning"
 
 ## D-024: Card details: P/T, color pills, rarity pill

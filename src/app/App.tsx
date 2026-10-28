@@ -82,11 +82,11 @@ export function Favorites() {
   return <FavoritesPage />;
 }
 
-export function Collection() {
+export function Binder() {
   return (
     <section className="app-v2__page">
-      <h1>Collection</h1>
-      <p>This is the collection page of the application.</p>
+      <h1>Binder</h1>
+      <p>This is the binder page of the application.</p>
     </section>
   );
 }

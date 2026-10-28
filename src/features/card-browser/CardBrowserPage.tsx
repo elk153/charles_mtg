@@ -23,7 +23,7 @@ const NO_DATA: unknown[] = [];
 
 const ACTION_LABELS: Record<CardAction, string> = {
   favorite: "Favorites",
-  collection: "Collection",
+  binder: "Binder",
   deck: "Decks",
 };
 

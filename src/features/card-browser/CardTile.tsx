@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import CollectionIcon from "../../assets/navigation/CollectionIcon.tsx";
+import BinderIcon from "../../assets/navigation/BinderIcon.tsx";
 import DecksIcon from "../../assets/navigation/DecksIcon.tsx";
 import FavoritesIcon from "../../assets/navigation/FavoritesIcon.tsx";
 import IconTurnAround from "../../assets/IconTurnAround.tsx";
@@ -17,7 +17,7 @@ type CardTileProps = {
 
 const CARD_ACTIONS = [
   { action: "favorite", label: "Favorites", Icon: FavoritesIcon },
-  { action: "collection", label: "Collection", Icon: CollectionIcon },
+  { action: "binder", label: "Binder", Icon: BinderIcon },
   { action: "deck", label: "Decks", Icon: DecksIcon },
 ] as const;
 

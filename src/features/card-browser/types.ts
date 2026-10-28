@@ -52,7 +52,7 @@ export type CardBrowserCard = Omit<ScryfallCard, "card_faces" | "prices"> & {
   mana_cost?: string;
 };
 
-export type CardAction = "favorite" | "collection" | "deck";
+export type CardAction = "favorite" | "binder" | "deck";
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);

@@ -1,7 +1,7 @@
 # V2 Card Browser
 
 This note describes the first working card-browser flow in `/v2`. It does not
-turn the Favorites, Collection, or Decks placeholder pages into stored user
+turn the Favorites, Binder, or Decks placeholder pages into stored user
 features; the matching card actions currently announce that they are under
 construction.
 
@@ -49,7 +49,7 @@ construction.
   endpoint. The details column is narrower than the print column on desktop;
   both scroll independently on wide screens and stack on narrow screens.
   Double-faced cards have one flip control below the artwork, and printed-card
-  tiles expose the same flip, favorites, collection, and decks actions as
+  tiles expose the same flip, favorites, binder, and decks actions as
   search results. Art crops retain an artist and Wizards of the Coast
   attribution in the same interface.
 - **Shared UI:** navigation source state is stored as `?source=collection`, so

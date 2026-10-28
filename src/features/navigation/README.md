@@ -22,6 +22,9 @@ navbar/
 └── navbar-mobile.css        — mobile-only positioning
 ```
 
+In the current V2 app, the Binder item opens `/v2/binder`; the former
+`/v2/collection` path redirects there.
+
 ## How the "reuse the floating bar" ask was implemented
 
 `navbar-shared.css` owns everything visual: the glass gradient surface,
