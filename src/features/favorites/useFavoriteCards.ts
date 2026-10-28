@@ -1,11 +1,13 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
 import type { ApiRecord } from "../../services/createApiClient.ts";
+import fetchScryfallCards, {
+  SCRYFALL_COLLECTION_LIMIT,
+} from "../../services/fetchScryfallCards.ts";
 import { supabase } from "../../services/supabaseClient.ts";
 import { useAuth } from "../../app/AppProviders/AuthContext.ts";
 import type { CardSource } from "../card-browser/types.ts";
 
-const FAVORITES_PAGE_SIZE = 75;
-const SCRYFALL_COLLECTION_URL = "https://api.scryfall.com/cards/collection";
+const FAVORITES_PAGE_SIZE = SCRYFALL_COLLECTION_LIMIT;
 
 type FavoriteRow = {
   scryfall_id: string;
@@ -22,16 +24,8 @@ type FavoriteCardPage = {
   nextCursor: FavoriteCursor | null;
 };
 
-type ScryfallCardRecord = ApiRecord & {
-  id: string;
-};
-
 function isRecord(value: unknown): value is ApiRecord {
   return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function isScryfallCardRecord(value: unknown): value is ScryfallCardRecord {
-  return isRecord(value) && typeof value.id === "string";
 }
 
 function parseFavoriteRows(value: unknown): FavoriteRow[] {
@@ -78,52 +72,6 @@ async function fetchFavoriteRows(
   if (error) throw error;
 
   return parseFavoriteRows(data);
-}
-
-async function fetchScryfallCards(
-  ids: string[],
-  signal: AbortSignal,
-): Promise<ScryfallCardRecord[]> {
-  if (ids.length > FAVORITES_PAGE_SIZE) {
-    throw new Error("A Scryfall collection request cannot contain more than 75 cards.");
-  }
-
-  const response = await fetch(SCRYFALL_COLLECTION_URL, {
-    method: "POST",
-    signal,
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      identifiers: ids.map((id) => ({ id })),
-    }),
-  });
-  const json: unknown = await response.json();
-
-  if (!isRecord(json)) {
-    throw new Error("Scryfall returned collection data in an unexpected format.");
-  }
-
-  if (!response.ok || json.object === "error") {
-    const details =
-      typeof json.details === "string"
-        ? json.details
-        : typeof json.message === "string"
-          ? json.message
-          : `${response.status} ${response.statusText}`;
-    throw new Error(`Scryfall collection request failed: ${details}`);
-  }
-
-  if (
-    json.object !== "list" ||
-    !Array.isArray(json.data) ||
-    !json.data.every(isScryfallCardRecord)
-  ) {
-    throw new Error("Scryfall returned collection data in an unexpected format.");
-  }
-
-  return json.data;
 }
 
 async function fetchFavoriteCardPage(

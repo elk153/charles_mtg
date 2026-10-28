@@ -272,12 +272,12 @@
 
 ## D-025: Binder groundwork: hydration, DB types, updated_at
 
-- Status: Accepted
+- Status: Implemented
 - Date: 2026-10-28
 - Decision: Extract the bounded Scryfall collection hydration from `useFavoriteCards` into a shared helper (D-018). Generate `src/types/database.ts` and pass `Database` to `createClient` (D-016). Add one shared SQL function `set_updated_at()` in a migration.
 - Why: Binder pages need the same hydration as favorites. Typed tables catch column mistakes early. One trigger function serves every new table.
 - Alternatives considered: Copy the hydration into binder code (duplication); skip generated types (untyped rows); the `moddatetime` extension (extra moving part).
-- Consequences: Includes a migration, so it needs approval and a dry run. The Supabase CLI flag for type generation must be verified before use. Favorites behavior must not change. Check: `npm run typecheck` and `npm run build` pass; `/v2/favorites` still loads and paginates as before.
+- Consequences: The shared fetcher keeps the 75-card request bound, cancellation, validation, and error behavior; favorites ordering, missing-card handling, and keyset pagination are unchanged. `Database` types and `createClient<Database>` were already generated and are verified against the linked schema. The CLI-generated migration passed a linked dry run; it was not applied to the shared database. Check: typecheck, build, and targeted lint pass.
 - Source: "[Binder & Decks] Planning"
 
 ## D-026: Binder schema migration
