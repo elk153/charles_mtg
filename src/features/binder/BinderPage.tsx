@@ -251,6 +251,7 @@ export default function BinderPage() {
     );
   }
   covers.set("loose", coverCard(looseCopies, cardsById));
+  const looseCover = covers.get("loose");
 
   return (
     <section className="binder-page">
@@ -330,24 +331,26 @@ export default function BinderPage() {
               const count = ownedCopies.filter(
                 (copy) => copy.binder_id === target.id,
               ).length;
+              const cover = covers.get(target.id);
               return (
                 <article className="binder-page__binder-card" key={target.id}>
-                  <button
-                    type="button"
-                    className="binder-page__binder-cover"
-                    onClick={() => chooseBinder(target.id)}
-                    aria-label={`View ${target.name}, ${count} ${count === 1 ? "copy" : "copies"}`}
-                  >
-                    {covers.get(target.id)?.image_uris?.normal ? (
-                      <img
-                        src={covers.get(target.id)?.image_uris?.normal}
-                        alt=""
-                        loading="lazy"
-                      />
-                    ) : (
-                      <span>No cover yet</span>
-                    )}
-                  </button>
+                  {cover ? (
+                    <CardTile
+                      card={cover}
+                      onSelect={() => chooseBinder(target.id)}
+                      selectLabel={`Open ${target.name}, ${count} ${count === 1 ? "copy" : "copies"}`}
+                      showActions={false}
+                    />
+                  ) : (
+                    <button
+                      type="button"
+                      className="binder-page__binder-cover"
+                      onClick={() => chooseBinder(target.id)}
+                      aria-label={`Open ${target.name}, ${count} ${count === 1 ? "copy" : "copies"}`}
+                    >
+                      No cover yet
+                    </button>
+                  )}
                   <h2>{target.name}</h2>
                   <p>{count} {count === 1 ? "copy" : "copies"}</p>
                   <div className="binder-page__binder-actions">
@@ -362,22 +365,24 @@ export default function BinderPage() {
               );
             })}
             <article className="binder-page__binder-card binder-page__binder-card--loose">
-              <button
-                type="button"
-                className="binder-page__binder-cover"
-                onClick={() => chooseBinder("loose")}
-                aria-label={`View Loose, ${looseCopies.length} ${looseCopies.length === 1 ? "copy" : "copies"}`}
-              >
-                {covers.get("loose")?.image_uris?.normal ? (
-                  <img
-                    src={covers.get("loose")?.image_uris?.normal}
-                    alt=""
-                    loading="lazy"
-                  />
-                ) : (
-                  <span>No cover yet</span>
-                )}
-              </button>
+              {looseCover && (
+                <CardTile
+                  card={looseCover}
+                  onSelect={() => chooseBinder("loose")}
+                  selectLabel={`Open Loose, ${looseCopies.length} ${looseCopies.length === 1 ? "copy" : "copies"}`}
+                  showActions={false}
+                />
+              )}
+              {!looseCover && (
+                <button
+                  type="button"
+                  className="binder-page__binder-cover"
+                  onClick={() => chooseBinder("loose")}
+                  aria-label={`Open Loose, ${looseCopies.length} ${looseCopies.length === 1 ? "copy" : "copies"}`}
+                >
+                  No cover yet
+                </button>
+              )}
               <h2>Loose</h2>
               <p>{looseCopies.length} {looseCopies.length === 1 ? "copy" : "copies"}</p>
             </article>

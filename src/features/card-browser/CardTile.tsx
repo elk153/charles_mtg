@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import BinderIcon from "../../assets/navigation/BinderIcon.tsx";
 import DecksIcon from "../../assets/navigation/DecksIcon.tsx";
 import FavoritesIcon from "../../assets/navigation/FavoritesIcon.tsx";
@@ -13,6 +13,7 @@ import "./CardTile.css";
 type CardTileProps = {
   card: CardBrowserCard;
   onSelect?: (card: CardBrowserCard) => void;
+  selectLabel?: string;
   onAction?: (action: CardAction, card: CardBrowserCard) => void;
   isFavorite?: boolean;
   isFavoritePending?: boolean;
@@ -43,6 +44,7 @@ const CARD_ACTIONS = [
 export default function CardTile({
   card,
   onSelect,
+  selectLabel,
   onAction,
   isFavorite = false,
   isFavoritePending = false,
@@ -58,7 +60,10 @@ export default function CardTile({
   showActions = true,
 }: CardTileProps) {
   const [showBack, setShowBack] = useState(false);
-  const [showBinderPopover, setShowBinderPopover] = useState(false);
+  const [binderPopoverMode, setBinderPopoverMode] = useState<
+    "hover" | "pinned" | null
+  >(null);
+  const binderPopoverRef = useRef<HTMLSpanElement>(null);
   const mouseIsHoveringFlip = useRef(false);
   const faces = card.card_faces ?? [];
   const canFlip =
@@ -74,13 +79,41 @@ export default function CardTile({
     faces[0]?.image_uris?.normal;
   const imageAlt = activeFace?.name ?? card.name;
 
+  useEffect(() => {
+    if (binderPopoverMode !== "pinned") return;
+
+    function closeOnOutsideClick(event: PointerEvent) {
+      if (
+        event.target instanceof Node &&
+        !binderPopoverRef.current?.contains(event.target)
+      ) {
+        setBinderPopoverMode(null);
+      }
+    }
+
+    function closeOnEscape(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        event.stopPropagation();
+        setBinderPopoverMode(null);
+      }
+    }
+
+    document.addEventListener("click", closeOnOutsideClick);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("click", closeOnOutsideClick);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, [binderPopoverMode]);
+
   return (
     <article className="browser-card">
       <button
         type="button"
         className="browser-card__media"
         onClick={() => onSelect?.(card)}
-        aria-label={`View details for ${card.name}`}
+        aria-label={selectLabel ?? `View details for ${card.name}`}
       >
         {image ? (
           <img src={image} alt={imageAlt} loading="lazy" />
@@ -113,28 +146,40 @@ export default function CardTile({
             return (
               <span
                 key={action}
+                ref={isBinderAction ? binderPopoverRef : undefined}
                 className="browser-card__action-wrap"
                 onPointerEnter={(event) => {
-                  if (isBinderAction && canManageBinder && event.pointerType === "mouse") {
-                    setShowBinderPopover(true);
+                  if (
+                    isBinderAction &&
+                    canManageBinder &&
+                    event.pointerType === "mouse"
+                  ) {
+                    setBinderPopoverMode((mode) => mode ?? "hover");
                   }
                 }}
                 onPointerLeave={(event) => {
-                  if (isBinderAction && event.pointerType === "mouse") {
-                    setShowBinderPopover(false);
+                  if (
+                    isBinderAction &&
+                    binderPopoverMode === "hover" &&
+                    event.pointerType === "mouse"
+                  ) {
+                    setBinderPopoverMode(null);
                   }
                 }}
                 onFocus={() => {
-                  if (isBinderAction && canManageBinder) setShowBinderPopover(true);
+                  if (isBinderAction && canManageBinder) {
+                    setBinderPopoverMode((mode) => mode ?? "hover");
+                  }
                 }}
                 onBlur={(event) => {
                   const nextTarget = event.relatedTarget;
                   if (
                     isBinderAction &&
+                    binderPopoverMode === "hover" &&
                     (!(nextTarget instanceof Node) ||
                       !event.currentTarget.contains(nextTarget))
                   ) {
-                    setShowBinderPopover(false);
+                    setBinderPopoverMode(null);
                   }
                 }}
               >
@@ -149,6 +194,9 @@ export default function CardTile({
                         : `${label} action for ${card.name} (under construction)`
                   }
                   aria-pressed={isFavoriteAction ? isFavorite : isBinderAction ? ownedBinderCount > 0 : undefined}
+                  aria-expanded={
+                    isBinderAction ? binderPopoverMode !== null : undefined
+                  }
                   title={`${actionLabel}${isFavoritePending && isFavoriteAction ? " — updating" : ""}`}
                   disabled={
                     (isFavoriteAction && isFavoritePending) ||
@@ -156,7 +204,9 @@ export default function CardTile({
                   }
                   onClick={() => {
                     if (isBinderAction && canManageBinder) {
-                      setShowBinderPopover(true);
+                      setBinderPopoverMode((mode) =>
+                        mode === "pinned" ? null : "pinned",
+                      );
                     } else if (isBinderAction) {
                       onAction?.(action, card);
                     } else {
@@ -171,7 +221,7 @@ export default function CardTile({
                     </span>
                   )}
                 </button>
-                {isBinderAction && showBinderPopover && (
+                {isBinderAction && binderPopoverMode !== null && (
                   <BinderCopiesPopover
                     card={card}
                     copies={binderCopies}
@@ -186,7 +236,7 @@ export default function CardTile({
                     }
                     onRestore={(copy) => onRestoreBinderCopy?.(copy)}
                     onDelete={(copy) => onDeleteBinderCopy?.(copy)}
-                    onClose={() => setShowBinderPopover(false)}
+                    onClose={() => setBinderPopoverMode(null)}
                   />
                 )}
               </span>
