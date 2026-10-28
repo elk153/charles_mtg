@@ -24,7 +24,7 @@
 - the binder shall allow to have different binders. binders will have a name given by the user and the illustation will be the most legendary/rare card belonging to the binder.
 - binder feature will propose views for all cards or a binder list. clicking a binder will list the cards from the binder
 - cards not in a binder will be part of a 'loose' binder.
--  deleting a binder will move its cards to the loose
+- deleting a binder will move its cards to the loose
 
 ## card-deck features
 
@@ -52,4 +52,5 @@
 ## plan
 
 - analyze the requested features for comprehensibility and ask question to make it complete
+- make a full assessment of the cards, binders, and decks logic with reagrds to addition, movement, status, deletion, etc. filll the gaps with proposals.
 - convert the prompt into a step-by-step plan through a decision list for implementation
