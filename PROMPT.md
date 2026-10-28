@@ -5,7 +5,7 @@
 - use the <https://github.com/elk153/oracle_binder/tree/binder-deck-1> branch as baseline
 - a user can currently add/remove a card to favorites
 - the first objective is to build a card-binder feature
-- the second objective is to build a card-binder feature
+- the second objective is to build a card-desk feature
 - the feature will keep the same approach and libraries than favorites, card-filters, card-browser, etc.
 - a card is added/removed from the binder using the dedicated icon located on the cards
 - keep the same approch of minimizing the queries
