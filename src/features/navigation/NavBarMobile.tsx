@@ -5,6 +5,7 @@ import NavSearchField from "./NavSearchField";
 import SearchSourceToggle from "./SearchSourceToggle.tsx";
 import type { NavBarProps } from "./types.ts";
 import NavThemeToggle from "./NavThemeToggle.tsx";
+import LogoutIcon from "../../assets/navigation/LogoutIcon.tsx";
 import useScrollVisibility from "../../hooks/useScrollVisibility";
 
 export default function NavBarMobile({
@@ -72,7 +73,7 @@ export default function NavBarMobile({
                 aria-label={isSigningOut ? "Logging out" : "Log out"}
                 title={isSigningOut ? "Logging out" : "Log out"}
               >
-                <span className="nav-icon" aria-hidden="true">↪</span>
+                <LogoutIcon />
               </button>
             </li>
           )}
