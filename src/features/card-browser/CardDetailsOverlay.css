@@ -437,12 +437,17 @@
     overflow-y: auto;
   }
 
+  .card-detail-overlay__toolbar {
+    position: sticky;
+    top: 0;
+  }
+
   .card-detail-overlay__columns {
     display: flex;
     height: auto;
     min-height: calc(100% - 4rem);
     flex-direction: column;
-    padding: 4.5rem 0.5rem 1rem;
+    padding: 1rem 0.5rem;
   }
 
   .card-detail-overlay__details,
