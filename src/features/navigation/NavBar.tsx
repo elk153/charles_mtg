@@ -26,8 +26,21 @@ export default function NavBar() {
   const isCollectionMode = searchSource === "collection";
 
   function handleSearch(query: string) {
-    if (isCollectionMode) return;
-    navigate(query ? `search?q=${encodeURIComponent(query)}` : "search/random");
+    const next = new URLSearchParams(searchParams);
+    if (query) {
+      next.set("q", query);
+    } else {
+      next.delete("q");
+    }
+
+    if (isCollectionMode) {
+      next.set("source", "collection");
+      navigate(`search?${next.toString()}`);
+      return;
+    }
+
+    next.delete("source");
+    navigate(query ? `search?${next.toString()}` : "search/random");
   }
 
   function toggleSearchSource() {
@@ -74,11 +87,6 @@ export default function NavBar() {
     <>
       <NavBarDesktop {...navProps} />
       <NavBarMobile {...navProps} />
-      {isCollectionMode && (
-        <p className="nav-mode-notice" role="status">
-          Personal collection search is under construction.
-        </p>
-      )}
       {logoutError && (
         <p className="nav-mode-notice" role="alert">
           Could not log out: {logoutError}

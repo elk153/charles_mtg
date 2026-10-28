@@ -11,6 +11,10 @@ import { useFavoriteIds, useToggleFavorite } from "../favorites/useFavorites.ts"
 import useScryfallCardsSearch from "../../hooks/useScryfallCardsSearch.ts";
 import useScryfallCardPages from "../../hooks/useScryfallCardPages.ts";
 import useFetchUrl from "../../hooks/useFetchUrl.ts";
+import useScryfallCardsForIds from "../../hooks/useScryfallCardsForIds.ts";
+import useBinderManagement from "../binder/useBinderManagement.ts";
+import AddBinderCopyDialog from "../binder/AddBinderCopyDialog.tsx";
+import type { BinderCopy } from "../binder/useBinderCopies.ts";
 import {
   getMulliganSets,
   isScryfallSet,
@@ -38,15 +42,20 @@ export default function CardBrowserPage({ mode = "search" }: CardBrowserPageProp
   const { user, isLoading: isAuthLoading } = useAuth();
   const {
     favoriteIds,
+    ids: favoriteIdList,
     isLoading: areFavoritesLoading,
     error: favoritesError,
+    realtimeError: favoritesRealtimeError,
   } = useFavoriteIds();
   const toggleFavorite = useToggleFavorite();
   const [notice, setNotice] = useState("");
   const [signInPath, setSignInPath] = useState<string | null>(null);
+  const binder = useBinderManagement(setNotice);
   const searchQuery = searchParams.get("q")?.trim() ?? "";
   const cardId = searchParams.get("card");
   const isRandomRoute = mode === "mulligan" || pathname.endsWith("/random");
+  const isPersonalSearch =
+    !isRandomRoute && searchParams.get("source") === "collection";
   const [dailyDay, setDailyDay] = useState(() =>
     Math.floor(Date.now() / MILLISECONDS_PER_DAY),
   );
@@ -82,7 +91,7 @@ export default function CardBrowserPage({ mode = "search" }: CardBrowserPageProp
     ? mulliganSet
       ? "cards/search"
       : null
-    : searchQuery
+    : searchQuery && !isPersonalSearch
       ? "cards/search"
       : null;
   const queryParams = isRandomRoute
@@ -98,7 +107,7 @@ export default function CardBrowserPage({ mode = "search" }: CardBrowserPageProp
     !isRandomRoute && routeParam ? queryParams : null,
     querySeed,
   );
-  const cardSource: CardSource = isRandomRoute
+  const searchCardSource: CardSource = isRandomRoute
     ? {
         cards: singlePageSearch.data ?? [],
         isLoading: singlePageSearch.isLoading,
@@ -108,6 +117,77 @@ export default function CardBrowserPage({ mode = "search" }: CardBrowserPageProp
         error: singlePageSearch.error,
       }
     : paginatedSearch;
+  const personalCardIds = useMemo(
+    () => {
+      if (!isPersonalSearch) {
+        return isRandomRoute || !searchQuery ? [] : favoriteIdList;
+      }
+      return [...new Set([
+        ...favoriteIdList,
+        ...binder.copies.copies
+          .filter((copy) => copy.status === "owned")
+          .map((copy) => copy.scryfall_id),
+      ])].sort();
+    },
+    [
+      isPersonalSearch,
+      isRandomRoute,
+      searchQuery,
+      favoriteIdList,
+      binder.copies.copies,
+    ],
+  );
+  const personalCardsQuery = useScryfallCardsForIds(
+    "personal",
+    personalCardIds,
+    Boolean(user) &&
+      !areFavoritesLoading &&
+      (!isPersonalSearch || !binder.copies.isLoading),
+  );
+  const displayCards = useMemo(() => {
+    const searchCards = searchCardSource.cards;
+    if (isPersonalSearch) {
+      return personalCardsQuery.data ?? [];
+    }
+
+    if (isRandomRoute || !searchQuery || !user) return searchCards;
+    const searchCardIds = new Set(
+      searchCards
+        .filter(isCardBrowserCard)
+        .map((card) => card.id),
+    );
+    const matchingFavorites = (personalCardsQuery.data ?? []).filter(
+      (card) =>
+        favoriteIds.has(card.id) &&
+        isCardBrowserCard(card) &&
+        card.name.toLocaleLowerCase().includes(searchQuery.toLocaleLowerCase()) &&
+        !searchCardIds.has(card.id),
+    );
+    return [...searchCards, ...matchingFavorites];
+  }, [
+    searchCardSource.cards,
+    isPersonalSearch,
+    personalCardsQuery.data,
+    isRandomRoute,
+    searchQuery,
+    user,
+    favoriteIds,
+  ]);
+  const cardSource: CardSource = {
+    ...searchCardSource,
+    cards: displayCards,
+    isLoading: isPersonalSearch
+      ? areFavoritesLoading || binder.copies.isLoading || personalCardsQuery.isLoading
+      : searchCardSource.isLoading,
+    hasNextPage: isPersonalSearch ? false : searchCardSource.hasNextPage,
+    error: isPersonalSearch
+      ? favoritesError ??
+        favoritesRealtimeError ??
+        binder.copies.error ??
+        personalCardsQuery.error ??
+        null
+      : searchCardSource.error,
+  };
   const rawCards = cardSource.cards;
   const invalidCardData = rawCards?.some((card) => !isCardBrowserCard(card)) ?? false;
   const cards = useMemo<CardBrowserCard[]>(
@@ -147,6 +227,15 @@ export default function CardBrowserPage({ mode = "search" }: CardBrowserPageProp
   function showActionNotice(action: CardAction, card: CardBrowserCard) {
     setSignInPath(null);
 
+    if (action === "binder") {
+      if (!user) {
+        const nextPath = `${location.pathname}${location.search}${location.hash}`;
+        setNotice("Sign in to manage your Binder.");
+        setSignInPath(`/v2/login?next=${encodeURIComponent(nextPath)}`);
+      }
+      return;
+    }
+
     if (action !== "favorite") {
       setNotice(`${ACTION_LABELS[action]} for ${card.name} is under construction.`);
       return;
@@ -180,12 +269,38 @@ export default function CardBrowserPage({ mode = "search" }: CardBrowserPageProp
     areFavoritesLoading ||
     Boolean(favoritesError) ||
     toggleFavorite.isPending;
+  const binderActionDisabled =
+    isAuthLoading ||
+    binder.bindersLoading ||
+    binder.copies.isLoading ||
+    Boolean(binder.bindersError) ||
+    Boolean(binder.copies.error) ||
+    binder.isPending;
+  const binderCopyProps = {
+    binders: binder.binders,
+    isBinderPending: binderActionDisabled,
+    canManageBinder: Boolean(user),
+    onAddBinderCopy: binder.requestAdd,
+    onUpdateBinderCopy: (copy: BinderCopy, values: Parameters<typeof binder.updateCopy>[1]) =>
+      binder.updateCopy(copy, values),
+    onDisposeBinderCopy: (copy: BinderCopy, status: "sold" | "lost" | "given_away") =>
+      binder.disposeCopy(copy.id, status),
+    onRestoreBinderCopy: (copy: BinderCopy) => binder.restoreCopy(copy.id),
+    onDeleteBinderCopy: (copy: BinderCopy) => binder.deleteCopy(copy.id),
+  };
 
   return (
     <section className="card-browser-page">
       <header className="card-browser__heading">
-        {!isRandomRoute && !searchQuery && (
+        {!isRandomRoute && !searchQuery && !isPersonalSearch && (
           <p>Enter a card name in the search field to browse Scryfall.</p>
+        )}
+        {isPersonalSearch && (
+          <p>
+            {user
+              ? `Search your favorites and owned binder copies${searchQuery ? ` for “${searchQuery}”` : ""}.`
+              : "Sign in to search your personal collection."}
+          </p>
         )}
       </header>
 
@@ -235,6 +350,31 @@ export default function CardBrowserPage({ mode = "search" }: CardBrowserPageProp
           Could not load favorites: {favoritesError.message}
         </p>
       )}
+      {user && favoritesRealtimeError && (
+        <p className="card-browser__message card-browser__message--error" role="alert">
+          Favorites updates from other devices may be delayed: {favoritesRealtimeError.message}
+        </p>
+      )}
+      {user && personalCardsQuery.error && !cardSource.error && (
+        <p className="card-browser__message card-browser__message--error" role="alert">
+          Could not load owned card printings: {personalCardsQuery.error.message}
+        </p>
+      )}
+      {user && binder.copies.error && (
+        <p className="card-browser__message card-browser__message--error" role="alert">
+          Could not load Binder copies: {binder.copies.error.message}
+        </p>
+      )}
+      {user && binder.bindersError && (
+        <p className="card-browser__message card-browser__message--error" role="alert">
+          Could not load binders: {binder.bindersError.message}
+        </p>
+      )}
+      {user && binder.realtimeError && (
+        <p className="card-browser__message card-browser__message--error" role="alert">
+          Binder updates from other devices may be delayed: {binder.realtimeError.message}
+        </p>
+      )}
 
       {invalidCardData && (
         <p className="card-browser__message card-browser__message--error" role="alert">
@@ -242,7 +382,16 @@ export default function CardBrowserPage({ mode = "search" }: CardBrowserPageProp
         </p>
       )}
 
-      {!cardSource.isLoading && !cardSource.error && !invalidCardData && routeParam && total === 0 && (
+      {!user && isPersonalSearch && (
+        <p className="card-browser__message" role="status">
+          <Link to={`/v2/login?next=${encodeURIComponent(`${location.pathname}${location.search}`)}`}>
+            Sign in
+          </Link>{" "}
+          to search your personal collection.
+        </p>
+      )}
+
+      {!cardSource.isLoading && !cardSource.error && !invalidCardData && (routeParam || isPersonalSearch) && total === 0 && (
         <p className="card-browser__message">No cards found.</p>
       )}
 
@@ -266,6 +415,8 @@ export default function CardBrowserPage({ mode = "search" }: CardBrowserPageProp
                 onAction={showActionNotice}
                 isFavorite={favoriteIds.has(card.id)}
                 isFavoritePending={favoriteActionDisabled}
+                binderCopies={binder.copies.copiesByScryfallId.get(card.id) ?? []}
+                {...binderCopyProps}
               />
             ))}
           </div>
@@ -313,7 +464,18 @@ export default function CardBrowserPage({ mode = "search" }: CardBrowserPageProp
           onAction={showActionNotice}
           favoriteIds={favoriteIds}
           favoriteActionDisabled={favoriteActionDisabled}
+          binderCopiesByScryfallId={binder.copies.copiesByScryfallId}
+          {...binderCopyProps}
           onClose={closeDetails}
+        />
+      )}
+      {binder.cardToAdd && (
+        <AddBinderCopyDialog
+          card={binder.cardToAdd}
+          binders={binder.binders}
+          onSave={binder.addCopy}
+          onClose={binder.closeAdd}
+          isSaving={binder.copies.addCopy.isPending}
         />
       )}
     </section>

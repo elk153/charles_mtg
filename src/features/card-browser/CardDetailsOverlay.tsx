@@ -7,6 +7,9 @@ import useFetchUrl from "../../hooks/useFetchUrl.ts";
 import useScryfallCardsSearch from "../../hooks/useScryfallCardsSearch.ts";
 import fetchCardRulings from "../../services/fetchCardRulings.ts";
 import CardTile from "./CardTile.tsx";
+import type { BinderCopy } from "../binder/useBinderCopies.ts";
+import type { Binder } from "../binder/useBinders.ts";
+import type { CopyFormValues } from "../binder/BinderCopyForm.tsx";
 import type { CardAction, CardBrowserCard, CardBrowserFace } from "./types.ts";
 import { isCardBrowserCard } from "./types.ts";
 import "./CardDetailsOverlay.css";
@@ -17,6 +20,18 @@ type CardDetailsOverlayProps = {
   onAction: (action: CardAction, card: CardBrowserCard) => void;
   favoriteIds: ReadonlySet<string>;
   favoriteActionDisabled: boolean;
+  binderCopiesByScryfallId: ReadonlyMap<string, BinderCopy[]>;
+  binders: Binder[];
+  isBinderPending: boolean;
+  canManageBinder: boolean;
+  onAddBinderCopy: (card: CardBrowserCard) => void;
+  onUpdateBinderCopy: (copy: BinderCopy, values: CopyFormValues) => Promise<boolean>;
+  onDisposeBinderCopy: (
+    copy: BinderCopy,
+    status: "sold" | "lost" | "given_away",
+  ) => void;
+  onRestoreBinderCopy: (copy: BinderCopy) => void;
+  onDeleteBinderCopy: (copy: BinderCopy) => void;
   onClose: () => void;
 };
 
@@ -29,6 +44,15 @@ export default function CardDetailsOverlay({
   onAction,
   favoriteIds,
   favoriteActionDisabled,
+  binderCopiesByScryfallId,
+  binders,
+  isBinderPending,
+  canManageBinder,
+  onAddBinderCopy,
+  onUpdateBinderCopy,
+  onDisposeBinderCopy,
+  onRestoreBinderCopy,
+  onDeleteBinderCopy,
   onClose,
 }: CardDetailsOverlayProps) {
   const dialogRef = useRef<HTMLElement>(null);
@@ -274,6 +298,15 @@ export default function CardDetailsOverlay({
                       onAction={onAction}
                       isFavorite={favoriteIds.has(print.id)}
                       isFavoritePending={favoriteActionDisabled}
+                      binderCopies={binderCopiesByScryfallId.get(print.id) ?? []}
+                      binders={binders}
+                      isBinderPending={isBinderPending}
+                      canManageBinder={canManageBinder}
+                      onAddBinderCopy={onAddBinderCopy}
+                      onUpdateBinderCopy={onUpdateBinderCopy}
+                      onDisposeBinderCopy={onDisposeBinderCopy}
+                      onRestoreBinderCopy={onRestoreBinderCopy}
+                      onDeleteBinderCopy={onDeleteBinderCopy}
                     />
                   </article>
                 ))}

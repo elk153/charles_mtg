@@ -2,6 +2,8 @@ import { useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "../../app/AppProviders/AuthContext.ts";
 import { supabase } from "../../services/supabaseClient.ts";
+import useRealtimeInvalidation from "../../hooks/useRealtimeInvalidation.ts";
+import { markLocalRealtimeChange, clearLocalRealtimeChange } from "../../services/localRealtimeChanges.ts";
 
 const FAVORITES_PAGE_SIZE = 500;
 
@@ -65,14 +67,20 @@ async function fetchFavoriteIds(userId: string): Promise<string[]> {
 
 export function useFavoriteIds() {
   const { user } = useAuth();
+  const queryKey = useMemo(() => ["favorites", user?.id] as const, [user?.id]);
   const query = useQuery({
-    queryKey: ["favorites", user?.id],
+    queryKey,
     queryFn: () => {
       if (!user) throw new Error("Sign in to load favorites.");
       return fetchFavoriteIds(user.id);
     },
     enabled: Boolean(user),
     staleTime: 30_000,
+  });
+  const realtimeError = useRealtimeInvalidation({
+    table: "favorites",
+    userId: user?.id,
+    queryKey,
   });
 
   const favoriteIds = useMemo(
@@ -81,9 +89,11 @@ export function useFavoriteIds() {
   );
 
   return {
+    ids: query.data ?? [],
     favoriteIds,
     isLoading: query.isLoading,
     error: query.error,
+    realtimeError,
   };
 }
 
@@ -97,18 +107,24 @@ export function useToggleFavorite() {
         throw new Error("Sign in again before changing favorites.");
       }
 
-      const request = isFavorite
-        ? supabase
-            .from("favorites")
-            .delete()
-            .eq("user_id", userId)
-            .eq("scryfall_id", scryfallId)
-        : supabase.from("favorites").insert({
-            user_id: userId,
-            scryfall_id: scryfallId,
-          });
-      const { error } = await request;
-      if (error) throw error;
+      markLocalRealtimeChange("favorites", userId, [scryfallId]);
+      try {
+        const request = isFavorite
+          ? supabase
+              .from("favorites")
+              .delete()
+              .eq("user_id", userId)
+              .eq("scryfall_id", scryfallId)
+          : supabase.from("favorites").insert({
+              user_id: userId,
+              scryfall_id: scryfallId,
+            });
+        const { error } = await request;
+        if (error) throw error;
+      } catch (error) {
+        clearLocalRealtimeChange("favorites", userId, [scryfallId]);
+        throw error;
+      }
     },
     onSuccess: (_data, variables) =>
       queryClient.invalidateQueries({

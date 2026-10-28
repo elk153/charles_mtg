@@ -1,0 +1,173 @@
+.binder-dialog-backdrop {
+  position: fixed;
+  z-index: 120;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: auto;
+  padding: 1rem;
+  background: color-mix(in srgb, #000 72%, transparent);
+}
+
+.binder-dialog {
+  box-sizing: border-box;
+  width: min(100%, 34rem);
+  max-height: min(90vh, 52rem);
+  overflow: auto;
+  padding: 1rem;
+  border: 1px solid var(--surface-border);
+  border-radius: var(--control-radius);
+  color: var(--text-primary);
+  background: var(--bg-card);
+  box-shadow: var(--eerie-glow);
+}
+
+.binder-dialog__header,
+.binder-copy-popover__header,
+.binder-copy-popover__copy-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.binder-dialog__header {
+  position: sticky;
+  z-index: 1;
+  top: -1rem;
+  margin: -1rem -1rem 1rem;
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid var(--surface-border);
+  background: var(--bg-card);
+}
+
+.binder-dialog__header h2 {
+  margin: 0;
+  color: var(--text-accent);
+  font-size: 1.1rem;
+}
+
+.binder-dialog__header button,
+.binder-copy-form button,
+.binder-copy-popover button {
+  min-height: 2rem;
+  padding: 0.35rem 0.6rem;
+  border: 1px solid var(--surface-border);
+  border-radius: var(--control-radius);
+  color: var(--text-primary);
+  background: var(--bg-main);
+  font: inherit;
+  cursor: pointer;
+}
+
+.binder-copy-form {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.binder-copy-form label {
+  display: grid;
+  gap: 0.25rem;
+  color: var(--text-secondary);
+  font: 0.8rem var(--font-ui);
+}
+
+.binder-copy-form input,
+.binder-copy-form select,
+.binder-copy-form textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 2.4rem;
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--surface-border);
+  border-radius: var(--control-radius);
+  color: var(--text-primary);
+  background: var(--bg-main);
+  font: 0.9rem var(--font-ui);
+}
+
+.binder-copy-form__actions,
+.binder-copy-popover__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.binder-copy-form__actions button[type="submit"],
+.binder-copy-popover__actions button:first-child {
+  border-color: var(--text-accent);
+}
+
+.binder-copy-form button:disabled,
+.binder-copy-popover button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.binder-copy-popover {
+  position: absolute;
+  z-index: 15;
+  top: 0;
+  right: 100%;
+  width: min(21rem, calc(100vw - 2rem));
+  max-height: min(32rem, 75vh);
+  overflow: auto;
+  padding: 0.75rem;
+  border: 1px solid var(--surface-border);
+  border-radius: var(--control-radius);
+  color: var(--text-primary);
+  background: var(--bg-card);
+  box-shadow: var(--eerie-glow);
+  font: 0.8rem var(--font-ui);
+  text-align: left;
+}
+
+.binder-copy-popover__header {
+  margin-bottom: 0.65rem;
+}
+
+.binder-copy-popover__header strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.binder-copy-popover__header span,
+.binder-copy-popover__copy-heading span,
+.binder-copy-popover__empty {
+  color: var(--text-secondary);
+}
+
+.binder-copy-popover__list {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0.7rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.binder-copy-popover__copy {
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--surface-border);
+}
+
+.binder-copy-popover__copy p {
+  margin: 0.4rem 0;
+  color: var(--text-secondary);
+  overflow-wrap: anywhere;
+}
+
+.binder-copy-popover__copy .binder-copy-form {
+  margin-top: 0.5rem;
+}
+
+@media (max-width: 860px) {
+  .binder-copy-popover {
+    position: fixed;
+    top: auto;
+    right: 0.75rem;
+    bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
+    left: 0.75rem;
+    width: auto;
+    max-height: min(65vh, 32rem);
+  }
+}

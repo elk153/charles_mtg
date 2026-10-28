@@ -9,6 +9,9 @@ import { isCardBrowserCard } from "../card-browser/types.ts";
 import { useAuth } from "../../app/AppProviders/AuthContext.ts";
 import { useFavoriteIds, useToggleFavorite } from "./useFavorites.ts";
 import useFavoriteCards from "./useFavoriteCards.ts";
+import useBinderManagement from "../binder/useBinderManagement.ts";
+import AddBinderCopyDialog from "../binder/AddBinderCopyDialog.tsx";
+import type { BinderCopy } from "../binder/useBinderCopies.ts";
 import "./FavoritesPage.css";
 
 const ACTION_LABELS: Record<CardAction, string> = {
@@ -25,9 +28,11 @@ export default function FavoritesPage() {
     favoriteIds,
     isLoading: areFavoriteIdsLoading,
     error: favoriteIdsError,
+    realtimeError: favoritesRealtimeError,
   } = useFavoriteIds();
   const toggleFavorite = useToggleFavorite();
   const [notice, setNotice] = useState("");
+  const binder = useBinderManagement(setNotice);
   const cardId = searchParams.get("card");
   const invalidCardData = favoriteSource.cards.some(
     (card) => !isCardBrowserCard(card),
@@ -56,6 +61,12 @@ export default function FavoritesPage() {
     areFavoriteIdsLoading ||
     Boolean(favoriteIdsError) ||
     toggleFavorite.isPending;
+  const binderActionDisabled =
+    binder.bindersLoading ||
+    binder.copies.isLoading ||
+    Boolean(binder.bindersError) ||
+    Boolean(binder.copies.error) ||
+    binder.isPending;
 
   function openCard(card: CardBrowserCard) {
     const next = new URLSearchParams(searchParams);
@@ -119,6 +130,26 @@ export default function FavoritesPage() {
           Could not load favorite status: {favoriteIdsError.message}
         </p>
       )}
+      {favoritesRealtimeError && (
+        <p className="favorites-page__message favorites-page__message--error" role="alert">
+          Favorites updates from other devices may be delayed: {favoritesRealtimeError.message}
+        </p>
+      )}
+      {binder.realtimeError && (
+        <p className="favorites-page__message favorites-page__message--error" role="alert">
+          Updates from other devices may be delayed: {binder.realtimeError.message}
+        </p>
+      )}
+      {binder.copies.error && (
+        <p className="favorites-page__message favorites-page__message--error" role="alert">
+          Could not load Binder copies: {binder.copies.error.message}
+        </p>
+      )}
+      {binder.bindersError && (
+        <p className="favorites-page__message favorites-page__message--error" role="alert">
+          Could not load binders: {binder.bindersError.message}
+        </p>
+      )}
 
       {invalidCardData && (
         <p className="favorites-page__message favorites-page__message--error" role="alert">
@@ -155,6 +186,23 @@ export default function FavoritesPage() {
                 onAction={handleAction}
                 isFavorite={favoriteIds.has(card.id)}
                 isFavoritePending={favoriteActionDisabled}
+                binderCopies={binder.copies.copiesByScryfallId.get(card.id) ?? []}
+                binders={binder.binders}
+                isBinderPending={binderActionDisabled}
+                canManageBinder={Boolean(user)}
+                onAddBinderCopy={binder.requestAdd}
+                onUpdateBinderCopy={(copy: BinderCopy, values) =>
+                  binder.updateCopy(copy, values)
+                }
+                onDisposeBinderCopy={(copy: BinderCopy, status) =>
+                  binder.disposeCopy(copy.id, status)
+                }
+                onRestoreBinderCopy={(copy: BinderCopy) =>
+                  binder.restoreCopy(copy.id)
+                }
+                onDeleteBinderCopy={(copy: BinderCopy) =>
+                  binder.deleteCopy(copy.id)
+                }
               />
             ))}
           </div>
@@ -199,7 +247,29 @@ export default function FavoritesPage() {
           onAction={handleAction}
           favoriteIds={favoriteIds}
           favoriteActionDisabled={favoriteActionDisabled}
+          binderCopiesByScryfallId={binder.copies.copiesByScryfallId}
+          binders={binder.binders}
+          isBinderPending={binderActionDisabled}
+          canManageBinder={Boolean(user)}
+          onAddBinderCopy={binder.requestAdd}
+          onUpdateBinderCopy={(copy: BinderCopy, values) =>
+            binder.updateCopy(copy, values)
+          }
+          onDisposeBinderCopy={(copy: BinderCopy, status) =>
+            binder.disposeCopy(copy.id, status)
+          }
+          onRestoreBinderCopy={(copy: BinderCopy) => binder.restoreCopy(copy.id)}
+          onDeleteBinderCopy={(copy: BinderCopy) => binder.deleteCopy(copy.id)}
           onClose={closeDetails}
+        />
+      )}
+      {binder.cardToAdd && (
+        <AddBinderCopyDialog
+          card={binder.cardToAdd}
+          binders={binder.binders}
+          onSave={binder.addCopy}
+          onClose={binder.closeAdd}
+          isSaving={binder.copies.addCopy.isPending}
         />
       )}
     </section>

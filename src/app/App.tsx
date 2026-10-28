@@ -3,6 +3,7 @@ import NavBar from "../features/navigation/NavBar.tsx";
 import { Outlet } from "react-router";
 import CardBrowserPage from "../features/card-browser/CardBrowserPage.tsx";
 import FavoritesPage from "../features/favorites/FavoritesPage.tsx";
+import BinderPage from "../features/binder/BinderPage.tsx";
 import "./App.css";
 import usePreFetchUrl from "../hooks/usePreFetchUrl.ts";
 
@@ -83,12 +84,7 @@ export function Favorites() {
 }
 
 export function Binder() {
-  return (
-    <section className="app-v2__page">
-      <h1>Binder</h1>
-      <p>This is the binder page of the application.</p>
-    </section>
-  );
+  return <BinderPage />;
 }
 
 export function Decks() {
