@@ -182,12 +182,12 @@
 
 ## D-016: Generated TypeScript types for the database
 
-- Status: Evaluating
+- Status: Implemented
 - Date: 2026-10-27
-- Decision: After the first migration, generate `src/types/database.ts` with the CLI (`supabase gen types typescript --linked`, flag to verify) and pass `Database` to `createClient<Database>()` in D-007.
+- Decision: Generate `src/types/database.ts` from the linked Supabase project's `public` schema with `supabase gen types typescript --linked --schema public` and pass `Database` to `createClient<Database>()` in D-007.
 - Why: `npm run typecheck` then catches wrong table or column names at compile time.
 - Alternatives considered: Hand-written row types (drift from the schema). No types (no checks).
-- Consequences: A generated, committed file that must be regenerated after every migration. JS/JSX files stay unchecked, as in AGENTS.md. Not implemented yet.
+- Consequences: `src/types/database.ts` is generated and committed, and must be regenerated after schema migrations. The pinned CLI workflow is documented in `supabase/MIGRATIONS.md`. TypeScript catches Supabase table and column mismatches in typed files; JS/JSX files stay unchecked, as in AGENTS.md. Implemented.
 - Source: "[Supabase] Migrations and GitHub"
 
 ## D-017: Email and password authentication replaces magic-link sign-in

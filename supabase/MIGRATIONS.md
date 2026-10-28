@@ -71,3 +71,17 @@ These commands operate on the project linked by `supabase link`. Never skip the
 dry run for a remote push. Schema changes should be committed as migrations;
 use the dashboard to inspect data, not to make untracked production schema
 changes.
+
+## Regenerate TypeScript database types
+
+After applying a schema migration, regenerate the types from the linked
+project's `public` schema and run the TypeScript check:
+
+```sh
+npx supabase gen types typescript --linked --schema public > src/types/database.ts
+npm run typecheck
+```
+
+For local development, replace `--linked` with `--local` after applying the
+migrations locally. Commit the generated file with the migration that changed
+the schema.
