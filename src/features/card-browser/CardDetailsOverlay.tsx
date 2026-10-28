@@ -193,7 +193,11 @@ export default function CardDetailsOverlay({
             )}
 
             <div className="card-detail__renderer">
-              <CardRenderer key={`${displayCard.id}-${faceIndex}`} card={contentCard} />
+              <CardRenderer
+                key={`${displayCard.id}-${faceIndex}`}
+                card={contentCard}
+                showDetailsMetadata
+              />
             </div>
 
             <section className="card-detail__section">

@@ -6,7 +6,7 @@ import CardFrame from './CardFrame.jsx';
  * reversible_card. Two independent-or-related faces, one visible at a
  * time, toggled by the person.
  */
-export default function ToggleFacesCard({ card }) {
+export default function ToggleFacesCard({ card, showDetailsMetadata = false }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const face = card.faces[activeIndex];
   const canToggle = card.faces.length > 1;
@@ -19,6 +19,7 @@ export default function ToggleFacesCard({ card }) {
       <CardFrame 
         face={face} 
         image={face.image} 
+        showDetailsMetadata={showDetailsMetadata}
       />
       {canToggle && (
         <div className="input">

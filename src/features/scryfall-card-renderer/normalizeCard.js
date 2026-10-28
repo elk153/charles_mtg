@@ -14,7 +14,7 @@ import {
  *   block (image + text together) to read it as printed. See
  *   ROTATION_BY_LAYOUT in scryfallCardLayouts.js for how this is derived.
  */
-function toNormalizedFace(face, rotation) {
+function toNormalizedFace(face, rotation, card) {
   return {
     name: face.name,
     manaCost: face.mana_cost ?? null,
@@ -25,6 +25,8 @@ function toNormalizedFace(face, rotation) {
     toughness: face.toughness ?? null,
     loyalty: face.loyalty ?? null,
     defense: face.defense ?? null,
+    colors: face.colors ?? card.colors ?? [],
+    rarity: card.rarity ?? null,
     artist: face.artist ?? null,
     image: face.image_uris?.normal ?? face.image_uris?.large ?? null,
     // Only present on reversible_card faces — each face can have its own
@@ -62,8 +64,8 @@ export function normalizeCard(card) {
     : config.faceRotations;
 
   const faces = card.card_faces?.length
-    ? card.card_faces.map((face, index) => toNormalizedFace(face, faceRotations[index] ?? 0))
-    : [toNormalizedFace(card, faceRotations[0] ?? 0)];
+    ? card.card_faces.map((face, index) => toNormalizedFace(face, faceRotations[index] ?? 0, card))
+    : [toNormalizedFace(card, faceRotations[0] ?? 0, card)];
 
   return {
     id: card.id,

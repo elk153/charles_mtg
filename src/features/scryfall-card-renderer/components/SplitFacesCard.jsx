@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import OracleText from "./OracleText";
+import { CardFaceMetadata } from './CardFrame.jsx';
 
 /**
  * Covers: split, adventure. Both faces are legal casting options on the
  * same piece of card stock, shown at once rather than toggled.
  */
-export default function SplitFacesCard({ card }) {
+export default function SplitFacesCard({ card, showDetailsMetadata = false }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const resolvedRotation = card.rotation ?? card.faces[activeIndex].rotation ?? 0;
   const differentFaceOrientation = card.faces[0].rotation !== card.faces[1].rotation
@@ -25,7 +26,7 @@ export default function SplitFacesCard({ card }) {
       </div>
 
       <div className="card-frame">
-        {card.faces.map((face, index) => (
+        {card.faces.map((face) => (
           <div className="card-description">
             <div className="scryfall-card__header">
               <h3 className="scryfall-card__name">{face.name}</h3>
@@ -34,23 +35,17 @@ export default function SplitFacesCard({ card }) {
             {face.typeLine && (
               <em><span className="scryfall-card__type-line">{face.typeLine}</span></em>
             )}
-            {face.manaCost &&(
-              <span className="scryfall-card__mana-cost"><OracleText text={face.manaCost} Component="span" /></span>
-            )}
-             {face.power&& (
-              <span className={"color-pill color__M"}>
-                {face.power ? (face.power+"/"+face.toughness) : "N/A"}
-              </span>
-            )}
-            {face.loyalty&& (
-              <span className={"color-pill color__M"}>
-                {face.loyalty}
-              </span>
-            )}
-            {face.defense&& (
-              <span className={"color-pill color__M"}>
-                {face.defense}
-              </span>
+            {showDetailsMetadata ? (
+              <CardFaceMetadata face={face} />
+            ) : (
+              <>
+                {face.manaCost && (
+                  <span className="scryfall-card__mana-cost"><OracleText text={face.manaCost} Component="span" /></span>
+                )}
+                {face.power && <span className="color-pill color__M">{face.power}/{face.toughness ?? "—"}</span>}
+                {face.loyalty && <span className="color-pill color__M">{face.loyalty}</span>}
+                {face.defense && <span className="color-pill color__M">{face.defense}</span>}
+              </>
             )}
     
             {face.oracleText && (
@@ -94,23 +89,17 @@ export default function SplitFacesCard({ card }) {
               {activeFace.typeLine && (
                 <em><span className="scryfall-card__type-line">{activeFace.typeLine}</span></em>
               )}
-              {activeFace.manaCost &&(
-                  <span className="scryfall-card__mana-cost"><OracleText text={activeFace.manaCost} Component="span" /></span>
-              )}
-              {activeFace.power&& (
-                <span className={"color-pill color__M"}>
-                  {activeFace.power ? (activeFace.power+"/"+activeFace.toughness) : "N/A"}
-                </span>
-              )}
-              {activeFace.loyalty&& (
-                <span className={"color-pill color__M"}>
-                  {activeFace.loyalty}
-                </span>
-              )}
-              {activeFace.defense&& (
-                <span className={"color-pill color__M"}>
-                  {activeFace.defense}
-                </span>
+              {showDetailsMetadata ? (
+                <CardFaceMetadata face={activeFace} />
+              ) : (
+                <>
+                  {activeFace.manaCost && (
+                    <span className="scryfall-card__mana-cost"><OracleText text={activeFace.manaCost} Component="span" /></span>
+                  )}
+                  {activeFace.power && <span className="color-pill color__M">{activeFace.power}/{activeFace.toughness ?? "—"}</span>}
+                  {activeFace.loyalty && <span className="color-pill color__M">{activeFace.loyalty}</span>}
+                  {activeFace.defense && <span className="color-pill color__M">{activeFace.defense}</span>}
+                </>
               )}
       
               {activeFace.oracleText && (

@@ -8,7 +8,7 @@ import CardExtras from './extras/CardExtras.jsx';
  * This is the overwhelming majority of any real card pool, so it's the one
  * shape component imported eagerly in CardRenderer rather than lazy-loaded.
  */
-export default function OneFaceCard({ card }) {
+export default function OneFaceCard({ card, showDetailsMetadata = false }) {
   const face = card.faces[0];
 
   return (
@@ -16,6 +16,7 @@ export default function OneFaceCard({ card }) {
       <CardFrame 
         face={face} 
         image={face.image ?? card.rootImage} 
+        showDetailsMetadata={showDetailsMetadata}
       />
       <CardExtras 
         layout={card.layout} 

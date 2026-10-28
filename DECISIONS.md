@@ -262,12 +262,12 @@
 
 ## D-024: Card details: P/T, color pills, rarity pill
 
-- Status: Accepted
+- Status: Implemented
 - Date: 2026-10-28
-- Decision: In `CardDetailsOverlay.tsx`, show power/toughness (and loyalty/defense when present) next to the mana cost, per face. Add a row of color pills (color plus text, plus "Colorless") and a rarity pill. Extend `CardBrowserCard` and `isCardBrowserCard` in `types.ts` for the fields needed.
-- Why: The overlay currently shows none of these. Text in each pill keeps color from being the only signal (accessibility).
+- Decision: In the card-content panel, place mana cost beside power/toughness (and loyalty/defense when present), then color circles and a rarity pill on the next row, between type line and oracle text. This applies per face. Extend `CardBrowserCard` and `isCardBrowserCard` in `types.ts` for the fields needed.
+- Why: The overlay currently shows none of these. Color circles give a quick visual cue, with accessible labels preserving their meaning; the rarity remains a text pill.
 - Alternatives considered: Mana symbol images only (color-only, harder to read); showing P/T only below the rules text (requested next to mana cost).
-- Consequences: Touches the overlay, its CSS and `types.ts`; pill colors come from `src/theme.css` tokens. Multi-face cards need per-face handling. Check: `npm run typecheck` and `npm run build` pass; verify on a single-face creature, a double-faced card, a colorless card and a multicolor card.
+- Consequences: Renderer metadata is opt-in for the details overlay, leaving other renderer surfaces unchanged. Color circles use the Magic colors and have accessible labels; stat and rarity pills share a height. Check: `npm run typecheck`, `npm run build`, and targeted lint pass; browser verification covers a single-face creature, a double-faced card, a colorless card, and a multicolor card.
 - Source: "[Binder & Decks] Planning"
 
 ## D-025: Binder groundwork: hydration, DB types, updated_at

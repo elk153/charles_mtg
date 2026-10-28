@@ -9,7 +9,7 @@ import CardFrame from './CardFrame.jsx';
  * doesn't hard-code a data-fetching strategy (SWR, React Query, plain
  * fetch, a cached client, etc.) — pass whatever the app already uses.
  */
-export default function MeldCard({ card, fetchCardByUri }) {
+export default function MeldCard({ card, fetchCardByUri, showDetailsMetadata = false }) {
   const face = card.faces[0];
   const meldPart = card.allParts?.find((part) => part.component === 'meld_result');
   const [meldResult, setMeldResult] = useState(null);
@@ -32,6 +32,7 @@ export default function MeldCard({ card, fetchCardByUri }) {
       <CardFrame 
         face={face} 
         image={card.rootImage} 
+        showDetailsMetadata={showDetailsMetadata}
       />
       {meldPart && (
         <>

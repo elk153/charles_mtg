@@ -50,6 +50,10 @@ export type CardBrowserCard = Omit<ScryfallCard, "card_faces" | "prices"> & {
   artist?: string;
   oracle_text?: string;
   mana_cost?: string;
+  power?: string;
+  toughness?: string;
+  loyalty?: string;
+  defense?: string;
 };
 
 export type CardAction = "favorite" | "binder" | "deck";
@@ -111,7 +115,7 @@ export function isCardBrowserCard(value: unknown): value is CardBrowserCard {
     typeof value.name === "string" &&
     typeof value.layout === "string" &&
     typeof value.rarity === "string" &&
-    ["set", "set_name", "collector_number", "released_at", "artist", "oracle_text", "mana_cost", "rulings_uri", "prints_search_uri"].every(
+    ["set", "set_name", "collector_number", "released_at", "artist", "oracle_text", "mana_cost", "power", "toughness", "loyalty", "defense", "rulings_uri", "prints_search_uri"].every(
       (key) => isOptionalString(value, key),
     ) &&
     (!("cmc" in value) || typeof value.cmc === "number") &&
